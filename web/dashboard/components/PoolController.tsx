@@ -14,6 +14,7 @@ import {Container} from "reactstrap";
 import BodyState from "./BodyState";
 import Pump from "./Pumps";
 import Circuits from "./Circuits";
+import Features from "./Features";
 import Schedule from "./Schedules";
 import Chlorinator from "./Chlorinator";
 /*import EggTimer from './EggTimer/EggTimer'
@@ -40,16 +41,17 @@ export interface IState {
     features: IStateCircuit[];
     chlorinators: IStateChlorinator[];
     schedules: IStateSchedule[];
-    circuitGroups: any;
+    circuitGroups: IStateCircuit[];
     status: IDetail&{percent: number};
     time: Date;
     valve: number;
     body: number;
     freeze: boolean;
 }
+export enum ControllerType {"intellicenter", "intellitouch", "intellicom", "none"}
 export interface IConfig {
     lastUpdated: string;
-    controllerType: "intellicenter"|"intellitouch"|"intellicom"|"none";
+    controllerType: ControllerType;
     pool: IConfigPoolOptions;
     bodies: IConfigBody[];
     schedules: IConfigSchedule[];
@@ -58,6 +60,7 @@ export interface IConfig {
     equipment: IConfigEquipment;
     valves: IConfigValve[];
     circuits: IConfigCircuit[];
+    circuitGroups: IConfigCircuitGroup[];
     features: IConfigFeature[];
     pumps: IConfigPump[];
     chlorinators: IConfigChlorinator[];
@@ -66,12 +69,47 @@ export interface IConfig {
     heaters: any[];
     appVersion: string;
 }
+export interface EquipmentIdRange {
+    circuits: EqRange,
+    features: EqRange,
+    circuitGroups: EqRange,
+    virtualCircuits: EqRange
+}
+export interface EqRange {
+    start: number,
+    end: number
+}
+export interface IConfigCircuitGroup {
+    id: number;
+    type: number;
+    name: string;
+    eggTimer: number;
+    isActive: boolean;
+    lightingTheme?: number;
+    circuits: IConfigCircuitGroupCircuit[];
+}
+export interface IConfigCircuitGroupCircuit {
+    id: number;
+    circuit: number;
+    desiredStateOn: boolean
+}
+export interface IStateCircuitGroupCircuit{
+    id: number;
+    circuit: IStateCircuit[];
+    desiredStateOn: boolean
+}
+export enum equipmentType {'circuit', 'feature', 'circuitGroup', 'virtualCircuit'}
 export interface IStateCircuit {
     id: number;
     isOn: boolean;
     name: string;
     type?: IDetail;
     lightingTheme?: IDetail;
+    equipmentType: equipmentType;
+    showInFeatures: boolean;
+}
+export interface IStateCircuitGroup extends IStateCircuit{
+    circuits:  IConfigCircuitGroupCircuit[];
 }
 export interface IStateChlorinator {
     id: number;
@@ -193,6 +231,7 @@ export interface IConfigEquipment {
     bootloaderVersion?: string;
     softwareVersion?: string;
     highSpeedCircuits?: IConfigHighSpeedCircuit[];
+    equipmentIds: EquipmentIdRange;
 }
 export interface IConfigHighSpeedCircuit {
     id: number;
@@ -298,7 +337,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
         this.state={
             counter: 0,
             _config: {
-                controllerType: "none",
+                controllerType: ControllerType.none,
                 lastUpdated: "",
                 pool: {
                     options: {
@@ -320,10 +359,17 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     maxBodies: 0,
                     maxFeatures: 0,
                     maxIntelliBrites: 0,
-                    maxSchedules: 0
+                    maxSchedules: 0,
+                    equipmentIds: {
+                        circuits: {start: 1, end: 0},
+                        features: {start: 0, end: 0},
+                        virtualCircuits: {start: 237, end: 247},
+                        circuitGroups: {start: 192, end: 202}
+                    }
                 },
                 valves: [],
                 circuits: [],
+                circuitGroups: [],
                 features: [],
                 pumps: [],
                 chlorinators: [
@@ -590,6 +636,21 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         );
                     });
                     break;
+                case "circuitGroup":
+                    this.setState(state => {
+                        let circuitGroups=extend(true, [], state._state.circuitGroups);
+                        let index=state._state.circuitGroups.findIndex(el => {
+                            return el.id===d.id;
+                        });
+                        index===-1? circuitGroups.push(d):circuitGroups[index]=d;
+                        return extend(
+                            true,
+                            state,
+                            {_state: {circuitGroups: circuitGroups}},
+                            {counter: state.counter+1}
+                        );
+                    });
+                    break;
                 default:
                     console.log(`incoming socket ${which} not processed`);
                     console.log(d);
@@ -599,7 +660,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
 
     condensedCircuitFeatureList() {
         let special=[];
-        if(this.state._config.controllerType==="intellitouch") {
+        if(this.state._config.controllerType===ControllerType.intellitouch) {
             special.push(
                 {id: 0, name: "None", type: "special"},
                 {id: 128, name: "Solar", type: "special"},
@@ -618,7 +679,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
         return condensedC.concat(condensedF, special);
     }
     idOfFirstUnusedSchedule() {
-        if(this.state._config.controllerType==="intellitouch") {
+        if(this.state._config.controllerType===ControllerType.intellitouch) {
             // easytouch/intellitouch will grab the next available schedules.
             // since we are splitting up eggtimers/schedules we need to take a holistic look so we don't overwrite an existing schedule with a new one
             for(let i=1;i<=this.state._config.equipment.maxSchedules;i++) {
@@ -627,7 +688,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     this.state._config.eggTimers.filter(el => el.id===i).length;
                 if(!occupiedSlot) return i;
             }
-        } else if(this.state._config.controllerType==="intellicenter") {
+        } else if(this.state._config.controllerType===ControllerType.intellicenter) {
             // how to determine first unused?
         }
     }
@@ -664,18 +725,31 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         condensedCircuitsAndFeatures={this.condensedCircuitFeatureList()}
                     />
                     <Circuits
+                        controllerType={this.state._config.controllerType}
                         circuits={this.state._state.circuits}
                         hideAux={false}
                         id="Circuits"
                         visibility={"visible"}
                     />
-                    <Circuits
-                        circuits={this.state._state.features}
+                    <Features
+                        controllerType={this.state._config.controllerType}
+                        circuits={this.state._config.circuits}
+                        features={this.state._state.features}
+                        circuitGroupStates={this.state._state.circuitGroups}
+                        equipmentIds={this.state._config.equipment.equipmentIds}
                         hideAux={false}
                         id="Features"
                         visibility={"visible"}
+                        />
+                    <Circuits
+                        controllerType={this.state._config.controllerType}
+                        circuits={this.state._state.circuitGroups}
+                        hideAux={false}
+                        id="Circuit Groups"
+                        visibility={"visible"}
                     />
                     <Circuits
+                        controllerType={this.state._config.controllerType}
                         circuits={this.state._state.virtualCircuits}
                         hideAux={false}
                         id="Virtual circuits"

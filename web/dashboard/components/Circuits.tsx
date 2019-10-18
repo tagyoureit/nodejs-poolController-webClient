@@ -5,10 +5,11 @@ import
 import CustomCard from './CustomCard'
 import { toggleCircuit } from './Socket_Client'
 import * as React from 'react';
-import { IStateCircuit } from './PoolController';
+import { IStateCircuit, IConfigCircuitGroup, ControllerType } from './PoolController';
 
 interface Props
 {
+    controllerType: ControllerType;
     circuits: IStateCircuit[];
     hideAux: boolean,
     id: string;
@@ -21,13 +22,12 @@ class Circuits extends React.Component<Props, any> {
     constructor( props: Props )
     {
         super( props )
-
         this.handleClick = this.handleClick.bind( this );
     }
 
     circuit = () =>
     {
-        if ( typeof this.props.circuits === 'undefined' ) return ( <div /> );
+        if ( typeof this.props.circuits === 'undefined') return ( <div /> );
         // TODO: Aux Extra and NOT used should be hidden.
         // for ( var cir in data )
         // {
@@ -45,13 +45,9 @@ class Circuits extends React.Component<Props, any> {
             return (
                 <ListGroupItem key={feature.id + 'featurelistgroupkey'}>
                     <div className='d-flex justify-content-between'>
-
                         {feature.name}
-
                         <Button color={feature.isOn ? 'success' : 'primary'} key={feature.id + 'feature'} onClick={this.handleClick} value={feature.id} >{feature.isOn ? 'On' : 'Off'}
-
                         </Button>
-
                     </div>
                 </ListGroupItem>
             )
@@ -65,6 +61,7 @@ class Circuits extends React.Component<Props, any> {
     }
     render ()
     {
+        if (this.props.controllerType!==ControllerType.intellicenter && this.props.id==='Circuit Groups') return (<div />);
         return (
             <div className="feature-pane active" id={this.props.id} role="tabpanel" aria-labelledby="feature-tab">
                 <CustomCard name={this.props.id} id={this.props.id} visibility={this.props.visibility}>

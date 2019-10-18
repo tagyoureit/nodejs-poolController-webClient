@@ -82,6 +82,17 @@ export function toggleCircuit ( circuit: number ): void
     })
     
 }
+export function setCircuitState ( circuit: number, state:boolean = true ): void
+{
+    fetch( '/state/circuit/setState', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify( { id: circuit, state: state } )
+    })
+    
+}
 
 export function setHeatMode ( id: number, mode: number ): void
 {
