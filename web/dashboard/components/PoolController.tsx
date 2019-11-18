@@ -1,10 +1,7 @@
 import * as React from "react";
 var extend=require("extend");
 import {
-    incoming,
-    emitSocket,
-    hidePanel,
-    setPumpConfigCircuit
+    comms
 } from "./Socket_Client";
 // import Layout from './Layout';
 import Navbar from "./Navbar";
@@ -17,6 +14,7 @@ import Circuits from "./Circuits";
 import Features from "./Features";
 import Schedule from "./Schedules";
 import Chlorinator from "./Chlorinator";
+import {isArray} from "util";
 /*import EggTimer from './EggTimer/EggTimer'
 import ShouldDisplay from './ShouldDisplay'
 import Light from './Light/Light'
@@ -30,8 +28,8 @@ export interface IPoolSystem {
 }
 
 export interface IState {
-    temps: IStatePoolTemp;
-    pumps: IStatePoolPump[];
+    temps: IStateTemp;
+    pumps: IStatePump[];
     mode: IDetail;
     equipment: any;
     valves: any[];
@@ -98,6 +96,13 @@ export interface IStateCircuitGroupCircuit{
     circuit: IStateCircuit[];
     desiredStateOn: boolean
 }
+export interface IStatePumpCircuit {
+    id: number,
+    circuit: IStateCircuit,
+    speed?: number,
+    flow?: number,
+    units: IDetail
+}
 export enum equipmentType {'circuit', 'feature', 'circuitGroup', 'virtualCircuit'}
 export interface IStateCircuit {
     id: number;
@@ -137,7 +142,7 @@ export interface IStateSchedule {
         days: (IDetail&{dow: number})[];
     };
 }
-export interface IStatePoolPump {
+export interface IStatePump {
     command: number;
     driveState: number;
     flow?: number;
@@ -149,8 +154,9 @@ export interface IStatePoolPump {
     status: IDetail;
     type: IDetail;
     watts: number;
+    circuits: IStateCircuit[]
 }
-export interface IStatePoolTemp {
+export interface IStateTemp {
     air: number;
     bodies: IStateTempBodyDetail[];
     solar: number;
@@ -227,6 +233,7 @@ export interface IConfigEquipment {
     maxBodies: number;
     maxFeatures: number;
     maxIntelliBrites: number;
+    maxChlorinators: number;
     maxSchedules: number;
     bootloaderVersion?: string;
     softwareVersion?: string;
@@ -357,6 +364,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     shared: false,
                     maxCircuits: 0,
                     maxBodies: 0,
+                    maxChlorinators: 0,
                     maxFeatures: 0,
                     maxIntelliBrites: 0,
                     maxSchedules: 0,
@@ -408,7 +416,8 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         mode: 0,
                         ppc: 0,
                         runTime: 0,
-                        watts: 0
+                        watts: 0,
+                        circuits: []
                     }
                 ],
                 mode: {val: 0, name: "", desc: ""},
@@ -460,6 +469,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
             .then(res => res.json())
             .then(
                 result => {
+                    console.log({state: result})
                     this.setState(state => {
                         return extend(true, state, {_state: result});
                     });
@@ -472,6 +482,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
             .then(res => res.json())
             .then(
                 result => {
+                    console.log({config: result})
                     this.setState(state => {
                         return extend(true, state, {_config: result});
                     });
@@ -481,7 +492,8 @@ class PoolController extends React.Component<any, IPoolSystem> {
                 }
             );
 
-        incoming((d: any, which: string): void => {
+
+        comms.incoming((d: any, which: string): void => {
             console.log({[which]: d});
             switch(which) {
                 case "error":
@@ -501,6 +513,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     });
                     break;
                 case "pump":
+                case "pumpExt":
                     this.setState(state => {
                         let pumps=extend(true, [], state._state.pumps);
                         let index=state._state.pumps.findIndex(el => {
@@ -718,8 +731,8 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         visibility={"visible"}
                     />
                     <Pump
-                        pumpState={this.state._state.pumps}
-                        pumpConfig={this.state._config.pumps}
+                        pumpStates={this.state._state.pumps}
+                        pumpConfigs={this.state._config.pumps}
                         id="pumps"
                         visibility={"visible"}
                         condensedCircuitsAndFeatures={this.condensedCircuitFeatureList()}
@@ -762,7 +775,9 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         idOfFirstUnusedSchedule={this.idOfFirstUnusedSchedule()}
                     />
                     <Chlorinator
-                        data={this.state._state.chlorinators}
+                        chlorState={this.state._state.chlorinators[0]}
+                        chlorConfig={this.state._config.chlorinators[0]}
+                        maxBodies={this.state._config.equipment.maxBodies}
                         id="chlorinators"
                         visibility={"visible"}
                     />

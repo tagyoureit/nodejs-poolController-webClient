@@ -9,15 +9,15 @@ import CustomCard from './CustomCard'
 import DateTime from './DateTime'
 import * as React from 'react';
 import PumpConfigModalPopup from './PumpConfig/PumpConfigModalPopup'
-import { IStatePoolPump, IConfigPump } from './PoolController';
+import { IStatePump, IConfigPump } from './PoolController';
 
 interface Props
 {
-    pumpState: IStatePoolPump[];
+    pumpStates: IStatePump[];
+    pumpConfigs: IConfigPump[]
     id: string;
     visibility: string;
     condensedCircuitsAndFeatures: { id: number, name: string, type: string }[];
-    pumpConfig: IConfigPump[]
     //controlType: 'pumpConfig' | 'manual'
 }
 interface State
@@ -45,8 +45,8 @@ class Pump extends React.Component<Props, State> {
     render ()
     {
         const colCount = Object.keys( this.props ).length + 1
-        if ( typeof this.props.pumpState[ 0 ] === 'undefined' ) return ( 'nothing' );
-        let pumps =  this.props.pumpState.map( ( pump ) =>
+        if ( typeof this.props.pumpStates[ 0 ] === 'undefined' ) return ( 'nothing' );
+        let pumps =  this.props.pumpStates.map( ( pump ) =>
         {
                 return (
                     <Card key={'pump' + pump.id + 'card'}>
@@ -70,8 +70,8 @@ class Pump extends React.Component<Props, State> {
         {
             return (
             <PumpConfigModalPopup
-                    pumpConfig={this.props.pumpConfig}
-                    pumpState={this.props.pumpState}
+                    pumpConfigs={this.props.pumpConfigs}
+                    pumpStates={this.props.pumpStates}
                     condensedCircuitsAndFeatures={this.props.condensedCircuitsAndFeatures}
                     id='pumpConfig'
                     visibility='visible' /> )
@@ -94,8 +94,6 @@ class Pump extends React.Component<Props, State> {
                             <Button  onClick={this.toggleModal}>Close</Button>
                         </ModalFooter>
                     </Modal>
-             
-
             </div>
         );
     }

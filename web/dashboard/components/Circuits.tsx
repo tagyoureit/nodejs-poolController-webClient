@@ -3,7 +3,7 @@ import
     ListGroup, ListGroupItem, Button
 } from 'reactstrap';
 import CustomCard from './CustomCard'
-import { toggleCircuit } from './Socket_Client'
+import { comms } from './Socket_Client'
 import * as React from 'react';
 import { IStateCircuit, IConfigCircuitGroup, ControllerType } from './PoolController';
 
@@ -57,7 +57,7 @@ class Circuits extends React.Component<Props, any> {
     }
     handleClick = ( event: any ): any =>
     {
-        toggleCircuit( event.target.value )
+        comms.toggleCircuit( event.target.value )
     }
     render ()
     {

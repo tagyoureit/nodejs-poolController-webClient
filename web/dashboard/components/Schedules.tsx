@@ -27,6 +27,7 @@ class Schedule extends React.Component<Props, any> {
     let res: any[] = [];
 
     this.allWeekdays.map(day => {
+        if (!schedDays) return (<div />);
       res.push(
         <Button
           className="m-1"
@@ -50,6 +51,7 @@ class Schedule extends React.Component<Props, any> {
 
     this.allWeekdays.map(day => {
       // this had size='sm' but typescript doesn't like it... do we need to keep it small?
+      if (!schedDays) return (<div />);
       res.push(
         <span
           key={day + "letter"}

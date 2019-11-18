@@ -4,12 +4,12 @@ import InfiniteCalendar from 'react-infinite-calendar';
 import 'react-infinite-calendar/styles.css';
 import Timekeeper from 'react-timekeeper';
 import '../css/modal.css'
-import { setDateTime } from './Socket_Client'
+import { comms } from './Socket_Client'
 import * as React from 'react';
 
 interface Props
 {
-  dateTime: Date;
+  origDateTime: Date;
 }
 interface State
 {
@@ -23,15 +23,14 @@ class DateTime extends React.Component<Props, State> {
   constructor( props: any )
   {
     super( props );
-    let _dt = new Date( this.props.dateTime )
-    console.log( `received date ${ this.props.dateTime.toISOString()}` )
+    let _dt = new Date(this.props.origDateTime);
     this.state = {
-      modal: false,
-      dateTime: _dt,
-      newDateTime: _dt,
-      time: `${ _dt.getHours() }:${ _dt.getMinutes() }`
-    };
-
+        modal: false,
+        dateTime: _dt,
+        newDateTime: _dt,
+        time: `${_dt.getHours()}:${this.pad(_dt.getMinutes())}`
+      };
+      console.log(this.props.origDateTime)
     this.toggle = this.toggle.bind( this )
     this.submit = this.submit.bind( this );
     this.handleTimeChange = this.handleTimeChange.bind( this )
@@ -42,10 +41,8 @@ class DateTime extends React.Component<Props, State> {
   handleTimeChange ( newTime: any )
   {
     // event when time picker is closed
-    console.log( newTime.formatted );
     let newDt = this.state.newDateTime;
-    newDt.setHours( newTime.hour24, newTime.minute );
-    console.log( `will update to ${ newDt.toLocaleString( 'en-US' ) }` )
+    newDt.setHours( newTime.hour, newTime.minute );
 
     this.setState( {
       newDateTime: newDt,
@@ -61,9 +58,9 @@ class DateTime extends React.Component<Props, State> {
     newDt.setDate( newDate.getDate() );
     newDt.setFullYear( newDate.getFullYear() );
     console.log( `will update to ${ newDt.toLocaleString( 'en-US' ) }` )
-    this.setState( {
+     this.setState( {
       newDateTime: newDt
-    } )
+    } ) 
   }
 
   toggle ()
@@ -77,29 +74,33 @@ class DateTime extends React.Component<Props, State> {
   submit ()
   {
     // submit changes to socket
-    // setDateTime(this.state.newDateTime)
-    console.log( `will set datetime to ${ this.state.newDateTime.toISOString() }` )
+    comms.setDateTime(this.state.newDateTime)
     this.toggle()
   }
 
   cancel ()
   {
     // when cancel button is pressed reset state
+    let _dt = new Date(this.props.origDateTime);
     this.setState( {
-      modal: !this.state.modal
+      modal: !this.state.modal,
+      dateTime: _dt,
+      newDateTime: _dt,
+      time: `${_dt.getHours()}:${this.pad(_dt.getMinutes())}`
     } )
   }
-
+  pad(n){
+      return n < 10 ? `0${n}` : n;
+  }
   render ()
   {
     const closeBtn = <button className="close" onClick={this.cancel}>&times;</button>;
-
+    let dt = new Date(this.props.origDateTime).toLocaleString([], {month:'2-digit',day:'2-digit',year: 'numeric', hour: '2-digit', minute:'2-digit', hour12: true})
     return (
       <div>
-
         <Button color="primary" onClick={this.toggle}>
           {/* Update this to use 12/24 hour option if available */}
-          {this.state.dateTime.toLocaleString([], {month:'2-digit',day:'2-digit',year: 'numeric', hour: '2-digit', minute:'2-digit', hour12: true})}
+          {dt}
         </Button>
         <Modal isOpen={this.state.modal} toggle={this.toggle} size='xl' >
           <ModalHeader toggle={this.toggle} close={closeBtn}>Adjust time and date</ModalHeader>
@@ -119,13 +120,9 @@ class DateTime extends React.Component<Props, State> {
                 />
               </Col>
             </Row>
-
-
           </ModalBody>
           <ModalFooter>
-
-            <Button color={this.state.newDateTime === this.props.dateTime ? 'primary' : 'secondary'} onClick={this.submit}>{this.state.newDateTime === this.props.dateTime ? 'Update' : 'Cancel'}</Button>
-
+            <Button color={this.state.newDateTime === this.props.origDateTime ? 'secondary' : 'primary'} onClick={this.submit}>{this.state.newDateTime === this.props.origDateTime ? 'Cancel' : 'Update'}</Button>
           </ModalFooter>
         </Modal>
       </div>

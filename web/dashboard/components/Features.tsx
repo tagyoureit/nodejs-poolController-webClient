@@ -3,7 +3,7 @@ import
     ListGroup, ListGroupItem, Button, Popover, PopoverHeader, PopoverBody
 } from 'reactstrap';
 import CustomCard from './CustomCard'
-import { toggleCircuit, setCircuitState } from './Socket_Client'
+import { comms } from './Socket_Client'
 import * as React from 'react';
 import {useState} from 'react';
 import { IStateCircuit, IConfigCircuit, EquipmentIdRange, getItemById, ControllerType } from './PoolController';
@@ -93,8 +93,8 @@ class Features extends React.Component<Props, State> {
     handleClick = ( event: any ): any =>
     {   
         let circ = event.target.value;
-        if (getItemById(this.props.circuits, circ).isMacro) setCircuitState(circ);
-        toggleCircuit( circ );
+        if (getItemById(this.props.circuits, circ).isMacro) comms.setCircuitState(circ);
+        comms.toggleCircuit( circ );
     }
     render ()
     {

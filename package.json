@@ -11,6 +11,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "express": "^4.17.1",
+    "multicast-dns": "^7.2.0",
     "parcel-bundler": "^1.12.3",
     "react": "^16.9.0",
     "react-data-grid": "^6.1.0",

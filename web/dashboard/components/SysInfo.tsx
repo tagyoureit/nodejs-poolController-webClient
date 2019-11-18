@@ -24,11 +24,9 @@ interface Props
 }
 
 class SysInfo extends React.Component<Props, any> {
-    _dt: Date;
     constructor( props: Props )
     {
-        super( props )
-        this._dt = new Date( this.props.dateTime )   
+        super( props ) 
     }
 
     render ()
@@ -45,7 +43,7 @@ class SysInfo extends React.Component<Props, any> {
                     <Row>
                         <Col xs="6">Date/Time </Col>
                         <Col>
-                            <DateTime  dateTime={this._dt} />
+                            <DateTime  origDateTime={this.props.dateTime} />
                         </Col>
                     </Row>
 

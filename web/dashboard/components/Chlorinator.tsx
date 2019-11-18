@@ -6,18 +6,20 @@ import CustomCard from './CustomCard'
 import 'react-rangeslider/lib/index.css'
 import ChlorinatorCustomSlider from './ChlorinatorCustomSlider'
 import * as React from 'react';
-import { IStateChlorinator, getItemById } from './PoolController';
+import { IStateChlorinator, getItemById, IConfigChlorinator } from './PoolController';
 var extend = require( 'extend' );
 interface Props
 {
-    data: IStateChlorinator[];
+    chlorState: IStateChlorinator;
+    chlorConfig: IConfigChlorinator;
+    maxBodies: number;
     id: string;
     visibility: string;
 }
 interface State
 {
-    modal: boolean,
-    currentChlor: IStateChlorinator
+    modal: boolean
+    // currentChlor: IStateChlorinator
 }
 
 class Chlorinator extends React.Component<Props, State> {
@@ -27,7 +29,7 @@ class Chlorinator extends React.Component<Props, State> {
         super( props )
         this.state = {
             modal: false,
-            currentChlor: extend(true,{},this.props.data[1])
+            // currentChlor: extend(true,{},this.props.chlorState[1])
         };
         this.toggle = this.toggle.bind( this );
         this.toggleFromButton = this.toggleFromButton.bind( this );
@@ -45,14 +47,13 @@ class Chlorinator extends React.Component<Props, State> {
         let target = parseInt(ev.currentTarget.value, 10)
         this.setState( () => ( {
             modal: !this.state.modal,
-            currentChlor: getItemById(this.props.data,target)
+            currentChlor: getItemById(this.props.chlorState,target)
         } ));
     }
 
     chlorinator = () =>
     {
-        return this.props.data.map( chlor =>
-        {
+            let chlor = this.props.chlorState;
             let chlorStatus;
             if ( chlor.currentOutput >= 100 )
             {
@@ -83,9 +84,9 @@ class Chlorinator extends React.Component<Props, State> {
                             <Col xs="6">{chlor.currentOutput} %</Col>
                         </Row>
                         <Row>
-                            <Col xs="6">{chlor.spaSetpoint === -1 ? 'Pool Setpoint' : 'Pool/Spa Setpoint'}
+                            <Col xs="6">{this.props.maxBodies === 1 ? 'Pool Setpoint' : 'Pool/Spa Setpoint'}
                             </Col>
-                            <Col xs="6">{chlor.spaSetpoint === -1 ? `${ chlor.poolSetpoint }%` : `${ chlor.poolSetpoint }% / ${ chlor.spaSetpoint }%`}
+                            <Col xs="6">{this.props.maxBodies === 11 ? `${ chlor.poolSetpoint }%` : `${ chlor.poolSetpoint }% / ${ chlor.spaSetpoint }%`}
                             </Col>
                         </Row>
                         <Row>
@@ -94,21 +95,26 @@ class Chlorinator extends React.Component<Props, State> {
                         </Row>
                 </ListGroupItem>
             </ListGroup> )
-        } )
     }
 
     render ()
     {
+        if (this.props.chlorConfig.isActive === false) return (<div />);
         const closeBtn = <button className="close" onClick={this.toggle}>&times;</button>;
+
         return (
             <div className="tab-pane active" id={this.props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
                 <CustomCard name='Chlorinator' id={this.props.id} visibility={this.props.visibility}>
                     {this.chlorinator()}
                 </CustomCard>
                 <Modal isOpen={this.state.modal} toggle={this.toggle} size='xl' >
-                    <ModalHeader toggle={this.toggle} close={closeBtn}>Adjust Chlorinator Levels for ID:{this.state.currentChlor.id}</ModalHeader>
+                    <ModalHeader toggle={this.toggle} close={closeBtn}>Adjust Chlorinator Levels for ID:{this.props.chlorState.id}</ModalHeader>
                     <ModalBody>
-                        <ChlorinatorCustomSlider {...this.state.currentChlor}  />
+                        <ChlorinatorCustomSlider 
+                            chlorState= {this.props.chlorState}
+                            chlorConfig= {this.props.chlorConfig}
+                            maxBodies = {this.props.maxBodies}
+                          />
                     </ModalBody>
                     <ModalFooter>
                         <Button onClick={this.toggle}>Close</Button>

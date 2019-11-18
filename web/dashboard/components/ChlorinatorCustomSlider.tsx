@@ -1,12 +1,16 @@
 import { Container, Row, Col, Button } from 'reactstrap'
-import { setChlor } from './Socket_Client'
+import { comms } from './Socket_Client'
 import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
 import '../css/rangeslider.css'
 import * as React from 'react';
-import { IStateChlorinator, IState, getItemById } from './PoolController'
+import { IStateChlorinator, IState, getItemById, IConfigChlorinator } from './PoolController'
 
-
+interface Props{
+    chlorState: IStateChlorinator,
+    chlorConfig: IConfigChlorinator
+    maxBodies: number
+}
 
 interface State
 {
@@ -15,44 +19,43 @@ interface State
   superChlorHours: number;
 }
 
-class ChlorinatorCustomSlider extends React.Component<IStateChlorinator, State> {
-  constructor( props: IStateChlorinator )
+class ChlorinatorCustomSlider extends React.Component<Props, State> {
+  constructor( props: Props )
   {
     super( props )
 
-    this.state = {
-      poolSetpoint: 0,
-      spaSetpoint: -1,
-      superChlorHours: 0
-    }
-
+    this.state = { 
+        poolSetpoint: this.props.chlorState.poolSetpoint || 0,
+        spaSetpoint: this.props.chlorState.spaSetpoint || 0,
+        superChlorHours: this.props.chlorState.superChlorHours || 0 
+    } 
     this.onChangePool = this.onChangePool.bind( this )
 
   }
 
-
-
-  componentDidMount ()
+/*   componentDidMount ()
   {
-
-    this.setState( { poolSetpoint: this.props.poolSetpoint } )
-    this.setState( { spaSetpoint: this.props.spaSetpoint } )
-    this.setState( { superChlorHours: this.props.superChlorHours } )
+    this.setState( { 
+        poolSetpoint: this.props.chlorState.poolSetpoint || 0,
+        spaSetpoint: this.props.chlorState.spaSetpoint || 0,
+        superChlorHours: this.props.chlorState.superChlorHours || 0 
+    } )
   }
-
-  componentDidUpdate ( prevProps: IStateChlorinator )
+ */
+  componentDidUpdate ( prevProps: Props )
   {
-    if ( prevProps.poolSetpoint !== this.props.poolSetpoint
+    if ( prevProps.chlorState.poolSetpoint !== this.props.chlorState.poolSetpoint
     )
-      this.setState( { poolSetpoint: this.props.poolSetpoint } )
+      this.setState( { poolSetpoint: this.props.chlorState.poolSetpoint } )
 
-    if ( prevProps.spaSetpoint !== this.props.spaSetpoint
+      if (this.props.maxBodies > 1)
+    if ( prevProps.chlorState.spaSetpoint !== this.props.chlorState.spaSetpoint
     )
-      this.setState( { spaSetpoint: this.props.spaSetpoint } )
+      this.setState( { spaSetpoint: this.props.chlorState.spaSetpoint } )
 
-    if ( prevProps.superChlorHours !== this.props.superChlorHours
+    if ( prevProps.chlorState.superChlorHours !== this.props.chlorState.superChlorHours
     )
-      this.setState( { superChlorHours: this.props.superChlorHours } )
+      this.setState( { superChlorHours: this.props.chlorState.superChlorHours } )
   }
 
   onChangePool = ( poolLvl: number ) =>
@@ -87,7 +90,7 @@ class ChlorinatorCustomSlider extends React.Component<IStateChlorinator, State> 
 
   onChangeComplete = () =>
   {
-    setChlor( this.props.id, this.state.poolSetpoint, this.state.spaSetpoint, this.state.superChlorHours )
+    comms.setChlor( this.props.chlorState.id, this.state.poolSetpoint, this.state.spaSetpoint || 0, this.state.superChlorHours )
   }
 
   // Todo: don't show Spa in single body of water
