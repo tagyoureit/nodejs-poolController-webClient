@@ -10,15 +10,19 @@ import { getItemById, IStatePump, IStatePumpCircuit } from '../PoolController';
 
 interface Props
 {
-    currentPumpState: IStatePump
-    currentCircuitSlotNumber: number
-    condensedCircuitsAndFeatures: { id: number, name: string, type: string }[];
+    // currentPumpCircuit: IStatePump
+    //currentCircuitSlotNumber: number
+    availableCircuits: { id: number, name: string, type: string }[];
+    currentPumpCircuit: IStatePumpCircuit
+    disabled: boolean
+    onChange: (pumpCircuit: number, obj: any)=>void
+    onDelete: (pumpCircuit: number)=>void
 }
 interface State
 {
     dropdownOpen: boolean,
-    currentPump: number,
-    currentPumpCircuitState: IStatePumpCircuit
+    //currentPump: number,
+    dropdownCircuits: any
 }
 
 class PumpConfigSelectCircuit extends React.Component<Props, State> {
@@ -30,16 +34,21 @@ class PumpConfigSelectCircuit extends React.Component<Props, State> {
         this.handleClick = this.handleClick.bind( this );
         this.state = {
             dropdownOpen: false, 
-            currentPump: this.props.currentPumpState.id || undefined,
-            currentPumpCircuitState: getItemById(this.props.currentPumpState.circuits, this.props.currentCircuitSlotNumber) || {circuit: {name: 'Not Used'}}
+            dropdownCircuits: this.circuitSelectors()
         };
     }
 
+    componentDidUpdate(prevProps, prevState ) {
+
+    }
     handleClick ( event: any )
     {
-        console.log( `changing pump=${ this.state.currentPump } circuitSlot=${ this.props.currentCircuitSlotNumber } type to circuit ${ event.target.value } (${ getItemById(this.props.condensedCircuitsAndFeatures, parseInt(event.target.value, 10)) .name })` )
-        
-        comms.setPumpCircuit( this.state.currentPump, this.props.currentCircuitSlotNumber, {circuit: parseInt( event.target.value, 10 )} )
+        console.log( `changing  circuitSlot=${ this.props.currentPumpCircuit.id } type to circuit ${ event.target.value } (${ getItemById(this.props.availableCircuits, parseInt(event.target.value, 10)) .name })` )
+        if (event.target.value === "255"){
+            this.props.onDelete(this.props.currentPumpCircuit.id)
+        }
+        else
+        this.props.onChange(this.props.currentPumpCircuit.id, {circuit: parseInt( event.target.value, 10 )})
     }
 
     toggle ()
@@ -48,32 +57,46 @@ class PumpConfigSelectCircuit extends React.Component<Props, State> {
             dropdownOpen: !this.state.dropdownOpen
         } );
     }
+    circuitSelectors = () =>
+    {
+        let dropdownChildren: React.ReactFragment[] = [];
+        for ( let i = 0; i < this.props.availableCircuits.length; i++ )
+        {
+            // insert first header
+            if (i === 0) dropdownChildren.push(<DropdownItem key={`${ this.props.currentPumpCircuit.id }${ i*100 }CircuitSelect`} header={true}>{this.props.availableCircuits[ i ].type}</DropdownItem>)
+            // insert divider
+            if (i > 0 && this.props.availableCircuits[ i ].type !== this.props.availableCircuits[ i-1 ].type ){
 
+                dropdownChildren.push(<DropdownItem key={`${ this.props.currentPumpCircuit.id }${ i*100 }CircuitSelect`} divider={true}></DropdownItem>)
+                dropdownChildren.push(<DropdownItem key={`${ this.props.currentPumpCircuit.id }${ i*101 }CircuitSelect`} header={true}>{ i===this.props.availableCircuits.length-1?'':this.props.availableCircuits[ i ].type}</DropdownItem>)
+            }
+            let circ = this.props.availableCircuits[ i ];
+            let displayText = circ.name==='Remove'?(<p className='text-danger' color='red'>{circ.name}</p>):circ.name;
+            let entry:React.ReactFragment = ( <DropdownItem key={`${ this.props.currentPumpCircuit.id }${ circ.id }CircuitSelect`}
+                value={circ.id}
+                onClick={this.handleClick} 
+            >{displayText}</DropdownItem> )
+            dropdownChildren.push( entry );
+        }
+        return dropdownChildren;
+    }
     render ()
     {
-        const circuitSelectors = () =>
-        {
-            let dropdownChildren: React.ReactFragment[] = [];
-            for ( let i = 0; i < this.props.condensedCircuitsAndFeatures.length; i++ )
-            {
-                let circ = this.props.condensedCircuitsAndFeatures[ i ];
-                let entry:React.ReactFragment = ( <DropdownItem key={`${ this.props.currentPumpState.id }${ circ.id }CircuitSelect`}
-                    value={circ.id}
-                    onClick={this.handleClick}
-                >
-                    {circ.name}
-                </DropdownItem> )
-                dropdownChildren.push( entry );
-            }
-            return dropdownChildren;
-        }
+    
 
         return (
-            <ButtonDropdown size='sm' isOpen={this.state.dropdownOpen} toggle={this.toggle}
-                style={{ width: '60%' }} className='fullWidth'
+            <ButtonDropdown 
+            direction="right"
+            size='sm' 
+            isOpen={this.state.dropdownOpen} 
+            toggle={this.toggle}
+            style={{ width: '60%' }} 
+            className='fullWidth'
             >
-                <DropdownToggle caret >
-                    {this.state.currentPumpCircuitState.circuit.name}
+                <DropdownToggle 
+                disabled={this.props.disabled}
+                caret >
+                    {this.props.currentPumpCircuit.circuit.name}
                 </DropdownToggle>
                 <DropdownMenu 
                 modifiers={{
@@ -86,14 +109,14 @@ class PumpConfigSelectCircuit extends React.Component<Props, State> {
                                 styles: {
                                     ...data.styles,
                                     overflow: 'auto',
-                                    maxHeight: '300px'
+                                    maxHeight: '500px'
                                 }
                             }
                         }
                     }
                 }}
                 >
-                   {circuitSelectors()}
+                   {this.circuitSelectors()}
                 </DropdownMenu>
             </ButtonDropdown>
 

@@ -272,38 +272,24 @@ export class Comms {
         })
     }
 
-    // public setPumpConfigCircuit(pump: number, circuitId: number, pumpCircuitId: number) {
-    //     // socket.emit( 'setPumpConfigCircuit', _pump, _circuitSlot, _circuit )
-    //     fetch('/config/pump/circuit', {
-    //         method: 'PUT',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({id: pump, circuitId: circuitId, pumpCircuitId: pumpCircuitId})
-    //     })
-    // }
+
 
     public setPump(id, pumpType) {
         // socket.emit( 'setPumpConfigType', _pump, _type )
-        fetch(`${mdns.url}/config/pump/type`, {
+        fetch(`${mdns.url}/config/pump/${id}/type`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({id: id, type: pumpType})
+            body: JSON.stringify({pumpType: pumpType})
         })
     }
 
-    // public setPumpConfigUnits(pump, pumpCircuitId: number, units) {
-    //     // socket.emit( 'setPumpConfigRPMGPM', _pump, _circuitSlot, _speedType )
-    //     fetch('/config/pump/circuitRateUnits', {
-    //         method: 'PUT',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({id: pump, units: units, pumpCircuitId: pumpCircuitId})
-    //     })
-    // }
+    public deletePumpCircuit(pump, pumpCircuitId: number) {
+        fetch(`${mdns.url}/config/pump/${pump}/pumpCircuit/${pumpCircuitId}`, {
+            method: 'DELETE'
+        })
+    }
 
 }
 

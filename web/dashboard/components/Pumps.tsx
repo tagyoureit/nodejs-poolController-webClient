@@ -10,6 +10,7 @@ import DateTime from './DateTime'
 import * as React from 'react';
 import PumpConfigModalPopup from './PumpConfig/PumpConfigModalPopup'
 import { IStatePump, IConfigPump } from './PoolController';
+import {comms, mdns} from './Socket_Client';
 
 interface Props
 {
@@ -17,7 +18,7 @@ interface Props
     pumpConfigs: IConfigPump[]
     id: string;
     visibility: string;
-    condensedCircuitsAndFeatures: { id: number, name: string, type: string }[];
+    // condensedCircuitsAndFeatures: { id: number, name: string, type: string }[];
     //controlType: 'pumpConfig' | 'manual'
 }
 interface State
@@ -29,12 +30,12 @@ class Pump extends React.Component<Props, State> {
     constructor( props: Props )
     {
         super( props )
+    
         this.state = {
             modalOpen: false
         };
         this.toggleModal = this.toggleModal.bind( this )
     }
-
     toggleModal() {
         // open and close the modal
         this.setState({
@@ -72,7 +73,7 @@ class Pump extends React.Component<Props, State> {
             <PumpConfigModalPopup
                     pumpConfigs={this.props.pumpConfigs}
                     pumpStates={this.props.pumpStates}
-                    condensedCircuitsAndFeatures={this.props.condensedCircuitsAndFeatures}
+                    // condensedCircuitsAndFeatures={this.state.availableCircuits}
                     id='pumpConfig'
                     visibility='visible' /> )
         }

@@ -91,7 +91,7 @@ export interface IConfigCircuitGroupCircuit {
     circuit: number;
     desiredStateOn: boolean
 }
-export interface IStateCircuitGroupCircuit{
+export interface IStateCircuitGroupCircuit {
     id: number;
     circuit: IStateCircuit[];
     desiredStateOn: boolean
@@ -113,8 +113,8 @@ export interface IStateCircuit {
     equipmentType: equipmentType;
     showInFeatures: boolean;
 }
-export interface IStateCircuitGroup extends IStateCircuit{
-    circuits:  IConfigCircuitGroupCircuit[];
+export interface IStateCircuitGroup extends IStateCircuit {
+    circuits: IConfigCircuitGroupCircuit[];
 }
 export interface IStateChlorinator {
     id: number;
@@ -154,7 +154,7 @@ export interface IStatePump {
     status: IDetail;
     type: IDetail;
     watts: number;
-    circuits: IStateCircuit[]
+    circuits: IStatePumpCircuit[]
 }
 export interface IStateTemp {
     air: number;
@@ -513,7 +513,6 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     });
                     break;
                 case "pump":
-                case "pumpExt":
                     this.setState(state => {
                         let pumps=extend(true, [], state._state.pumps);
                         let index=state._state.pumps.findIndex(el => {
@@ -527,6 +526,19 @@ class PoolController extends React.Component<any, IPoolSystem> {
                             {counter: state.counter+1}
                         );
                     });
+                    break;
+                case "pumpExt":
+                    this.setState(prevstate => {
+                        // here we do not extend, just replace the object
+                        let index=this.state._state.pumps.findIndex(el => {
+                            return el.id===d.id;
+                        });
+                        //let pumps=extend(true, [], prevstate._state.pumps);
+                        prevstate._state.pumps[index] = d;
+                        return {
+                            _state: prevstate._state,
+                            counter: prevstate.counter+1
+                        }});
                     break;
                 case "chlorinator":
                     this.setState(state => {
@@ -671,26 +683,26 @@ class PoolController extends React.Component<any, IPoolSystem> {
         });
     }
 
-    condensedCircuitFeatureList() {
-        let special=[];
-        if(this.state._config.controllerType===ControllerType.intellitouch) {
-            special.push(
-                {id: 0, name: "None", type: "special"},
-                {id: 128, name: "Solar", type: "special"},
-                {id: 129, name: "Either Heater", type: "special"},
-                {id: 130, name: "Pool Heater", type: "special"},
-                {id: 131, name: "Spa Heater", type: "special"},
-                {id: 132, name: "Freeze", type: "special"}
-            );
-        }
-        let condensedF=this.state._state.features.map(el => {
-            return {id: el.id, name: el.name, type: "feature"};
-        });
-        let condensedC=this.state._state.circuits.map(el => {
-            return {id: el.id, name: el.name, type: "circuit"};
-        });
-        return condensedC.concat(condensedF, special);
-    }
+    // condensedCircuitFeatureList() {
+    //     let special=[];
+    //     if(this.state._config.controllerType===ControllerType.intellitouch) {
+    //         special.push(
+    //             {id: 0, name: "None", type: "special"},
+    //             {id: 128, name: "Solar", type: "special"},
+    //             {id: 129, name: "Either Heater", type: "special"},
+    //             {id: 130, name: "Pool Heater", type: "special"},
+    //             {id: 131, name: "Spa Heater", type: "special"},
+    //             {id: 132, name: "Freeze", type: "special"}
+    //         );
+    //     }
+    //     let condensedF=this.state._state.features.map(el => {
+    //         return {id: el.id, name: el.name, type: "feature"};
+    //     });
+    //     let condensedC=this.state._state.circuits.map(el => {
+    //         return {id: el.id, name: el.name, type: "circuit"};
+    //     });
+    //     return condensedC.concat(condensedF, special);
+    // }
     idOfFirstUnusedSchedule() {
         if(this.state._config.controllerType===ControllerType.intellitouch) {
             // easytouch/intellitouch will grab the next available schedules.
@@ -735,7 +747,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         pumpConfigs={this.state._config.pumps}
                         id="pumps"
                         visibility={"visible"}
-                        condensedCircuitsAndFeatures={this.condensedCircuitFeatureList()}
+                    // condensedCircuitsAndFeatures={this.condensedCircuitFeatureList()}
                     />
                     <Circuits
                         controllerType={this.state._config.controllerType}
@@ -753,7 +765,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         hideAux={false}
                         id="Features"
                         visibility={"visible"}
-                        />
+                    />
                     <Circuits
                         controllerType={this.state._config.controllerType}
                         circuits={this.state._state.circuitGroups}

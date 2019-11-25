@@ -3,11 +3,10 @@ import {
 } from 'reactstrap';
 import CustomCard from '../CustomCard'
 import * as React from 'react';
-import PumpConfigTabs from './PumpConfigTabs'
+import PumpConfig from './PumpConfig'
 import {IStatePump, IConfigPump, getItemById} from '../PoolController';
-
+import {mdns} from "../Socket_Client"
 interface Props {
-    condensedCircuitsAndFeatures: {id: number, name: string, type: string}[];
     pumpConfigs: IConfigPump[];
     pumpStates: IStatePump[];
     id: string;
@@ -17,7 +16,8 @@ interface State {
     activeLink: string
     currentPumpNum: number
     currentPumpState: IStatePump,
-    currentPumpConfig: IConfigPump
+    currentPumpConfig: IConfigPump,
+    availableCircuits: {type: string, id: number, name: string}[]
 }
 
 class PumpConfigModalPopup extends React.Component<Props, State> {
@@ -29,21 +29,37 @@ class PumpConfigModalPopup extends React.Component<Props, State> {
             activeLink: 'pump1',
             currentPumpNum: 1,
             currentPumpState: getItemById(this.props.pumpStates, 1),
-            currentPumpConfig: getItemById(this.props.pumpConfigs, 1)
+            currentPumpConfig: getItemById(this.props.pumpConfigs, 1),
+            availableCircuits: []
         }
 
         this.handleNavClick=this.handleNavClick.bind(this)
     }
-    componentDidUpdate(prevProps: Props) {
-/*         if(JSON.stringify(prevProps.pumpConfigs)!==JSON.stringify(this.props.pumpConfigs)||
-            JSON.stringify(prevProps.pumpStates)!==JSON.stringify(this.props.pumpStates)) {
-                console.log(`CHANGING PUMP MODALS`)
-            this.setState({
-                currentPumpState: getItemById(this.props.pumpStates, this.state.currentPumpNum),
-                currentPumpConfig: getItemById(this.props.pumpConfigs, this.state.currentPumpNum)
-            })
-        } */
+    componentDidMount() {
+        fetch(`${mdns.url}/config/pump/availableCircuits`)
+        .then(res => res.json())
+        .then(
+            result => {
+                console.log({availableCircuits: result})
+                this.setState({
+                    availableCircuits: result
+                });
+            },
+            error => {
+                console.log(error);
+            }
+        );
     }
+      componentDidUpdate(prevProps: Props, prevState: State) {
+            const pumpSt = getItemById(this.props.pumpStates, this.state.currentPumpNum);
+            const pumpCfg = getItemById(this.props.pumpConfigs, this.state.currentPumpNum);
+            if (JSON.stringify(prevState.currentPumpState)!==JSON.stringify(pumpSt) || JSON.stringify(prevState.currentPumpConfig)!==JSON.stringify(pumpCfg))
+            this.setState({
+                currentPumpState: pumpSt,
+                currentPumpConfig: pumpCfg
+            })
+     } 
+
     getTypes() {
         fetch("http://localhost:4200/config/pump/types")
             .then(res => res.json())
@@ -86,10 +102,10 @@ class PumpConfigModalPopup extends React.Component<Props, State> {
         })
 
         let currentPump=() => {
-            return (<PumpConfigTabs
+            return (<PumpConfig
                 pumpConfig={this.state.currentPumpConfig}
                 currentPumpNum={this.state.currentPumpNum}
-                condensedCircuitsAndFeatures={this.props.condensedCircuitsAndFeatures}
+                availableCircuits={this.state.availableCircuits}
                 pumpState={this.state.currentPumpState}
                 pumpTypes={this._pumpTypes}
             />)

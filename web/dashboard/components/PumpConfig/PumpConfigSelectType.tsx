@@ -11,7 +11,7 @@ interface Props
 {
     currentPumpState: IStatePump;
     pumpTypes: any
-    // currentPumpType: number
+    onChange: (type: number)=>void
 }
 interface State
 {
@@ -29,19 +29,11 @@ class PumpConfigSelectType extends React.Component<Props, State> {
             dropdownOpen: false
         };
     }
-    componentDidUpdate ( prevProps )
-    {
-        // if ( this.props.currentPumpType !== prevProps.currentPumpType )
-        // {
-        //     this.setState( {
-        //         pumpType: this.pumpType.transform( this.props.currentPumpType ).desc
-        //     } );
-        // }
-    }
     handleClick ( event: any )
     {
         console.log( `changing pump ${ this.props.currentPumpState.id } type to ${ event.target.value }` )
-        comms.setPump(this.props.currentPumpState.id, {type: event.target.value})
+        // comms.setPump(this.props.currentPumpState.id, {type: event.target.value})
+        this.props.onChange(parseInt(event.target.value, 10));
     }
 
     toggle ()

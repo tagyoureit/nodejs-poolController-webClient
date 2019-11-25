@@ -21,7 +21,7 @@ class StatusIndicator extends React.Component<Props, State> {
         this.tick=this.tick.bind(this)
         this.toggle=this.toggle.bind(this);
         this.state={
-            seconds: 0,
+            seconds: 61,
             tooltipOpen: false
         }
     }
@@ -65,8 +65,9 @@ class StatusIndicator extends React.Component<Props, State> {
     render() {
 
         let {percent, val, desc}=this.props.status;
-        let _color='green';
-        if (this.state.seconds > 30) _color = 'yellow'
+        let _color='red';
+        if (this.state.seconds <= 30) _color = 'green'
+        else if (this.state.seconds > 30 && this.state.seconds <= 60) _color = 'yellow'
         else if (this.state.seconds > 61) _color = 'red';
         let toolTipText=`Last update: ${this.state.seconds}s`;
 
