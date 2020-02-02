@@ -6,7 +6,7 @@ import
 import CustomCard from './CustomCard'
 import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
-import { setHeatMode, setHeatSetPoint, toggleCircuit } from './Socket_Client'
+import { comms } from './Socket_Client'
 import { IDetail, IStateTempBodyDetail } from './PoolController';
 const flame = require( '../images/flame.png' );
 
@@ -35,7 +35,7 @@ class BodyState extends React.Component<Props, any>
     }
     changeHeat = ( id: number, mode: number ) =>
     {
-        setHeatMode( id, mode )
+        comms.setHeatMode( id, mode )
     }
     changeSetPointVal = ( setPoint: number, body: number ) =>
     {
@@ -48,12 +48,25 @@ class BodyState extends React.Component<Props, any>
     };
     changeSetPointComplete = ( body: number ) =>
     {
-        setHeatSetPoint( body, this.state[ 'setPointBody' + body ] )
+        comms.setHeatSetPoint( body, this.state[ 'setPointBody' + body ] )
     }
     handleOnOffClick = ( event: any ) =>
     {
-        toggleCircuit( event.target.value )
+        comms.toggleCircuit( event.target.value )
     }
+
+    componentDidUpdate(prevProps, prevState) {
+        // todo: figure out how to make this work for both external changes to temp setpoint and changes by this component
+        // problem is that the slider won't move to the right place  
+        // if (this.state.setPointBody1 || this.state.setPointBody2 || this.state.setPointBody3 || this.state.setPointBody4)
+        //     this.state = {
+        //         setPointBody1: 0,
+        //         setPointBody2: 0,
+        //         setPointBody3: 0,
+        //         setPointBody4: 0
+        //     }
+    }
+
     componentDidMount ()
     {
         console.log( `this.props` )
