@@ -5,7 +5,7 @@ import CustomCard from '../CustomCard'
 import * as React from 'react';
 import PumpConfig from './PumpConfig'
 import {IStatePump, IConfigPump, getItemById} from '../PoolController';
-import {mdns} from "../Socket_Client"
+import {comms} from '../Socket_Client';
 interface Props {
     pumpConfigs: IConfigPump[];
     pumpStates: IStatePump[];
@@ -36,7 +36,7 @@ class PumpConfigModalPopup extends React.Component<Props, State> {
         this.handleNavClick=this.handleNavClick.bind(this)
     }
     componentDidMount() {
-        fetch(`${mdns.url}/config/pump/availableCircuits`)
+        fetch(`${comms.poolURL}/config/pump/availableCircuits`)
         .then(res => res.json())
         .then(
             result => {
@@ -61,7 +61,7 @@ class PumpConfigModalPopup extends React.Component<Props, State> {
      } 
 
     getTypes() {
-        fetch("http://localhost:4200/config/pump/types")
+        fetch(`${comms.poolURL}/config/pump/types`)
             .then(res => res.json())
             .then(
                 result => {

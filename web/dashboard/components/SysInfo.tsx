@@ -1,7 +1,6 @@
 import
 {
-    Row, Col, Table, Card, CardImg, CardText, CardBody,
-    CardTitle, CardSubtitle, Button
+    Row, Col
 } from 'reactstrap';
 import StatusIndicator from './StatusIndicator';
 import CustomCard from './CustomCard'

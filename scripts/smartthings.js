@@ -56,7 +56,7 @@ function notify(event, data) {
         req.write(json);
         req.end();
         // if (logEnabled) {
-            if (event === "tempBody" || event === "body")
+            //if (event === "tempBody" || event === "body")
             //console.debug('outputToSmartThings sent event %s', event);
             console.log('outputToSmartThings (' + address + ':' + port + ') Sent ' + event + "'" + json + "'");
         // }

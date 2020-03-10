@@ -21,7 +21,7 @@ class StatusIndicator extends React.Component<Props, State> {
         this.tick=this.tick.bind(this)
         this.toggle=this.toggle.bind(this);
         this.state={
-            seconds: 61,
+            seconds: 0,
             tooltipOpen: false
         }
     }

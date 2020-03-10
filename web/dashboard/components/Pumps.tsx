@@ -10,7 +10,7 @@ import DateTime from './DateTime'
 import * as React from 'react';
 import PumpConfigModalPopup from './PumpConfig/PumpConfigModalPopup'
 import { IStatePump, IConfigPump } from './PoolController';
-import {comms, mdns} from './Socket_Client';
+import {comms} from './Socket_Client';
 
 interface Props
 {
@@ -45,7 +45,7 @@ class Pump extends React.Component<Props, State> {
 
     render ()
     {
-        const colCount = Object.keys( this.props ).length + 1
+        // const colCount = Object.keys( this.props ).length + 1
         if ( typeof this.props.pumpStates[ 0 ] === 'undefined' ) return ( 'nothing' );
         let pumps =  this.props.pumpStates.map( ( pump ) =>
         {

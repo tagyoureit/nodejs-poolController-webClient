@@ -6,7 +6,7 @@ import {
 // import Layout from './Layout';
 import Navbar from "./Navbar";
 import SysInfo from "./SysInfo";
-import {Container} from "reactstrap";
+import { Container } from "reactstrap";
 
 import BodyState from "./BodyState";
 import Pump from "./Pumps";
@@ -14,17 +14,14 @@ import Circuits from "./Circuits";
 import Features from "./Features";
 import Schedule from "./Schedules";
 import Chlorinator from "./Chlorinator";
-import {isArray} from "util";
-/*import EggTimer from './EggTimer/EggTimer'
-import ShouldDisplay from './ShouldDisplay'
-import Light from './Light/Light'
-import DebugLog from './DebugLog'
-import Footer from './Footer' */
+
 
 export interface IPoolSystem {
     _config: IConfig;
     _state: IState;
     counter: number;
+    poolURL: string;
+    sock: SocketIO.Socket;
 }
 
 export interface IState {
@@ -34,19 +31,20 @@ export interface IState {
     equipment: any;
     valves: any[];
     heaters: any[];
-    circuits: IStateCircuit[];
+    // circuits: IStateCircuit[];
     virtualCircuits: IStateCircuit[];
-    features: IStateCircuit[];
+    // features: IStateCircuit[];
     chlorinators: IStateChlorinator[];
     schedules: IStateSchedule[];
     circuitGroups: IStateCircuit[];
-    status: IDetail&{percent: number};
+    status: IDetail&{ percent: number; };
     time: Date;
     valve: number;
     body: number;
     freeze: boolean;
+
 }
-export enum ControllerType {"intellicenter", "intellitouch", "intellicom", "none"}
+export enum ControllerType { "intellicenter", "intellitouch", "intellicom", "none" }
 export interface IConfig {
     lastUpdated: string;
     controllerType: ControllerType;
@@ -68,14 +66,14 @@ export interface IConfig {
     appVersion: string;
 }
 export interface EquipmentIdRange {
-    circuits: EqRange,
-    features: EqRange,
-    circuitGroups: EqRange,
-    virtualCircuits: EqRange
+    circuits?: EqRange,
+    features?: EqRange,
+    circuitGroups?: EqRange,
+    virtualCircuits?: EqRange;
 }
 export interface EqRange {
     start: number,
-    end: number
+    end: number;
 }
 export interface IConfigCircuitGroup {
     id: number;
@@ -89,21 +87,21 @@ export interface IConfigCircuitGroup {
 export interface IConfigCircuitGroupCircuit {
     id: number;
     circuit: number;
-    desiredStateOn: boolean
+    desiredStateOn: boolean;
 }
 export interface IStateCircuitGroupCircuit {
     id: number;
     circuit: IStateCircuit[];
-    desiredStateOn: boolean
+    desiredStateOn: boolean;
 }
 export interface IStatePumpCircuit {
     id: number,
     circuit: IStateCircuit,
     speed?: number,
     flow?: number,
-    units: IDetail
+    units: IDetail;
 }
-export enum equipmentType {'circuit', 'feature', 'circuitGroup', 'virtualCircuit'}
+export enum equipmentType { 'circuit', 'feature', 'circuitGroup', 'virtualCircuit' }
 export interface IStateCircuit {
     id: number;
     isOn: boolean;
@@ -133,13 +131,13 @@ export interface IStateChlorinator {
 }
 export interface IStateSchedule {
     id: number;
-    circuit: {id: number; type: string},
+    circuit: { id: number; type: string; },
     startTime: number;
     endTime: number;
     scheduleType: IDetail;
     scheduleDays: {
         val: number;
-        days: (IDetail&{dow: number})[];
+        days: (IDetail&{ dow: number; })[];
     };
 }
 export interface IStatePump {
@@ -154,7 +152,7 @@ export interface IStatePump {
     status: IDetail;
     type: IDetail;
     watts: number;
-    circuits: IStatePumpCircuit[]
+    circuits: IStatePumpCircuit[];
 }
 export interface IStateTemp {
     air: number;
@@ -182,7 +180,7 @@ export interface IConfigController {
     freeze: boolean;
     heatMode: number;
     mode: IDetail;
-    status: IDetail&{percent?: number};
+    status: IDetail&{ percent?: number; };
     time: Date;
     valve: number;
 }
@@ -342,6 +340,8 @@ class PoolController extends React.Component<any, IPoolSystem> {
     constructor(props: IPoolSystem) {
         super(props);
         this.state={
+            sock: undefined,
+            poolURL: "*",
             counter: 0,
             _config: {
                 controllerType: ControllerType.none,
@@ -369,10 +369,10 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     maxIntelliBrites: 0,
                     maxSchedules: 0,
                     equipmentIds: {
-                        circuits: {start: 1, end: 0},
-                        features: {start: 0, end: 0},
-                        virtualCircuits: {start: 237, end: 247},
-                        circuitGroups: {start: 192, end: 202}
+                        circuits: { start: 1, end: 0 },
+                        features: { start: 0, end: 0 },
+                        virtualCircuits: { start: 237, end: 247 },
+                        circuitGroups: { start: 192, end: 202 }
                     }
                 },
                 valves: [],
@@ -402,15 +402,15 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     air: 0,
                     solar: 0,
                     bodies: [],
-                    units: {val: 0, name: "", desc: ""},
+                    units: { val: 0, name: "", desc: "" },
                     waterSensor1: 0,
                     waterSensor2: 0
                 },
                 pumps: [
                     {
                         id: 1,
-                        type: {desc: "None", val: 0, name: "none"},
-                        status: {desc: "None", val: 0, name: "none"},
+                        type: { desc: "None", val: 0, name: "none" },
+                        status: { desc: "None", val: 0, name: "none" },
                         command: 0,
                         driveState: 0,
                         mode: 0,
@@ -420,7 +420,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         circuits: []
                     }
                 ],
-                mode: {val: 0, name: "", desc: ""},
+                mode: { val: 0, name: "", desc: "" },
                 status: {
                     val: 254,
                     name: "not_loaded",
@@ -430,10 +430,10 @@ class PoolController extends React.Component<any, IPoolSystem> {
                 equipment: {},
                 valves: [],
                 heaters: [],
-                circuits: [],
+                // circuits: [],
                 virtualCircuits: [],
                 circuitGroups: [],
-                features: [],
+                // features: [],
                 chlorinators: [
                     {
                         id: 1,
@@ -445,7 +445,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         lastComm: 0,
                         saltLevel: 0,
                         saltRequired: 0,
-                        status: {val: 0, desc: "", name: ""},
+                        status: { val: 0, desc: "", name: "" },
                         targetOutput: 0,
                         name: "",
                         body: 32
@@ -461,248 +461,21 @@ class PoolController extends React.Component<any, IPoolSystem> {
 
         let a: IPoolSystem;
         let lastUpdateTime=0;
+        this.checkURL();
     }
 
 
-    componentDidMount() {
-        fetch("http://localhost:4200/state/all")
-            .then(res => res.json())
-            .then(
-                result => {
-                    console.log({state: result})
-                    this.setState(state => {
-                        return extend(true, state, {_state: result});
-                    });
-                },
-                error => {
-                    console.log(error);
-                }
-            );
-        fetch("http://localhost:4200/config/all")
-            .then(res => res.json())
-            .then(
-                result => {
-                    console.log({config: result})
-                    this.setState(state => {
-                        return extend(true, state, {_config: result});
-                    });
-                },
-                error => {
-                    console.log(error);
-                }
-            );
 
-
-        comms.incoming((d: any, which: string): void => {
-            console.log({[which]: d});
-            switch(which) {
-                case "error":
-                case "connect":
-                    this.setState(state => {
-                        return extend(true, state, {_state: d});
-                    });
-                    break;
-                case "controller":
-                    this.setState(state => {
-                        return extend(
-                            true,
-                            state,
-                            {_state: d},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "pump":
-                    this.setState(state => {
-                        let pumps=extend(true, [], state._state.pumps);
-                        let index=state._state.pumps.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? pumps.push(d):pumps[index]=d;
-                        return extend(
-                            true,
-                            state,
-                            {_state: {pumps: pumps}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "pumpExt":
-                    this.setState(prevstate => {
-                        // here we do not extend, just replace the object
-                        let index=this.state._state.pumps.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        //let pumps=extend(true, [], prevstate._state.pumps);
-                        prevstate._state.pumps[index] = d;
-                        return {
-                            _state: prevstate._state,
-                            counter: prevstate.counter+1
-                        }});
-                    break;
-                case "chlorinator":
-                    this.setState(state => {
-                        let chlors=extend(true, [], state._state.chlorinators);
-                        let index=state._state.chlorinators.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? chlors.push(d):chlors[index]=d;
-                        return extend(
-                            true,
-                            state,
-                            {_state: {chlorinators: chlors}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "body":
-                    this.setState(state => {
-                        let body=extend(true, [], state._state.temps.bodies);
-                        let index=state._state.temps.bodies.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? body.push(d):body[index]=d;
-                        return extend(
-                            true,
-                            state,
-                            {_state: {temps: {bodies: body}}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "schedule":
-                    this.setState(state => {
-                        let sched=extend(true, [], state._state.schedules);
-                        let index=state._state.schedules.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? sched.push(d):sched[index]=d;
-                        sched.sort((a, b) => {a.id-b.id});
-                        return extend(
-                            true,
-                            state,
-                            {_state: {schedules: sched}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "temps":
-                    this.setState(state => {
-                        return extend(
-                            true,
-                            state,
-                            {_state: {temps: d}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "equipment":
-                    this.setState(state => {
-                        return extend(
-                            true,
-                            state,
-                            {_state: {equipment: d}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "config":
-                    this.setState(state => {
-                        return extend(
-                            true,
-                            state,
-                            {_config: d},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "feature":
-                    this.setState(state => {
-                        let features=extend(true, [], state._state.features);
-                        let index=state._state.features.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? features.push(d):features[index]=d;
-                        return extend(
-                            true,
-                            state,
-                            {_state: {features: features}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "circuit":
-                    this.setState(state => {
-                        let circuits=extend(true, [], state._state.circuits);
-                        let index=state._state.circuits.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? circuits.push(d):circuits[index]=d;
-                        return extend(
-                            true,
-                            state,
-                            {_state: {circuits: circuits}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "virtualCircuit":
-                    this.setState(state => {
-                        let virtualCircuits=extend(true, [], state._state.virtualCircuits);
-                        let index=state._state.virtualCircuits.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? virtualCircuits.push(d):virtualCircuits[index]=d;
-                        return extend(
-                            true,
-                            state,
-                            {_state: {virtualCircuits: virtualCircuits}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                case "circuitGroup":
-                    this.setState(state => {
-                        let circuitGroups=extend(true, [], state._state.circuitGroups);
-                        let index=state._state.circuitGroups.findIndex(el => {
-                            return el.id===d.id;
-                        });
-                        index===-1? circuitGroups.push(d):circuitGroups[index]=d;
-                        return extend(
-                            true,
-                            state,
-                            {_state: {circuitGroups: circuitGroups}},
-                            {counter: state.counter+1}
-                        );
-                    });
-                    break;
-                default:
-                    console.log(`incoming socket ${which} not processed`);
-                    console.log(d);
-            }
-        });
+    checkURL() {
+        console.log(`comms.poolURL: ${comms.poolURL}`)
+        if(comms.poolURL==="*") {
+            setTimeout(() => this.checkURL(), 1000);
+        }
+        else {
+            this.setState({ poolURL: comms.poolURL });
+            this.load();
+        }
     }
-
-    // condensedCircuitFeatureList() {
-    //     let special=[];
-    //     if(this.state._config.controllerType===ControllerType.intellitouch) {
-    //         special.push(
-    //             {id: 0, name: "None", type: "special"},
-    //             {id: 128, name: "Solar", type: "special"},
-    //             {id: 129, name: "Either Heater", type: "special"},
-    //             {id: 130, name: "Pool Heater", type: "special"},
-    //             {id: 131, name: "Spa Heater", type: "special"},
-    //             {id: 132, name: "Freeze", type: "special"}
-    //         );
-    //     }
-    //     let condensedF=this.state._state.features.map(el => {
-    //         return {id: el.id, name: el.name, type: "feature"};
-    //     });
-    //     let condensedC=this.state._state.circuits.map(el => {
-    //         return {id: el.id, name: el.name, type: "circuit"};
-    //     });
-    //     return condensedC.concat(condensedF, special);
-    // }
     idOfFirstUnusedSchedule() {
         if(this.state._config.controllerType===ControllerType.intellitouch) {
             // easytouch/intellitouch will grab the next available schedules.
@@ -717,84 +490,301 @@ class PoolController extends React.Component<any, IPoolSystem> {
             // how to determine first unused?
         }
     }
+    load() {
+        if(comms.poolURL!=="*") {
+
+            let sock=comms.incoming((d: any, which: string): { d: any, which: string; } => {
+                console.log({ [which]: d });
+                if (which !== "error")
+                this.setState(state => {
+                    return { counter: state.counter+1 }
+                });
+                
+                switch(which) {
+                    case "error":
+                    case "connect":
+                        this.setState(state => {
+                            return extend(true, state, { _state: d });
+                        });
+                        break;
+                    case "controller":
+                        this.setState(state => {
+                            return extend(
+                                true,
+                                state,
+                                { _state: d }
+                            );
+                        });
+                        break;
+                    case "pump":
+                        this.setState(state => {
+                            let pumps=extend(true, [], state._state.pumps);
+                            let index=state._state.pumps.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            index===-1? pumps.push(d):pumps[index]=d;
+                            return extend(
+                                true,
+                                state,
+                                { _state: { pumps: pumps } }
+                            );
+                        });
+                        break;
+                    case "pumpExt":
+                        this.setState(prevstate => {
+                            // here we do not extend, just replace the object
+                            let index=this.state._state.pumps.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            //let pumps=extend(true, [], prevstate._state.pumps);
+                            prevstate._state.pumps[index]=d;
+                            return {
+                                _state: prevstate._state
+                            };
+                        });
+                        break;
+                    case "chlorinator":
+                        this.setState(state => {
+                            let chlors=extend(true, [], state._state.chlorinators);
+                            let index=state._state.chlorinators.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            index===-1? chlors.push(d):chlors[index]=d;
+                            return extend(
+                                true,
+                                state,
+                                { _state: { chlorinators: chlors } }
+                            );
+                        });
+                        break;
+/*                     case "body":
+                        this.setState(state => {
+                            let body=extend(true, [], state._state.temps.bodies);
+                            let index=state._state.temps.bodies.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            index===-1? body.push(d):body[index]=d;
+                            return extend(
+                                true,
+                                state,
+                                { _state: { temps: { bodies: body } } }
+                            );
+                        });
+                        break; */
+/*                     case "schedule":
+                        this.setState(state => {
+                            let sched=extend(true, [], state._state.schedules);
+                            let index=state._state.schedules.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            index===-1? sched.push(d):sched[index]=d;
+                            sched.sort((a, b) => { a.id-b.id; });
+                            return extend(
+                                true,
+                                state,
+                                { _state: { schedules: sched } }
+                            );
+                        });
+                        break; */
+                    case "temps":
+                        this.setState(state => {
+                            return extend(
+                                true,
+                                state,
+                                { _state: { temps: d } }
+                            );
+                        });
+                        break;
+                    case "equipment":
+                        this.setState(state => {
+                            return extend(
+                                true,
+                                state,
+                                { _state: { equipment: d } }
+                            );
+                        });
+                        break;
+                    case "config":
+                        this.setState(state => {
+                            return extend(
+                                true,
+                                state,
+                                { _config: d }
+                            );
+                        });
+                        break;
+                    /* case "feature":
+                        this.setState(state => {
+                            let features=extend(true, [], state._state.features);
+                            let index=state._state.features.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            index===-1? features.push(d):features[index]=d;
+                            return extend(
+                                true,
+                                state,
+                                { _state: { features: features } }
+                            );
+                        });
+                        break; */
+                    /*                     case "circuit":
+                                            this.setState(state => {
+                                                let circuits=extend(true, [], state._state.circuits);
+                                                let index=state._state.circuits.findIndex(el => {
+                                                    return el.id===d.id;
+                                                });
+                                                index===-1? circuits.push(d):circuits[index]=d;
+                                                return extend(
+                                                    true,
+                                                    state,
+                                                    { _state: { circuits: circuits } },
+                                                    { counter: state.counter+1 }
+                                                );
+                                            });
+                                            break; */
+                    /* case "virtualCircuit":
+                        this.setState(state => {
+                            let virtualCircuits=extend(true, [], state._state.virtualCircuits);
+                            let index=state._state.virtualCircuits.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            index===-1? virtualCircuits.push(d):virtualCircuits[index]=d;
+                            return extend(
+                                true,
+                                state,
+                                { _state: { virtualCircuits: virtualCircuits } }
+                            );
+                        });
+                        break; */
+                    /* case "circuitGroup":
+                        this.setState(state => {
+                            let circuitGroups=extend(true, [], state._state.circuitGroups);
+                            let index=state._state.circuitGroups.findIndex(el => {
+                                return el.id===d.id;
+                            });
+                            index===-1? circuitGroups.push(d):circuitGroups[index]=d;
+                            return extend(
+                                true,
+                                state,
+                                { _state: { circuitGroups: circuitGroups } }
+                            );
+                        });
+                        break; */
+                    default:
+                        console.log(`incoming socket ${ which } not processed by main poolcontroller.tsx`);
+                        console.log(d);
+                        return { d, which };
+                }
+            });
+            this.setState({ sock });
+            console.log(`fetching ${ comms.poolURL }/state/all`);
+            fetch(`${ comms.poolURL }/state/all`)
+                .then(res => res.json())
+                .then(
+                    result => {
+                        console.log({ state: result });
+                        this.setState(state => {
+                            return extend(true, state, { _state: result });
+                        });
+                    },
+                    error => {
+                        console.log(error);
+                    }
+                );
+            fetch(`${ comms.poolURL }/config/all`)
+                .then(res => res.json())
+                .then(
+                    result => {
+                        console.log({ config: result });
+                        this.setState(state => {
+                            return extend(true, state, { _config: result });
+                        });
+                    },
+                    error => {
+                        console.log(error);
+                    }
+                );
+        }
+    }
+
     render() {
+        let className='';
+        if(this.state._state.status.val===255) className+=" noConnection";
         return (
             <div>
-                <Navbar status={this.state._state.status} counter={this.state.counter}>
-                    {this.state._state.status.percent}
-                </Navbar>
-                <Container>
-                    <SysInfo
-                        dateTime={this.state._state.time}
-                        status={this.state._state.status}
-                        mode={this.state._state.mode}
-                        freeze={this.state._state.freeze}
-                        counter={this.state.counter}
-                        model={this.state._state.equipment.model}
-                        airTemp={this.state._state.temps.air}
-                        solarTemp={this.state._state.temps.solar}
-                        id="system"
-                        visibility={"visible"}
-                    />
-                    <BodyState
-                        data={this.state._state.temps.bodies}
-                        UOM={this.state._state.temps.units}
-                        id="bodies"
-                        visibility={"visible"}
-                    />
-                    <Pump
-                        pumpStates={this.state._state.pumps}
-                        pumpConfigs={this.state._config.pumps}
-                        id="pumps"
-                        visibility={"visible"}
-                    // condensedCircuitsAndFeatures={this.condensedCircuitFeatureList()}
-                    />
-                    <Circuits
-                        controllerType={this.state._config.controllerType}
-                        circuits={this.state._state.circuits}
-                        hideAux={false}
-                        id="Circuits"
-                        visibility={"visible"}
-                    />
-                    <Features
-                        controllerType={this.state._config.controllerType}
-                        circuits={this.state._config.circuits}
-                        features={this.state._state.features}
-                        circuitGroupStates={this.state._state.circuitGroups}
-                        equipmentIds={this.state._config.equipment.equipmentIds}
-                        hideAux={false}
-                        id="Features"
-                        visibility={"visible"}
-                    />
-                    <Circuits
-                        controllerType={this.state._config.controllerType}
-                        circuits={this.state._state.circuitGroups}
-                        hideAux={false}
-                        id="Circuit Groups"
-                        visibility={"visible"}
-                    />
-                    <Circuits
-                        controllerType={this.state._config.controllerType}
-                        circuits={this.state._state.virtualCircuits}
-                        hideAux={false}
-                        id="Virtual circuits"
-                        visibility={"visible"}
-                    />
-                    <Schedule
-                        data={this.state._state.schedules}
-                        id="schedules"
-                        visibility={"visible"}
-                        idOfFirstUnusedSchedule={this.idOfFirstUnusedSchedule()}
-                    />
-                    <Chlorinator
-                        chlorState={this.state._state.chlorinators[0]}
-                        chlorConfig={this.state._config.chlorinators[0]}
-                        maxBodies={this.state._config.equipment.maxBodies}
-                        id="chlorinators"
-                        visibility={"visible"}
-                    />
-                </Container>
+
+                <div>
+                    <Navbar status={this.state._state.status} counter={this.state.counter}>
+                        {this.state._state.status.percent}
+                    </Navbar>
+                </div>
+                <div className={className}>
+                    {comms.poolURL==="*"? 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.':
+
+                        <Container>
+                            <SysInfo
+                                dateTime={this.state._state.time}
+                                status={this.state._state.status}
+                                mode={this.state._state.mode}
+                                freeze={this.state._state.freeze}
+                                counter={this.state.counter}
+                                model={this.state._state.equipment.model}
+                                airTemp={this.state._state.temps.air}
+                                solarTemp={this.state._state.temps.solar}
+                                id="system"
+                                visibility={"visible"}
+                            />
+                            <BodyState
+                                id="bodies"
+                                visibility={"visible"}
+                            />
+                            <Pump
+                                pumpStates={this.state._state.pumps}
+                                pumpConfigs={this.state._config.pumps}
+                                id="pumps"
+                                visibility={"visible"}
+                            />
+                            <Circuits
+                                controllerType={this.state._config.controllerType}
+                                id="Circuits"
+                                visibility={"visible"}
+                            />
+                            <Features
+                                controllerType={this.state._config.controllerType}
+                                hideAux={false}
+                                id="Features"
+                                visibility={"visible"}
+                            />
+                            <Circuits
+                                controllerType={this.state._config.controllerType}
+                                id="Circuit Groups"
+                                visibility={"visible"}
+                            />
+                            <Circuits
+                                controllerType={this.state._config.controllerType}
+                                id="Virtual Circuits"
+                                visibility={"visible"}
+                            />
+                            <Schedule
+                                data={this.state._state.schedules}
+                                id="schedules"
+                                visibility={"visible"}
+                                idOfFirstUnusedSchedule={this.idOfFirstUnusedSchedule()}
+                
+                            />
+                            <Chlorinator
+                                chlorState={this.state._state.chlorinators[0]}
+                                chlorConfig={this.state._config.chlorinators[0]}
+                                maxBodies={this.state._config.equipment.maxBodies}
+                                id="chlorinators"
+                                visibility={"visible"}
+                            />
+                        </Container>
+                    }
+
+                </div>
             </div>
+
         );
     }
 }

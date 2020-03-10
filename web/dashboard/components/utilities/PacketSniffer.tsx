@@ -9,7 +9,7 @@ import
 } from 'reactstrap'
 import ReactDataGrid from 'react-data-grid';
 import '../../css/react-data-grid.css'
-import { incoming, emitSocket, hidePanel } from '../Socket_Client';
+import { incoming, hidePanel } from '../Socket_Client';
 
 interface Props
 {

@@ -9,19 +9,20 @@ import {useState} from 'react';
 import { IStateCircuit, IConfigCircuit, EquipmentIdRange, getItemById, ControllerType } from './PoolController';
 const play = require("../images/play-icon.svg");
 const info = require("../images/info-blue-bg.svg");
+var extend=require("extend");
 interface Props
 {
     controllerType: ControllerType;
-    circuits: IConfigCircuit[];
-    features: IStateCircuit[];
-    circuitGroupStates: IStateCircuit[];
-    equipmentIds?: EquipmentIdRange;
     hideAux: boolean,
     id: string;
     visibility: string;
 }
 interface State {
     popoverOpen: any;
+    features: IStateCircuit[];
+    circuitConfigs: IConfigCircuit[];
+    circuitGroupStates: IStateCircuit[];
+    equipmentIds?: EquipmentIdRange;
 }
 
 class Features extends React.Component<Props, State> {
@@ -29,9 +30,65 @@ class Features extends React.Component<Props, State> {
     constructor( props: Props )
     {
         super( props )
-        this.state = {popoverOpen: false}
+        this.state = {
+            popoverOpen: false, 
+            circuitConfigs: undefined,
+            circuitGroupStates: undefined,
+            equipmentIds: {circuitGroups: {start:0, end: 0}, features: {start:0, end: 0}},
+            features: undefined
+        }
         this.toggle = this.toggle.bind(this);
         this.handleClick = this.handleClick.bind( this );
+    }
+    incoming() {
+        let self=this;
+        comms.passthrough((d: any, which: string): void => {
+            if(which==='feature') {
+                console.log(`feature received..V`)
+                console.log(d)
+                if(getItemById(self.state.features, d.id)!==0) {
+                    console.log({ [which]: d });
+                    console.log(`found feature at element: ${JSON.stringify(getItemById(self.state.features, d.id))}`)
+                    let features=extend(true, [], self.state.features);
+                    let index=self.state.features.findIndex(el => {
+                        return el.id===d.id;
+                    });
+                    index===-1? features.push(d):features[index]=d;
+                    self.setState({ features: features });
+                }
+            }
+        });
+    }
+    componentDidMount() {
+        this.incoming();
+        fetch(`${comms.poolURL}/config/circuits`)
+            .then(res => res.json())
+            .then(result =>{
+               this.setState({circuitConfigs: result}, function(){
+                   console.log('finished setting circuit config');
+               }) 
+            })
+        fetch(`${comms.poolURL}/state/features`)
+            .then(res => res.json())
+            .then(result =>{
+               this.setState({features: result}, function(){
+                   console.log('finished setting features');
+               }) 
+            })
+        fetch(`${comms.poolURL}/state/circuitGroups`)
+            .then(res => res.json())
+            .then(result =>{
+               this.setState({circuitGroupStates: result}, function(){
+                   console.log('finished setting circuitGroups');
+               }) 
+            })
+        fetch(`${comms.poolURL}/config/equipment`)
+            .then(res => res.json())
+            .then(result =>{
+               this.setState({circuitGroupStates: result.equipmentIds}, function(){
+                   console.log('finished setting circuitGroups');
+               }) 
+            })
     }
     toggle = (evt?: any) => {
         let state = typeof this.state.popoverOpen[evt.target.id] === 'undefined'? true : !this.state.popoverOpen[evt.target.id];
@@ -39,7 +96,7 @@ class Features extends React.Component<Props, State> {
     circuit = () =>
     {
    
-        if ( typeof this.props.features === 'undefined' ) return ( <div /> );
+        if ( typeof this.state.features === 'undefined' ) return ( <div /> );
         // TODO: Aux Extra and NOT used should be hidden.
         // for ( var cir in data )
         // {
@@ -52,11 +109,11 @@ class Features extends React.Component<Props, State> {
         //         }
         //         else
         //         {
-        return this.props.features.map( feature =>
+        return this.state.features.map( feature =>
         {
-            let offset = this.props.equipmentIds.circuitGroups.start - this.props.equipmentIds.features.start;
-            let group = getItemById(this.props.circuitGroupStates, feature.id + offset);
-            if (typeof group.id !== 'undefined' && this.props.controllerType === ControllerType.intellitouch){
+            let offset = this.state.equipmentIds.circuitGroups.start - this.state.equipmentIds.features.start;
+            let group = getItemById(this.state.circuitGroupStates, feature.id + offset);
+            if (typeof group !== 'undefined' && typeof group.id !== 'undefined' && this.props.controllerType === ControllerType.intellitouch){
                 let details = group.circuits.map(circuit => {
                     return (<li key={feature.id+offset+circuit.circuit.id+'_circuitGroupDetails'}>{`${circuit.circuit.id} ${circuit.circuit.name}: ${circuit.desiredStateOn?'Off':'On'}`}</li>)
                 });
@@ -93,7 +150,7 @@ class Features extends React.Component<Props, State> {
     handleClick = ( event: any ): any =>
     {   
         let circ = event.target.value;
-        if (getItemById(this.props.circuits, circ).isMacro) comms.setCircuitState(circ);
+        if (getItemById(this.state.circuitConfigs, circ).isMacro) comms.setCircuitState(circ);
         comms.toggleCircuit( circ );
     }
     render ()

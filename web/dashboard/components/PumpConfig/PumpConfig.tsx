@@ -59,7 +59,7 @@ class PumpConfig extends React.Component<Props, State> {
         }
     }
      getPumpUnits(pump) {
-        fetch(`http://localhost:4200/config/pump/${pump}/units`)
+        fetch(`${comms.poolURL}/config/pump/${pump}/units`)
         .then(res => res.json())
         .then(
             result => {

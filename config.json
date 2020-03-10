@@ -1,4 +1,8 @@
 {
-    "server": "*",
-    "port": "*"
+    "discovery": {
+        "poolControllerURL": "*"
+    },
+    "web": {
+        "port": 8080
+    }
 }

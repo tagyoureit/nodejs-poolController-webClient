@@ -7,22 +7,31 @@ import CustomCard from './CustomCard'
 import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
 import { comms } from './Socket_Client'
-import { IDetail, IStateTempBodyDetail } from './PoolController';
+import { IDetail, IStateTempBodyDetail, getItemById } from './PoolController';
+var extend=require("extend");
 const flame = require( '../images/flame.png' );
 
 interface Props
 {
-    UOM: IDetail;
     id: string;
     visibility: string;
-    data: IStateTempBodyDetail[];
 }
-class BodyState extends React.Component<Props, any>
+interface State {
+    UOM: IDetail;
+    data: IStateTempBodyDetail[];
+    setPointBody1: number;
+    setPointBody2: number;
+    setPointBody3: number;
+    setPointBody4: number;
+}
+class BodyState extends React.Component<Props, State>
 {
     constructor( props: Props )
     {
         super( props )
         this.state = {
+            data: [],
+            UOM: undefined,
             setPointBody1: 0,
             setPointBody2: 0,
             setPointBody3: 0,
@@ -33,6 +42,32 @@ class BodyState extends React.Component<Props, any>
         this.changeSetPointVal = this.changeSetPointVal.bind( this );
         this.changeSetPointComplete = this.changeSetPointComplete.bind( this );
     }
+    incoming() {
+        let self=this;
+        comms.passthrough((d: any, which: string): void => {
+            if(which==='temps') {
+                self.setState({ data: d.bodies });
+            }
+            if(which==='body'){
+                let bodies=extend(true, [], this.state.data);
+                let index=this.state.data.findIndex(el => {
+                    return el.id===d.id;
+                });
+                index===-1? bodies.push(d):bodies[index]=d;
+                this.setState({data: bodies });   
+            }
+        });
+    }
+    componentDidMount() {
+        this.incoming();
+        fetch(`${comms.poolURL}/state/temps`)
+            .then(res => res.json())
+            .then(result =>{
+               this.setState({data: result.bodies, UOM: result.units}, function(){
+                   console.log('finished setting bodies and UOM');
+               }) 
+            })
+    }
     changeHeat = ( id: number, mode: number ) =>
     {
         comms.setHeatMode( id, mode )
@@ -41,9 +76,7 @@ class BodyState extends React.Component<Props, any>
     {
         if ( this.state[ 'setPointBody' + body ] !== setPoint )
         {
-            this.setState( {
-                [ 'setPointBody' + body ]: setPoint
-            } );
+            this.setState( {[ 'setPointBody' + body]: setPoint} as Pick<State, any>);
         }
     };
     changeSetPointComplete = ( body: number ) =>
@@ -55,34 +88,12 @@ class BodyState extends React.Component<Props, any>
         comms.toggleCircuit( event.target.value )
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        // todo: figure out how to make this work for both external changes to temp setpoint and changes by this component
-        // problem is that the slider won't move to the right place  
-        // if (this.state.setPointBody1 || this.state.setPointBody2 || this.state.setPointBody3 || this.state.setPointBody4)
-        //     this.state = {
-        //         setPointBody1: 0,
-        //         setPointBody2: 0,
-        //         setPointBody3: 0,
-        //         setPointBody4: 0
-        //     }
-    }
-
-    componentDidMount ()
-    {
-        console.log( `this.props` )
-        console.log( this.props )
-        if ( this.props.data.length && typeof this.props.data !== 'undefined' )
-            if ( this.state.setPoint !== this.props.data[ 0 ].setPoint )
-            {
-                this.setState( { setPoint: this.props.data[ 0 ].setPoint } );
-            }
-    }
     bodyDisplay = () =>
     {
-        return this.props.data.map( body =>
+        return this.state.data && this.state.data.map( body =>
         {
-            const low = this.props.UOM.val === 0 ? 50 : 10;
-            const high = this.props.UOM.val === 0 ? 104 : 43;
+            const low = this.state.UOM.val === 0 ? 50 : 10;
+            const high = this.state.UOM.val === 0 ? 104 : 43;
             const labelStr = `{"${ low }": "${ low }", "${ high }": "${ high }"}`
             let labels = JSON.parse( labelStr )
             const showFlameSolar = () =>
@@ -155,7 +166,7 @@ class BodyState extends React.Component<Props, any>
     {
         return (
             <div className='tab-pane active' id={this.props.id} role="tabpanel" aria-labelledby={this.props.id + '-tab'} >
-                <CustomCard name={( this.props.data.length === 1 ? 'Body' : 'Bodies' ) + ' (count=' + this.props.data.length + ')'} id={this.props.id} visibility={this.props.visibility}>
+                <CustomCard name={( this.state.data && this.state.data.length === 1 ? 'Body' : 'Bodies' )} id={this.props.id} visibility={this.props.visibility}>
                     <ListGroup flush >
                         {this.bodyDisplay()}
                     </ListGroup>
