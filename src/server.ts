@@ -9,8 +9,8 @@ const mSearch='urn:schemas-upnp-org:device:PoolController:1';
 let url=config.getSection("discovery").poolControllerURL;
 let timeout: NodeJS.Timeout;
 
-function search() {
-    if(url==="*") {
+function search(force?: boolean) {
+    if(url==="*" || force) {
         if(typeof timeout!==undefined) clearTimeout(timeout);
         client.search(mSearch);
         timeout=setTimeout(function() {
@@ -28,7 +28,9 @@ async function startBundler() {
         clearTimeout(timeout);
         console.log('Got a response to an m-search:\n%d\n%s\n%s', code, JSON.stringify(headers, null, '  '), JSON.stringify(rinfo, null, '  '));
         console.log(headers.LOCATION);
+        const oldUrl = url;
         url=headers.LOCATION.match(/^.+?[^\/:](?=[?\/]|$)/)[0];
+        if (url !== '*' && url !== oldUrl) console.log(`Found pool server at new address ${url} (previously was ${oldUrl})`)
         client.stop();
     });
 
@@ -41,7 +43,7 @@ async function startBundler() {
     app.get('/discover', (req, res) => {
         if(url==="*") {
             console.log(`SSDP: cannot find poolController with discovery.  Please set address manually in config.json in the format of 'http://ip:port/`);
-            res.status(204).send();
+            res.status(204).send(`No SSDP found yet.`);
             client.search(mSearch);
         }
         else {
@@ -49,6 +51,11 @@ async function startBundler() {
             res.status(200).send({ url: url });
         }
     });
+
+    app.get('/recheck', (req, res)=> {
+        console.log(`Webapp not able to connect; forcing mSearch.`)
+        client.search(mSearch, true);
+    })
 
     // Parcel: absolute path to entry point
     const file=path.join(process.cwd(), './web/dashboard/index.html');

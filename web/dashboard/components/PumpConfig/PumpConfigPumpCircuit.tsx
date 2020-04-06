@@ -1,6 +1,6 @@
 import
 {
-    Row, Col, Container, Button, ButtonGroup, Nav, NavItem, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavLink, ButtonDropdown
+    Row, Col
 } from 'reactstrap';
 import CustomCard from '../CustomCard'
 import * as React from 'react';
@@ -37,7 +37,7 @@ class PumpConfigPumpCircuit extends React.Component<Props, State> {
         return (
             <div>
                 <Row >
-                    <Col className="col-4">
+                    <Col className="col-4" style={{margin:'auto'}}>
                         Circuit{" "}
                         <PumpConfigSelectCircuit
                             availableCircuits={this.props.availableCircuits}
@@ -54,7 +54,7 @@ class PumpConfigPumpCircuit extends React.Component<Props, State> {
                             disabled={this.props.disabled}
                         />
                     </Col>
-                    <Col className="col-3">
+                    <Col className="col-3" style={{margin:'auto'}}>
                   <PumpConfigSelectUnits
                         currentPumpCircuit={this.props.currentPumpCircuit}
                         pumpUnits={this.props.pumpUnits}

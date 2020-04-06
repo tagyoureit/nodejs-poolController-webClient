@@ -31,9 +31,16 @@ export class Comms {
             })
     }
     public passthrough(cb: (d:any, which:string)=>void){
+        // needed to remove all listeners so we don't duplicate the listener for multiple callbacks.
+        // this._emitter.removeAllListeners('data');
+        // console.log(this._emitter.listeners('data'))
+        this._emitter.setMaxListeners(0);
         this._emitter.on('data', (d, which)=>{
             cb(d, which);
         })
+    }
+    public getEmitter(){
+        return this._emitter
     }
     public incoming(cb: any){
             socket.on('*', (data) => {
@@ -42,6 +49,7 @@ export class Comms {
                 } else{
 
                     this._emitter.emit('data', data.data[1], data.data[0])
+                    this._emitter.emit(data.data[0], data.data[1]);
                     cb(data.data[1], data.data[0]);
                 }
             });
@@ -61,6 +69,7 @@ export class Comms {
             });
             socket.on('reconnecting', function(data) {
                 console.log('reconnecting:'+data);
+                if (data % 10 === 0) fetch(`/recheck`)
             });
             socket.on('reconnect_failed', function(data) {
                 console.log('reconnect failed:'+data);
@@ -93,7 +102,26 @@ export class Comms {
         });
         // let autoDST = 1 // implement later in UI
     }
-
+    public setCircuit(data: any){
+        console.log(`sending configCircuit: ${JSON.stringify(data)}`)
+        fetch(`${ this.poolURL }/config/circuit`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+    }
+    public deleteCircuit(data: any){
+        console.log(`sending configCircuit: ${JSON.stringify(data)}`)
+        fetch(`${ this.poolURL }/config/circuit`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+    }
     public toggleCircuit(circuit: number): void {
         fetch(`${ this.poolURL }/state/circuit/toggleState`, {
             method: 'PUT',
@@ -178,5 +206,23 @@ export class Comms {
         });
     }
 
+    public replayPackets(arrToBeSent: number[][]) {
+        socket.emit('replayPackets', arrToBeSent)
+    }
+
+    public receivePacketRaw(packets: number[][]) {
+        socket.emit('receivePacketRaw', packets)
+    }
+
+    public setAppLoggerOptions(obj: any){
+        console.log(`putting to server ${JSON.stringify(obj)}`)
+        fetch(`${ this.poolURL }/app/logger/setOptions`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(obj)
+        });
+    }
 }
 export const comms=new Comms();

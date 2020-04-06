@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {receivePacketRaw, replayPackets} from '../Socket_Client';
+import {comms} from '../Socket_Client';
 import UtilitiesLayout from './UtilitiesLayout';
 import {
     Button, InputGroup, InputGroupAddon, InputGroupText, Input,
@@ -198,7 +198,7 @@ class Replay extends React.Component<any, State> {
 
 
         }
-        this.state.replayDirection==='toApp'? receivePacketRaw(packetPackage):replayPackets(packetPackage);
+        this.state.replayDirection==='toApp'? comms.receivePacketRaw(packetPackage):comms.replayPackets(packetPackage);
         console.log(`sent up to #${_lineToSend-1}.  total packets ${packetPackage.length} `)
         // $( '#packetCount' ).val( this.state.lineToSend + " of " + totalPackets )
         this.setState(prevState => ({
@@ -252,11 +252,11 @@ class Replay extends React.Component<any, State> {
             if(this.state.includePacketTypes===this.state.packets[this.state.lineToSend].direction||this.state.includePacketTypes==='both') {
                 if(this.state.replayDirection==='toApp') {
 
-                    receivePacketRaw([this.state.packets[this.state.lineToSend].packet])
+                    comms.receivePacketRaw([this.state.packets[this.state.lineToSend].packet])
                     console.log(`sending for app ${this.state.lineToSend}: ${this.state.packets[this.state.lineToSend].packet.toString()}`)
                 }
                 else {
-                    replayPackets([this.state.packets[this.state.lineToSend].packet])
+                    comms.replayPackets([this.state.packets[this.state.lineToSend].packet])
                     console.log(`sending for RS485 bus ${this.state.lineToSend}: ${this.state.packets[this.state.lineToSend].packet.toString()}`)
 
                 }

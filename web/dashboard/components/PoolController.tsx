@@ -17,6 +17,7 @@ import Chlorinator from "./Chlorinator";
 
 
 export interface IPoolSystem {
+    loadingMessage: string;
     _config: IConfig;
     _state: IState;
     counter: number;
@@ -106,6 +107,7 @@ export interface IStateCircuit {
     id: number;
     isOn: boolean;
     name: string;
+    nameId?: number;
     type?: IDetail;
     lightingTheme?: IDetail;
     equipmentType: equipmentType;
@@ -340,6 +342,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
     constructor(props: IPoolSystem) {
         super(props);
         this.state={
+            loadingMessage: 'Loading...',
             sock: undefined,
             poolURL: "*",
             counter: 0,
@@ -462,12 +465,14 @@ class PoolController extends React.Component<any, IPoolSystem> {
         let a: IPoolSystem;
         let lastUpdateTime=0;
         this.checkURL();
+        let self=this;
+        setTimeout(function() { self.setState({ loadingMessage: 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.' }); }, 5000);
     }
 
 
 
     checkURL() {
-        console.log(`comms.poolURL: ${comms.poolURL}`)
+        console.log(`comms.poolURL: ${ comms.poolURL }`);
         if(comms.poolURL==="*") {
             setTimeout(() => this.checkURL(), 1000);
         }
@@ -495,11 +500,11 @@ class PoolController extends React.Component<any, IPoolSystem> {
 
             let sock=comms.incoming((d: any, which: string): { d: any, which: string; } => {
                 console.log({ [which]: d });
-                if (which !== "error")
-                this.setState(state => {
-                    return { counter: state.counter+1 }
-                });
-                
+                if(which!=="error")
+                    this.setState(state => {
+                        return { counter: state.counter+1 };
+                    });
+
                 switch(which) {
                     case "error":
                     case "connect":
@@ -516,33 +521,33 @@ class PoolController extends React.Component<any, IPoolSystem> {
                             );
                         });
                         break;
-                    case "pump":
-                        this.setState(state => {
-                            let pumps=extend(true, [], state._state.pumps);
-                            let index=state._state.pumps.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            index===-1? pumps.push(d):pumps[index]=d;
-                            return extend(
-                                true,
-                                state,
-                                { _state: { pumps: pumps } }
-                            );
-                        });
-                        break;
-                    case "pumpExt":
-                        this.setState(prevstate => {
-                            // here we do not extend, just replace the object
-                            let index=this.state._state.pumps.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            //let pumps=extend(true, [], prevstate._state.pumps);
-                            prevstate._state.pumps[index]=d;
-                            return {
-                                _state: prevstate._state
-                            };
-                        });
-                        break;
+                    /*                     case "pump":
+                                            this.setState(state => {
+                                                let pumps=extend(true, [], state._state.pumps);
+                                                let index=state._state.pumps.findIndex(el => {
+                                                    return el.id===d.id;
+                                                });
+                                                index===-1? pumps.push(d):pumps[index]=d;
+                                                return extend(
+                                                    true,
+                                                    state,
+                                                    { _state: { pumps: pumps } }
+                                                );
+                                            });
+                                            break; */
+                    /*                     case "pumpExt":
+                                            this.setState(prevstate => {
+                                                // here we do not extend, just replace the object
+                                                let index=this.state._state.pumps.findIndex(el => {
+                                                    return el.id===d.id;
+                                                });
+                                                //let pumps=extend(true, [], prevstate._state.pumps);
+                                                prevstate._state.pumps[index]=d;
+                                                return {
+                                                    _state: prevstate._state
+                                                };
+                                            });
+                                            break; */
                     case "chlorinator":
                         this.setState(state => {
                             let chlors=extend(true, [], state._state.chlorinators);
@@ -557,35 +562,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                             );
                         });
                         break;
-/*                     case "body":
-                        this.setState(state => {
-                            let body=extend(true, [], state._state.temps.bodies);
-                            let index=state._state.temps.bodies.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            index===-1? body.push(d):body[index]=d;
-                            return extend(
-                                true,
-                                state,
-                                { _state: { temps: { bodies: body } } }
-                            );
-                        });
-                        break; */
-/*                     case "schedule":
-                        this.setState(state => {
-                            let sched=extend(true, [], state._state.schedules);
-                            let index=state._state.schedules.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            index===-1? sched.push(d):sched[index]=d;
-                            sched.sort((a, b) => { a.id-b.id; });
-                            return extend(
-                                true,
-                                state,
-                                { _state: { schedules: sched } }
-                            );
-                        });
-                        break; */
+
                     case "temps":
                         this.setState(state => {
                             return extend(
@@ -613,63 +590,6 @@ class PoolController extends React.Component<any, IPoolSystem> {
                             );
                         });
                         break;
-                    /* case "feature":
-                        this.setState(state => {
-                            let features=extend(true, [], state._state.features);
-                            let index=state._state.features.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            index===-1? features.push(d):features[index]=d;
-                            return extend(
-                                true,
-                                state,
-                                { _state: { features: features } }
-                            );
-                        });
-                        break; */
-                    /*                     case "circuit":
-                                            this.setState(state => {
-                                                let circuits=extend(true, [], state._state.circuits);
-                                                let index=state._state.circuits.findIndex(el => {
-                                                    return el.id===d.id;
-                                                });
-                                                index===-1? circuits.push(d):circuits[index]=d;
-                                                return extend(
-                                                    true,
-                                                    state,
-                                                    { _state: { circuits: circuits } },
-                                                    { counter: state.counter+1 }
-                                                );
-                                            });
-                                            break; */
-                    /* case "virtualCircuit":
-                        this.setState(state => {
-                            let virtualCircuits=extend(true, [], state._state.virtualCircuits);
-                            let index=state._state.virtualCircuits.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            index===-1? virtualCircuits.push(d):virtualCircuits[index]=d;
-                            return extend(
-                                true,
-                                state,
-                                { _state: { virtualCircuits: virtualCircuits } }
-                            );
-                        });
-                        break; */
-                    /* case "circuitGroup":
-                        this.setState(state => {
-                            let circuitGroups=extend(true, [], state._state.circuitGroups);
-                            let index=state._state.circuitGroups.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            index===-1? circuitGroups.push(d):circuitGroups[index]=d;
-                            return extend(
-                                true,
-                                state,
-                                { _state: { circuitGroups: circuitGroups } }
-                            );
-                        });
-                        break; */
                     default:
                         console.log(`incoming socket ${ which } not processed by main poolcontroller.tsx`);
                         console.log(d);
@@ -719,18 +639,11 @@ class PoolController extends React.Component<any, IPoolSystem> {
                     </Navbar>
                 </div>
                 <div className={className}>
-                    {comms.poolURL==="*"? 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.':
+                    {comms.poolURL==="*"? this.state.loadingMessage:
 
                         <Container>
                             <SysInfo
-                                dateTime={this.state._state.time}
-                                status={this.state._state.status}
-                                mode={this.state._state.mode}
-                                freeze={this.state._state.freeze}
                                 counter={this.state.counter}
-                                model={this.state._state.equipment.model}
-                                airTemp={this.state._state.temps.air}
-                                solarTemp={this.state._state.temps.solar}
                                 id="system"
                                 visibility={"visible"}
                             />
@@ -770,7 +683,7 @@ class PoolController extends React.Component<any, IPoolSystem> {
                                 id="schedules"
                                 visibility={"visible"}
                                 idOfFirstUnusedSchedule={this.idOfFirstUnusedSchedule()}
-                
+
                             />
                             <Chlorinator
                                 chlorState={this.state._state.chlorinators[0]}

@@ -54,6 +54,7 @@ class PumpConfigSelectSpeedSlider extends React.Component<Props, State> {
     render() {
 
         const customLabels=() => {
+            if (this.props.currentPumpCircuit.id !== 8) return {};
             if(this.props.currentPumpCircuit.units.desc==='GPM') {
                 return {15: "15", 130: "130"}
             }

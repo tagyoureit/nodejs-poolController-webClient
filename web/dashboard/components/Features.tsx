@@ -1,102 +1,60 @@
-import
-{
+import {
     ListGroup, ListGroupItem, Button, Popover, PopoverHeader, PopoverBody
 } from 'reactstrap';
-import CustomCard from './CustomCard'
-import { comms } from './Socket_Client'
-import * as React from 'react';
-import {useState} from 'react';
-import { IStateCircuit, IConfigCircuit, EquipmentIdRange, getItemById, ControllerType } from './PoolController';
-const play = require("../images/play-icon.svg");
-const info = require("../images/info-blue-bg.svg");
+import CustomCard from './CustomCard';
+import { comms } from './Socket_Client';
+import React, { useState, useEffect, useReducer } from 'react';
+import { IStateCircuit, IConfigCircuit, EquipmentIdRange, getItemById, ControllerType, equipmentType, IStateCircuitGroup } from './PoolController';
+const play=require("../images/play-icon.svg");
+const info=require("../images/info-blue-bg.svg");
+import useDataApi from './DataFetchAPI';
 var extend=require("extend");
-interface Props
-{
+
+
+interface Props {
     controllerType: ControllerType;
     hideAux: boolean,
     id: string;
     visibility: string;
 }
-interface State {
-    popoverOpen: any;
-    features: IStateCircuit[];
-    circuitConfigs: IConfigCircuit[];
-    circuitGroupStates: IStateCircuit[];
-    equipmentIds?: EquipmentIdRange;
-}
 
-class Features extends React.Component<Props, State> {
 
-    constructor( props: Props )
-    {
-        super( props )
-        this.state = {
-            popoverOpen: false, 
-            circuitConfigs: undefined,
-            circuitGroupStates: undefined,
-            equipmentIds: {circuitGroups: {start:0, end: 0}, features: {start:0, end: 0}},
-            features: undefined
-        }
-        this.toggle = this.toggle.bind(this);
-        this.handleClick = this.handleClick.bind( this );
-    }
-    incoming() {
-        let self=this;
-        comms.passthrough((d: any, which: string): void => {
-            if(which==='feature') {
-                console.log(`feature received..V`)
-                console.log(d)
-                if(getItemById(self.state.features, d.id)!==0) {
-                    console.log({ [which]: d });
-                    console.log(`found feature at element: ${JSON.stringify(getItemById(self.state.features, d.id))}`)
-                    let features=extend(true, [], self.state.features);
-                    let index=self.state.features.findIndex(el => {
-                        return el.id===d.id;
-                    });
-                    index===-1? features.push(d):features[index]=d;
-                    self.setState({ features: features });
-                }
-            }
-        });
-    }
-    componentDidMount() {
-        this.incoming();
-        fetch(`${comms.poolURL}/config/circuits`)
-            .then(res => res.json())
-            .then(result =>{
-               this.setState({circuitConfigs: result}, function(){
-                   console.log('finished setting circuit config');
-               }) 
-            })
-        fetch(`${comms.poolURL}/state/features`)
-            .then(res => res.json())
-            .then(result =>{
-               this.setState({features: result}, function(){
-                   console.log('finished setting features');
-               }) 
-            })
-        fetch(`${comms.poolURL}/state/circuitGroups`)
-            .then(res => res.json())
-            .then(result =>{
-               this.setState({circuitGroupStates: result}, function(){
-                   console.log('finished setting circuitGroups');
-               }) 
-            })
-        fetch(`${comms.poolURL}/config/equipment`)
-            .then(res => res.json())
-            .then(result =>{
-               this.setState({circuitGroupStates: result.equipmentIds}, function(){
-                   console.log('finished setting circuitGroups');
-               }) 
-            })
-    }
-    toggle = (evt?: any) => {
-        let state = typeof this.state.popoverOpen[evt.target.id] === 'undefined'? true : !this.state.popoverOpen[evt.target.id];
-        this.setState({popoverOpen: {[evt.target.id]: state}})};
-    circuit = () =>
-    {
+const initialState: { features: IStateCircuit[]; }={ features: [] };
+
+function Features(props: Props) {
+    const [popoverOpen, setPopoverOpen]=useState<boolean[]>([false]);
    
-        if ( typeof this.state.features === 'undefined' ) return ( <div /> );
+    let arr = [];
+    arr.push({ url: `${ comms.poolURL }/config/features`, name: 'cfeatures' });
+    arr.push({ url: `${ comms.poolURL }/state/features`, name: 'sfeatures' });
+    arr.push({ url: `${ comms.poolURL }/config/equipment`, name: 'equipment' });
+    arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, name: 'circuitGroups' });
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
+
+
+     useEffect(() => {
+        let emitter=comms.getEmitter();
+        const fn=function(data) { doUpdate({ updateType: 'MERGE', dataName: 'sfeatures', data }); };
+        emitter.on('feature', fn);
+        return () => {
+            emitter.removeListener('feature', fn);
+        };
+    }, []); 
+    const toggle = (evt?: any) => {
+        let _popover = [...popoverOpen];
+         // = typeof popoverOpen[evt.target.id] === 'undefined'? true : !popoverOpen[evt.target.id];
+         _popover[evt.target.id] = !_popover[evt.target.id];
+        setPopoverOpen(_popover)
+    }
+    const handleClick = ( event: any ): any =>
+    {   
+        let circ = event.target.value;
+        if (getItemById(data.cfeatures, circ).isMacro) comms.setCircuitState(circ);
+        comms.toggleCircuit( circ );
+    }
+    const features = () =>
+    {
+        // if ( !state.features.length || typeof equipmentIds === 'undefined' ) return ( <div /> );
         // TODO: Aux Extra and NOT used should be hidden.
         // for ( var cir in data )
         // {
@@ -104,16 +62,17 @@ class Features extends React.Component<Props, State> {
         //     if ( data[ cir ].hasOwnProperty( 'name' ) )
         //     {
         //         // if hideAux is true skip the unused circuits
-        //         if ( [ 'NOT USED', 'AUX EXTRA' ].indexOf( data[ cir ].name ) !== -1 && this.props.hideAux )
+        //         if ( [ 'NOT USED', 'AUX EXTRA' ].indexOf( data[ cir ].name ) !== -1 && props.hideAux )
         //         {
         //         }
         //         else
         //         {
-        return this.state.features.map( feature =>
+        let features = extend(true, [], data.cfeatures, data.sfeatures)
+        return features.map( feature =>
         {
-            let offset = this.state.equipmentIds.circuitGroups.start - this.state.equipmentIds.features.start;
-            let group = getItemById(this.state.circuitGroupStates, feature.id + offset);
-            if (typeof group !== 'undefined' && typeof group.id !== 'undefined' && this.props.controllerType === ControllerType.intellitouch){
+            let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;
+            let group = getItemById(data.circuitGroups, feature.id + offset);
+            if (typeof group !== 'undefined' && typeof group.id !== 'undefined' && props.controllerType === ControllerType.intellitouch){
                 let details = group.circuits.map(circuit => {
                     return (<li key={feature.id+offset+circuit.circuit.id+'_circuitGroupDetails'}>{`${circuit.circuit.id} ${circuit.circuit.name}: ${circuit.desiredStateOn?'Off':'On'}`}</li>)
                 });
@@ -124,11 +83,11 @@ class Features extends React.Component<Props, State> {
                             {feature.name + ' '}
                             <img src={info} width='20px' height='20px' id={targetid}/>
                         </span>
-                        <Popover isOpen={this.state.popoverOpen[targetid]} target={targetid} toggle={this.toggle}>
+                        <Popover isOpen={popoverOpen[targetid]} target={targetid} toggle={toggle}>
                             <PopoverHeader>Circuit Groups</PopoverHeader>
                             <PopoverBody><ul>{details}</ul></PopoverBody>
                         </Popover>
-                        <Button color={group.isOn ? 'success' : 'primary'} key={feature.id + 'feature'} onClick={this.handleClick} value={feature.id} >
+                        <Button color={group.isOn ? 'success' : 'primary'} key={feature.id + 'feature'} onClick={handleClick} value={feature.id} >
                         <img src={play} width='20px' height='20px'/>
                         </Button>
                     </div>
@@ -138,33 +97,27 @@ class Features extends React.Component<Props, State> {
             return (<ListGroupItem key={feature.id + 'featurelistgroupkey'}>
                     <div className='d-flex justify-content-between'>
                         {feature.name}
-                        <Button color={feature.isOn ? 'success' : 'primary'} key={feature.id + 'feature'} onClick={this.handleClick} value={feature.id} >{feature.isOn ? 'On' : 'Off'}
+                        <Button color={feature.isOn ? 'success' : 'primary'} key={feature.id + 'feature'} onClick={handleClick} value={feature.id} >{feature.isOn ? 'On' : 'Off'}
                         </Button>
                     </div>
                 </ListGroupItem>
             )
-
-
         } )
     }
-    handleClick = ( event: any ): any =>
-    {   
-        let circ = event.target.value;
-        if (getItemById(this.state.circuitConfigs, circ).isMacro) comms.setCircuitState(circ);
-        comms.toggleCircuit( circ );
-    }
-    render ()
-    {
-        return (
-            <div className="feature-pane active" id={this.props.id} role="tabpanel" aria-labelledby="feature-tab">
-                <CustomCard name={this.props.id} id={this.props.id} visibility={this.props.visibility}>
-                    <ListGroup flush >
-                        {this.circuit()}
-                    </ListGroup>
-                </CustomCard>
-            </div>
-        );
-    }
+
+    return (
+        <>
+        {  !doneLoading?  ( <div />): 
+        <div className="feature-pane active" id={props.id} role="tabpanel" aria-labelledby="feature-tab">
+            <CustomCard name={props.id} id={props.id} visibility={props.visibility}>
+                <ListGroup flush >
+                    {features()}
+                </ListGroup>
+            </CustomCard>
+        </div>
+        }
+        </>
+    );
 }
 
 export default Features;
