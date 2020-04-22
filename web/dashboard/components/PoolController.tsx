@@ -466,17 +466,18 @@ class PoolController extends React.Component<any, IPoolSystem> {
         let lastUpdateTime=0;
         this.checkURL();
         let self=this;
-        setTimeout(function() { self.setState({ loadingMessage: 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.' }); }, 5000);
+        setTimeout(function() { if (comms.poolURL === '*') {self.setState({ loadingMessage: 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.' });} }, 5000);
     }
 
 
 
     checkURL() {
-        console.log(`comms.poolURL: ${ comms.poolURL }`);
-        if(comms.poolURL==="*") {
+        if (comms.poolURL === '*'){
+            console.log(`Checking webClient server for SSDP address every second;`)
             setTimeout(() => this.checkURL(), 1000);
         }
         else {
+            console.log(`webClient server found pool app at: ${ comms.poolURL }`);
             this.setState({ poolURL: comms.poolURL });
             this.load();
         }

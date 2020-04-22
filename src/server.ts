@@ -6,11 +6,12 @@ import { config } from './Config';
 var ssdp=require('node-ssdp').Client
     , client=new ssdp({});
 const mSearch='urn:schemas-upnp-org:device:PoolController:1';
-let url=config.getSection("discovery").poolControllerURL;
+let configURL:string=config.getSection("discovery").poolControllerURL;
+let discoveredURL:string = configURL;
 let timeout: NodeJS.Timeout;
 
 function search(force?: boolean) {
-    if(url==="*" || force) {
+    if(configURL==="*" || force) {
         if(typeof timeout!==undefined) clearTimeout(timeout);
         client.search(mSearch);
         timeout=setTimeout(function() {
@@ -24,13 +25,13 @@ function search(force?: boolean) {
 async function startBundler() {
     const app=express();
     client.on('response', function inResponse(headers, code, rinfo) {
-        if(headers.ST!==mSearch) { return; }
+        if(headers.ST!==mSearch || configURL !== '*') { return; }
         clearTimeout(timeout);
         console.log('Got a response to an m-search:\n%d\n%s\n%s', code, JSON.stringify(headers, null, '  '), JSON.stringify(rinfo, null, '  '));
-        console.log(headers.LOCATION);
-        const oldUrl = url;
-        url=headers.LOCATION.match(/^.+?[^\/:](?=[?\/]|$)/)[0];
-        if (url !== '*' && url !== oldUrl) console.log(`Found pool server at new address ${url} (previously was ${oldUrl})`)
+        // console.log(headers.LOCATION);
+        const oldUrl = discoveredURL;
+        discoveredURL=headers.LOCATION.match(/^.+?[^\/:](?=[?\/]|$)/)[0];
+        if (discoveredURL !== '*' && discoveredURL !== oldUrl) console.log(`Found pool server at new address ${discoveredURL} (previously was ${oldUrl})`)
         client.stop();
     });
 
@@ -41,20 +42,28 @@ async function startBundler() {
     });
 
     app.get('/discover', (req, res) => {
-        if(url==="*") {
+        if (configURL !== '*'){
+            res.status(200).send({ url: configURL });
+        }
+        else if(discoveredURL==="*") {
             console.log(`SSDP: cannot find poolController with discovery.  Please set address manually in config.json in the format of 'http://ip:port/`);
             res.status(204).send(`No SSDP found yet.`);
             client.search(mSearch);
         }
         else {
-            console.log(`about to send: ${ url }`);
-            res.status(200).send({ url: url });
+            console.log(`about to send: ${ discoveredURL }`);
+            res.status(200).send({ url: discoveredURL });
         }
     });
 
     app.get('/recheck', (req, res)=> {
-        console.log(`Webapp not able to connect; forcing mSearch.`)
-        client.search(mSearch, true);
+        if (configURL !== '*'){
+            console.log(`Webapp not able to connect to ${configURL}.`)
+        }
+        else {
+            console.log(`Webapp not able to connect; forcing mSearch.`)
+            client.search(mSearch, true);
+        }
     })
 
     // Parcel: absolute path to entry point
