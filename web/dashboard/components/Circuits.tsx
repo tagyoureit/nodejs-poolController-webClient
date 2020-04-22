@@ -51,7 +51,7 @@ function Circuits(props: Props) {
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
         let emitter=comms.getEmitter();
-        const fn=function(data) { doUpdate({ updateType: 'MERGE', dataName: 'circuits', data }); };
+        const fn=function(data) { doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'circuits', data }); };
 
         switch(props.id) {
             case "Circuits":

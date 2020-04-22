@@ -30,7 +30,7 @@ function PumpConfigContainer(props: Props){
     /* eslint-disable react-hooks/exhaustive-deps */
    /*  useEffect(()=>{
 
-    }, [props.currentPump.id]) */ // do NOT add doUpdate to the list here
+    }, [props.currentPump.id]) */ 
     /* eslint-enable react-hooks/exhaustive-deps */
  
 
@@ -45,7 +45,9 @@ function PumpConfigContainer(props: Props){
     const deletePumpCircuit = (pumpCircuit: number) => {
         comms.deletePumpCircuit(props.currentPump.id, pumpCircuit)
     }
-    return !doneLoading ?(<>Loading...</>):
+
+
+     return !doneLoading ?(<>Loading...</>):
         <Container>
             <Row>
                 <Col>
@@ -58,8 +60,6 @@ function PumpConfigContainer(props: Props){
             </Row>
             {doneLoading && props.currentPump.type.name==='none'?`Select a pump type to edit circuits`:
        <div>
-{/*           {typeof data.pumps[props.currentPump.id].circuits === 'undefined'?console.log(`MAP PUMP IS UNDEFINED!`):''}
-          {typeof data.pumps[props.currentPump.id].circuits === 'undefined'?console.log(props):''} */}
            {props.currentPump.circuits.map(circ =>{
                return (<PumpConfigPumpCircuit 
                 key={circ.id + 'circuitIdConfig'}
@@ -73,7 +73,7 @@ function PumpConfigContainer(props: Props){
                 />)})}                   
          </div>
     }
-        </Container>
+        </Container> 
     ;
 }
 

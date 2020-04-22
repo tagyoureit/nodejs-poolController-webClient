@@ -53,17 +53,17 @@ function CircuitModalPopup(props: Props) {
 
 
     const [disabledList, setDisabledList]=useState<number[]>([]);
-
+    /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
 
         let emitter=comms.getEmitter();
         const fnFeature=function(data) {
-            doUpdate({ updateType: 'MERGE', dataName: 'features', data });
+            doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'features', data });
             setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
         };
         emitter.on('feature', fnFeature);
         const fnCircuit=function(data) {
-            doUpdate({ updateType: 'MERGE', dataName: 'circuits', data });
+            doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'circuits', data });
             setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
         };
         emitter.on('circuit', fnCircuit);
@@ -72,6 +72,7 @@ function CircuitModalPopup(props: Props) {
             emitter.removeListener('circuit', fnCircuit);
         };
     }, []);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     function addDisabledList(circ) {
         if(disabledList.includes(circ)) return;
@@ -173,6 +174,7 @@ function CircuitModalPopup(props: Props) {
         if(props.controllerType.toString().toLowerCase().includes('touch')) {
             return (
                 <UncontrolledButtonDropdown
+                    direction="right"
                     size='sm'
                     className='mb-1 mt-1'
                 >
@@ -181,7 +183,24 @@ function CircuitModalPopup(props: Props) {
                     >
                         {circ.name}
                     </DropdownToggle>
-                    <DropdownMenu>
+                    <DropdownMenu
+                    modifiers={{
+                        setMaxHeight: {
+                            enabled: true,
+                            order: 890,
+                            fn: (data) =>{
+                                return {
+                                    ...data,
+                                    styles: {
+                                        ...data.styles,
+                                        overflow: 'auto',
+                                        maxHeight: '400px'
+                                    }
+                                }
+                            }
+                        }
+                    }}
+                    >
                         {data.circuitNames.map(cn => {
                             return <DropdownItem
                                 key={`circuit${ circ.id }cn${ cn.val }circName`}

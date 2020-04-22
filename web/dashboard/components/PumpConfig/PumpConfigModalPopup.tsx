@@ -33,7 +33,7 @@ function PumpConfigModalPopup(props: Props) {
         const fnPumpExt=function(data) {
             console.log(`received pumpExt:`);
             console.log(data);
-            doUpdate({ updateType: 'REPLACE', dataName: 'pumpState', data });
+            doUpdate({ updateType: 'REPLACE', dataName: 'pumps', data });
         };
         emitter.on('pumpExt', fnPumpExt);
 

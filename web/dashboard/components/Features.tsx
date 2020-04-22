@@ -31,18 +31,18 @@ function Features(props: Props) {
     arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, name: 'circuitGroups' });
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
-
+    /* eslint-disable react-hooks/exhaustive-deps */
      useEffect(() => {
         let emitter=comms.getEmitter();
-        const fn=function(data) { doUpdate({ updateType: 'MERGE', dataName: 'sfeatures', data }); };
+        const fn=function(data) { doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'sfeatures', data }); };
         emitter.on('feature', fn);
         return () => {
             emitter.removeListener('feature', fn);
         };
     }, []); 
+    /* eslint-enable react-hooks/exhaustive-deps */
     const toggle = (evt?: any) => {
         let _popover = [...popoverOpen];
-         // = typeof popoverOpen[evt.target.id] === 'undefined'? true : !popoverOpen[evt.target.id];
          _popover[evt.target.id] = !_popover[evt.target.id];
         setPopoverOpen(_popover)
     }
