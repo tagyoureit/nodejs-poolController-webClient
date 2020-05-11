@@ -9,84 +9,69 @@ import React, {useState, useEffect} from 'react';
 import { IDetail, IStateTemp } from './PoolController';
 import SysInfoEditLogger from './SysInfoEditLogger';
 import {comms} from './Socket_Client';
+import useDataApi from '../components/DataFetchAPI';
 
 interface Props
 {
     visibility: string,
     id: string,
     counter: number,
+    data: any;
+    isLoading: boolean
+    doneLoading: boolean
 }
-interface State
-{
-    modalOpen: boolean
-}
+
+const initialState:any={
+    temps: {}, 
+    status: {},
+    mode: {},
+    freeze: false,
+    time: ''
+};
 
 function SysInfo(props: Props){
-    const [temps, setTemps] = useState<IStateTemp>()
-    const [status, setStatus] = useState({val: 0, name: '', desc: ''})
-    const [mode, setMode] = useState<IDetail>({val: 0, desc:'loading', name:'loading'});
-    const [freeze, setFreeze] = useState(false);
-    const [time, setTime] = useState();
     const [modalOpen, setModalOpen] = useState(false);
-    const [model, setModel] = useState();
-
-    useEffect(() => {
-        fetch(`${ comms.poolURL }/state/all`)
-            .then(res => res.json())
-            .then(result => {
-                setTemps(result.temps);
-                setStatus(result.status);
-                setMode(result.mode);
-                setFreeze(result.freeze);
-                setTime(result.time);
-                setModel(result.equipment.model)
-            },
-                error => {
-                    console.log(error);
-                });
-       
-    }, []);
     const toggleModal = () => {
         // open and close the modal
        setModalOpen(!modalOpen);
     }
-
     const closeBtn = <button className="close" onClick={toggleModal}>&times;</button>;
-        return (
+        return !props.isLoading && props.doneLoading?
+        (
             <div className="tab-pane active" id="system" role="tabpanel" aria-labelledby="system-tab">
                 <CustomCard name='System Information' id={props.id} visibility={props.visibility} edit={toggleModal}>
                     <Row>
                         <Col xs="6">Controller Type </Col>
                         <Col>
-                            {model}
+                            {props.data.equipment.model}
                         </Col>
                     </Row>
                     <Row>
                         <Col xs="6">Date/Time </Col>
                         <Col>
-                            <DateTime  origDateTime={time} />
+                            <DateTime  origDateTime={props.data.time} />
                         </Col>
                     </Row>
 
                     <Row>
                         <Col xs="6">Status</Col>
-                        <Col xs="6"><StatusIndicator status={status} counter={props.counter}></StatusIndicator></Col>
+                        <Col xs="6"><StatusIndicator status={props.data.status} counter={props.counter}></StatusIndicator></Col>
                     </Row>
                     <Row>
                         <Col xs="6">Mode</Col>
-                        <Col xs="6">{mode.desc}</Col>
+                        <Col xs="6">{props.data.mode.desc}</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Freeze</Col>
-                        <Col xs="6">{freeze ? "Active" : "Off"}</Col>
+                        <Col xs="6">{props.data.freeze ? "Active" : "Off"}</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Air Temp</Col>
-                        <Col xs="6">{typeof temps === 'undefined'?'':temps.air}</Col>
+                        <Col xs="6">{typeof props.data.temps === 'undefined'?'':props.data.temps.air}</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Solar Temp</Col>
-                        <Col xs="6">{typeof temps === 'undefined'?'':temps.solar}</Col>
+                        <Col xs="6">{typeof props.data.temps === 'undefined'?'':props.data.temps.solar}</Col>
                     </Row>
 
                 </CustomCard>
@@ -100,7 +85,10 @@ function SysInfo(props: Props){
                         </ModalFooter>
                     </Modal>
             </div>
-        );
+        )
+        :
+        <>Loading...</>;
+        
 }
 
 export default SysInfo;

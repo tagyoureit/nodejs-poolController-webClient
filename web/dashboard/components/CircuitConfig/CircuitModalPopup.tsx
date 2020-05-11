@@ -42,11 +42,11 @@ function CircuitModalPopup(props: Props) {
         equipment: {}
     };
     let arr=[];
-    arr.push({ url: `${ comms.poolURL }/config/equipment`, name: 'equipment' });
-    arr.push({ url: `${ comms.poolURL }/config/circuit/functions`, name: 'circuitFunctions' });
-    arr.push({ url: `${ comms.poolURL }/state/circuits`, name: 'circuits' });
-    arr.push({ url: `${ comms.poolURL }/state/features`, name: 'features' });
-    arr.push({ url: `${ comms.poolURL }/config/circuits/names`, name: 'circuitNames' });
+    arr.push({ url: `${ comms.poolURL }/config/equipment`, dataName: 'equipment' });
+    arr.push({ url: `${ comms.poolURL }/config/circuit/functions`, dataName: 'circuitFunctions' });
+    arr.push({ url: `${ comms.poolURL }/state/circuits`, dataName: 'circuits' });
+    arr.push({ url: `${ comms.poolURL }/state/features`, dataName: 'features' });
+    arr.push({ url: `${ comms.poolURL }/config/circuits/names`, dataName: 'circuitNames' });
 
 
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
@@ -58,12 +58,12 @@ function CircuitModalPopup(props: Props) {
 
         let emitter=comms.getEmitter();
         const fnFeature=function(data) {
-            doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'features', data });
+            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data });
             setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
         };
         emitter.on('feature', fnFeature);
         const fnCircuit=function(data) {
-            doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'circuits', data });
+            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'circuits', data });
             setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
         };
         emitter.on('circuit', fnCircuit);

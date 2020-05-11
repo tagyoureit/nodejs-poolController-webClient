@@ -23,7 +23,11 @@ function PumpConfigSelectCircuit(props: Props){
     const handleClick = ( event: any ) =>
     {
         console.log( `changing  circuitSlot=${ props.currentPumpCircuit.id } type to circuit ${ event.target.value } (${ getItemById(props.availableCircuits, parseInt(event.target.value, 10)) .name })` )
-        if (event.target.value === "255"){
+        let removeIDs = props.availableCircuits.filter(el=>{
+            return el.name==='notused' || el.name==='delete' || el.name==="Remove" || el.type === 'none'
+        }).map(el=>el.id)
+        console.log(`REMOVE IDS? ${removeIDs}`)
+        if (removeIDs.includes(parseInt(event.currentTarget.value, 10))){
             props.onDelete(props.currentPumpCircuit.id)
         }
         else
@@ -60,11 +64,12 @@ function PumpConfigSelectCircuit(props: Props){
         size='sm' 
         isOpen={dropdownOpen} 
         toggle={()=>setDropdownOpen(!dropdownOpen)}
-        style={{ width: '60%' }} 
+        style={{ width: '60%' }}
         className='fullWidth'
         >
             <DropdownToggle 
             disabled={props.disabled}
+            color={props.currentPumpCircuit.circuit.isOn?'success':'secondary'}
             caret >
                 {props.currentPumpCircuit.circuit.name}
             </DropdownToggle>

@@ -1,155 +1,103 @@
-import { Container, Row, Col, Button } from 'reactstrap'
-import { comms } from './Socket_Client'
-import Slider from 'react-rangeslider'
-import 'react-rangeslider/lib/index.css'
-import '../css/rangeslider.css'
-import * as React from 'react';
-import { IStateChlorinator, IState, getItemById, IConfigChlorinator } from './PoolController'
+import { Container, Row, Col, Button } from 'reactstrap';
+import { comms } from './Socket_Client';
+import Slider from 'react-rangeslider';
+import 'react-rangeslider/lib/index.css';
+import '../css/rangeslider.css';
+import React, { useEffect, useState } from 'react';
+import { IStateChlorinator, IState, getItemById, IConfigChlorinator } from './PoolController';
 
-interface Props{
-    chlorState: IStateChlorinator,
-    chlorConfig: IConfigChlorinator
-    maxBodies: number
+interface Props {
+    chlor: IConfigChlorinator&IStateChlorinator,
 }
 
-interface State
-{
-  poolSetpoint: number;
-  spaSetpoint: number;
-  superChlorHours: number;
-}
+function ChlorinatorCustomSlider(props: Props) {
+    const [poolSetpoint, setPoolSetpoint]=useState(0);
+    const [spaSetpoint, setSpaSetpoint]=useState(0);
+    const [superChlorHours, setSuperChlorHours]=useState(0);
 
-class ChlorinatorCustomSlider extends React.Component<Props, State> {
-  constructor( props: Props )
-  {
-    super( props )
+    useEffect(() => {
+        setPoolSetpoint(props.chlor.poolSetpoint)
+    }, [props.chlor.poolSetpoint])
+    useEffect(() => {
+        setSpaSetpoint(props.chlor.spaSetpoint);
+    }, [props.chlor.spaSetpoint])
+    useEffect(() => {
+        setSuperChlorHours(props.chlor.superChlorHours);
+    }, [props.chlor.superChlorHours])
 
-    this.state = { 
-        poolSetpoint: this.props.chlorState.poolSetpoint || 0,
-        spaSetpoint: this.props.chlorState.spaSetpoint || 0,
-        superChlorHours: this.props.chlorState.superChlorHours || 0 
-    } 
-    this.onChangePool = this.onChangePool.bind( this )
+    const onChangePool=(poolLvl: number) => {
+        setPoolSetpoint(poolLvl);
 
-  }
+    };
 
-/*   componentDidMount ()
-  {
-    this.setState( { 
-        poolSetpoint: this.props.chlorState.poolSetpoint || 0,
-        spaSetpoint: this.props.chlorState.spaSetpoint || 0,
-        superChlorHours: this.props.chlorState.superChlorHours || 0 
-    } )
-  }
- */
-  componentDidUpdate ( prevProps: Props )
-  {
-    if ( prevProps.chlorState.poolSetpoint !== this.props.chlorState.poolSetpoint
-    )
-      this.setState( { poolSetpoint: this.props.chlorState.poolSetpoint } )
+    const onChangeSpa=(spaLvl: number) => {
+        setSpaSetpoint(spaLvl);
+    };
 
-      if (this.props.maxBodies > 1)
-    if ( prevProps.chlorState.spaSetpoint !== this.props.chlorState.spaSetpoint
-    )
-      this.setState( { spaSetpoint: this.props.chlorState.spaSetpoint } )
+    const onChangeSuperChlor=(hours: number) => {
+        setSuperChlorHours(hours);
+    };
 
-    if ( prevProps.chlorState.superChlorHours !== this.props.chlorState.superChlorHours
-    )
-      this.setState( { superChlorHours: this.props.chlorState.superChlorHours } )
-  }
+    const onChangeComplete=() => {
+        console.log(`setting chlor: id:${ props.chlor.id }, poolSP: ${ poolSetpoint }, spaSP:${ spaSetpoint||0 }, superChlorHrs:${ superChlorHours }`)
+        comms.setChlor(props.chlor.id, poolSetpoint, spaSetpoint||0, superChlorHours);
+    };
 
-  onChangePool = ( poolLvl: number ) =>
-  {
-    this.setState( () =>
-    {
-      return {
-        poolSetpoint: poolLvl,
-      }
-    } )
-  }
-
-  onChangeSpa = ( spaLvl: number ) =>
-  {
-    this.setState( () =>
-    {
-      return {
-        spaSetpoint: spaLvl,
-      }
-    } )
-  }
-
-  onChangeSuperChlor = ( hours: number ) =>
-  {
-    this.setState( () =>
-    {
-      return {
-        superChlorHours: hours
-      }
-    } )
-  }
-
-  onChangeComplete = () =>
-  {
-    comms.setChlor( this.props.chlorState.id, this.state.poolSetpoint, this.state.spaSetpoint || 0, this.state.superChlorHours )
-  }
-
-  // Todo: don't show Spa in single body of water
-  render ()
-  {
-    const heightStyle = {
-      height: '300px'
-    }
-    const customPercentLabels = { 0: "Off", 50: "50%", 100: "100%" };
-    const customTimeLabels = { 0: "Off", 12: "12", 24: "24" };
+    // Todo: don't show Spa in single body of water
+    const heightStyle={
+        height: '300px'
+    };
+    const customPercentLabels={ 0: "Off", 50: "50%", 100: "100%" };
+    const customTimeLabels={ 0: "Off", 12: "12", 24: "24" };
 
     return (
 
-      <div>
-        <Container style={heightStyle} >
-          <Row>
-          <Col>
-            Pool
+        <div>
+            <Container style={heightStyle} >
+                <Row>
+                    <Col>
+                        Pool
                 <Slider
-                  labels={customPercentLabels}
-                  value={this.state.poolSetpoint}
-                  onChange={this.onChangePool}
-                  onChangeComplete={this.onChangeComplete}
-                />
-            </Col>
-          </Row>
-          <Row>
-          <Col style={{ paddingTop: '25px' }}>
-            Spa
+                            labels={customPercentLabels}
+                            value={poolSetpoint}
+                            onChange={onChangePool}
+                            onChangeComplete={onChangeComplete}
+                        />
+                    </Col>
+                </Row>
+                {props.chlor.body>0&&(<><Row>
+                    <Col style={{ paddingTop: '25px' }}>
+                        Spa
                 <Slider
-                  labels={customPercentLabels}
-                  value={this.state.spaSetpoint}
-                  onChange={this.onChangeSpa}
-                  onChangeComplete={this.onChangeComplete}
-                />
-            </Col>
-          </Row>
-          <Row>
-            <Col style={{ paddingTop: '25px' }}>
-            Super Chlorinate Hours
+                            labels={customPercentLabels}
+                            value={spaSetpoint}
+                            onChange={onChangeSpa}
+                            onChangeComplete={onChangeComplete}
+                        />
+                    </Col>
+                </Row>
+                    <Row>
+                        <Col style={{ paddingTop: '25px' }}>
+                            Super Chlorinate Hours
               <div className='custom-labels'>
-                <Slider
-                  min={0}
-                  max={24}
-                  labels={customTimeLabels}
-                  value={this.state.superChlorHours}
-                  onChange={this.onChangeSuperChlor}
-                  onChangeComplete={this.onChangeComplete}
-                />
-              </div>
-            </Col>
-          </Row>
+                                <Slider
+                                    min={0}
+                                    max={24}
+                                    labels={customTimeLabels}
+                                    value={superChlorHours}
+                                    onChange={onChangeSuperChlor}
+                                    onChangeComplete={onChangeComplete}
+                                />
+                            </div>
+                        </Col>
+                    </Row></>)}
 
-        </Container>
+            </Container>
 
-      </div >
+        </div >
 
-    )
-  }
+    );
+
 }
 
 export default ChlorinatorCustomSlider;

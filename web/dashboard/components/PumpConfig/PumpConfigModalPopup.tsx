@@ -23,7 +23,7 @@ function PumpConfigModalPopup(props: Props) {
     let [currentPumpId, setCurrentPumpId]=useState(1);
     let [currentPump, setCurrentPump]=useState();
     let arr=[];
-    arr.push({ url: `${ comms.poolURL }/state/pumps`, name: 'pumps' });
+    arr.push({ url: `${ comms.poolURL }/extended/pumps`, dataName: 'pumps' });
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
 
@@ -33,7 +33,7 @@ function PumpConfigModalPopup(props: Props) {
         const fnPumpExt=function(data) {
             console.log(`received pumpExt:`);
             console.log(data);
-            doUpdate({ updateType: 'REPLACE', dataName: 'pumps', data });
+            doUpdate({ updateType: 'REPLACE_ARRAY', dataName: 'pumps', data });
         };
         emitter.on('pumpExt', fnPumpExt);
 
@@ -41,13 +41,14 @@ function PumpConfigModalPopup(props: Props) {
             emitter.removeListener('pumpExt', fnPumpExt);
         };
     }, []);
-    /* eslint-enable react-hooks/exhaustive-deps */
-
+    
+    // react useEffect doesn't do deep compare; hence the JSON.stringify(data)
     useEffect(()=>{
         // set current pump here; pass to children
         let pump = getItemById(data.pumps, currentPumpId);
         setCurrentPump(pump);
-    },[currentPumpId, data.pumps])
+    },[currentPumpId, JSON.stringify(data)])
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     const navTabs=() => {
             return data.pumps.map((pump, idx) => {

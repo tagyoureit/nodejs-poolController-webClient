@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { EventEmitter } from 'events';
 let io=require('socket.io-client');
-
+import axios from 'axios';
 let socket: SocketIO.Socket, patch;
 
 export class Comms {
@@ -190,7 +190,6 @@ export class Comms {
 
 
     public setPump(id, pumpType) {
-        // socket.emit( 'setPumpConfigType', _pump, _type )
         fetch(`${ this.poolURL }/config/pump/${ id }/type`, {
             method: 'PUT',
             headers: {
@@ -198,6 +197,18 @@ export class Comms {
             },
             body: JSON.stringify({ pumpType: pumpType })
         });
+    }
+    public setChlorConfig(props: any) {
+        fetch(`${ this.poolURL }/config/chlorinator/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(props)
+        });
+    }
+    public chlorSearch() {
+        axios.get(`${ this.poolURL }/config/chlorinators/search`);
     }
 
     public deletePumpCircuit(pump, pumpCircuitId: number) {
@@ -223,6 +234,22 @@ export class Comms {
             },
             body: JSON.stringify(obj)
         });
+    }
+
+    public async visibility(){
+        let resp = await axios('/visibility')
+        console.log(`resp?`)
+        console.log(resp)
+        return resp.data;
+    }
+    public async panelVisibility(name: string, state: 'hide'|'show'){
+        console.log(`putting ${name} and ${state}`)
+        //const config = { headers: {'Content-Type': 'application/json'} };
+         await axios.put('/panel', {
+           name,
+           state
+        }) 
+
     }
 }
 export const comms=new Comms();

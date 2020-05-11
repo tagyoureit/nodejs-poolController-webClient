@@ -5,60 +5,78 @@ import
 import CustomCard from './CustomCard'
 import 'react-rangeslider/lib/index.css'
 import ChlorinatorCustomSlider from './ChlorinatorCustomSlider'
-import * as React from 'react';
-import { IStateChlorinator, getItemById, IConfigChlorinator } from './PoolController';
+import React, {useEffect, useState} from 'react';
+import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit } from './PoolController';
 var extend = require( 'extend' );
+import { comms } from './Socket_Client';
+import useDataApi from './DataFetchAPI';
 interface Props
 {
-    chlorState: IStateChlorinator;
-    chlorConfig: IConfigChlorinator;
-    maxBodies: number;
     id: string;
     visibility: string;
 }
-interface State
-{
-    modal: boolean
-    // currentChlor: IStateChlorinator
-}
 
-class Chlorinator extends React.Component<Props, State> {
+const initialState: {chlorinators: IConfigChlorinator[] & IStateChlorinator[]} = {chlorinators: []}
+function Chlorinator(props: Props){
+    const [modal, setModal] = useState(false);
+    const [currentChlorID, setCurrentChlorID] = useState(1);
+    const [currentChlor, setCurrentChlor] = useState<IConfigChlorinator & IStateChlorinator>();
+    let arr=[];
+    arr.push({ url: `${ comms.poolURL }/extended/chlorinators`, dataName: 'chlorinators'});
 
-    constructor( props: Props )
-    {
-        super( props )
-        this.state = {
-            modal: false,
-            // currentChlor: extend(true,{},this.props.chlorState[1])
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
+    
+    /* eslint-disable react-hooks/exhaustive-deps */
+    useEffect(()=>{
+        if (doneLoading && data.chlorinators.length>0){
+            let chlor = getItemById(data.chlorinators, currentChlorID);
+            setCurrentChlor(chlor);
+        }
+    },[currentChlorID, doneLoading, JSON.stringify(data)])
+
+    useEffect(() => {
+        let emitter=comms.getEmitter();
+        const fnChlor=function(data) { doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'chlorinators', data }); };
+        emitter.on('chlorinator', fnChlor);
+        return () => {
+            emitter.removeListener('chlor', fnChlor);
         };
-        this.toggle = this.toggle.bind( this );
-        this.toggleFromButton = this.toggleFromButton.bind( this );
-    }
-    toggle = () =>
+    }, []); 
+
+    /* eslint-enable react-hooks/exhaustive-deps */
+
+    const toggle = () =>
     {
         // this will only be clicked when modal is open, so close it
-        this.setState( {
-            modal: false
-        } );
+            setModal(false);
     }
-    toggleFromButton = ev =>
+    const toggleFromButton = ev =>
     {
         // open and close the modal from the individual chlor buttons.
         let target = parseInt(ev.currentTarget.value, 10)
-        this.setState( () => ( {
-            modal: !this.state.modal,
-            currentChlor: getItemById(this.props.chlorState,target)
-        } ));
+        setModal(!modal)
+        // const cc = getItemById(data.chlorinators,target)
+        // setCurrentChlorID(cc);
+    }
+    const addVirtualChlor = () =>{
+        comms.setChlorConfig({
+            id: 1,
+            isVirtual: true,
+            poolSetpoint: 0
+        })
     }
 
-    chlorinator = () =>
+    const chlorinator = () =>
     {
-            let chlor = this.props.chlorState;
+        if (data.chlorinators.length === 0 || typeof currentChlor === 'undefined' || typeof currentChlor.body === 'undefined' || typeof currentChlor.status === 'undefined') {return <>No chlorinator connected to system.  
+            <Button color='link' onClick={()=>comms.chlorSearch()}>Search for stand alone chlorinator.</Button>
+            </>
+        }
             let chlorStatus;
-            if ( chlor.currentOutput >= 100 )
+            if ( currentChlor.currentOutput >= 100 )
             {
-                chlorStatus = `Super Chlorinate (${ chlor.superChlorHours } hours)`
-            } else if ( chlor.currentOutput > 0 )
+                chlorStatus = `Super Chlorinate (${ currentChlor.superChlorHours } hours)`
+            } else if ( currentChlor.currentOutput > 0 )
             {
                 chlorStatus = 'On'
             }
@@ -66,63 +84,64 @@ class Chlorinator extends React.Component<Props, State> {
             {
                 chlorStatus = 'Off'
             }
-            return ( <ListGroup key={chlor.id + 'chlorlistgroup'}>
+            return ( <ListGroup key={currentChlor.id + 'chlorlistgroup'}>
                 <ListGroupItem >
                         <Row>
-                        <Col xs="6">{chlor.name} ({chlor.id})</Col>
+                        <Col xs="6">{currentChlor.name} ({currentChlor.id})</Col>
                             <Col>
-                                <Button onClick={this.toggleFromButton} value={chlor.id} color={chlor.currentOutput > 0 ? 'success' : 'primary'}>{chlorStatus}</Button>
+                                <Button onClick={toggleFromButton} value={currentChlor.id} color={currentChlor.currentOutput > 0 ? 'success' : 'primary'}>{chlorStatus}</Button>
                             </Col>
                         </Row>
 
+                        {currentChlor.virtualControllerStatus && currentChlor.virtualControllerStatus !== -1 && (<Row>
+                            <Col xs="6">Virtual Controller Status:</Col>
+                            <Col xs="6">{currentChlor.virtualControllerStatus.desc}</Col>
+                        </Row> )}
                         <Row>
                             <Col xs="6">Salt</Col>
-                            <Col xs="6">{chlor.saltLevel} ppm</Col>
-                        </Row>
+                            <Col xs="6">{currentChlor.saltLevel} ppm</Col>
+                        </Row> 
                         <Row>
                             <Col xs="6">Current Output</Col>
-                            <Col xs="6">{chlor.currentOutput} %</Col>
+                            <Col xs="6">{currentChlor.currentOutput} %</Col>
                         </Row>
                         <Row>
-                            <Col xs="6">{this.props.maxBodies === 1 ? 'Pool Setpoint' : 'Pool/Spa Setpoint'}
+                            <Col xs="6">{currentChlor.body && currentChlor.body.desc} Setpoint
                             </Col>
-                            <Col xs="6">{this.props.maxBodies === 11 ? `${ chlor.poolSetpoint }%` : `${ chlor.poolSetpoint }% / ${ chlor.spaSetpoint }%`}
+                            <Col xs="6">{currentChlor.body.val === 0 ? `${ currentChlor.poolSetpoint }%` : `${ currentChlor.poolSetpoint }% / ${ currentChlor.spaSetpoint }%`}
                             </Col>
                         </Row>
                         <Row>
                             <Col xs="6">Status</Col>
-                            <Col xs="6">{chlor.status.desc}</Col>
+                            <Col xs="6">{currentChlor.status.desc}</Col>
                         </Row>
                 </ListGroupItem>
             </ListGroup> )
     }
 
-    render ()
-    {
-        if (this.props.chlorConfig.isActive === false) return (<div />);
-        const closeBtn = <button className="close" onClick={this.toggle}>&times;</button>;
+   
+        if (data.chlorinators === false) return (<div />);
+        const closeBtn = <button className="close" onClick={toggle}>&times;</button>;
 
-        return (
-            <div className="tab-pane active" id={this.props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
-                <CustomCard name='Chlorinator' id={this.props.id} visibility={this.props.visibility}>
-                    {this.chlorinator()}
+        return  (<div className="tab-pane active" id={props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
+                <CustomCard name='Chlorinator' id={props.id} visibility={props.visibility}>
+                    {!isLoading && doneLoading ? chlorinator(): <>Loading...</>}
                 </CustomCard>
-                <Modal isOpen={this.state.modal} toggle={this.toggle} size='xl' >
-                    <ModalHeader toggle={this.toggle} close={closeBtn}>Adjust Chlorinator Levels for ID:{this.props.chlorState.id}</ModalHeader>
+                <Modal isOpen={modal} toggle={toggle} size='xl' >
+                    <ModalHeader toggle={toggle} close={closeBtn}>Adjust Chlorinator Levels for ID:{currentChlorID}</ModalHeader>
                     <ModalBody>
                         <ChlorinatorCustomSlider 
-                            chlorState= {this.props.chlorState}
-                            chlorConfig= {this.props.chlorConfig}
-                            maxBodies = {this.props.maxBodies}
+                            chlor= {currentChlor}
                           />
                     </ModalBody>
                     <ModalFooter>
-                        <Button onClick={this.toggle}>Close</Button>
+                        <Button onClick={toggle}>Close</Button>
                     </ModalFooter>
                 </Modal>
             </div>
-        );
-    }
+        )
+        
+    
 }
 
 export default Chlorinator;

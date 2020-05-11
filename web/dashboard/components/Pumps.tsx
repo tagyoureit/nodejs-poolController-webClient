@@ -21,7 +21,7 @@ const initialState: { pumps: IStatePump[]; }={ pumps: [] };
 function Pump(props: Props) {
     const [modalOpen, setModalOpen]=useState(false);
     let arr=[];
-    arr.push({ url: `${ comms.poolURL }/state/pumps`, name: 'pumps' });
+    arr.push({ url: `${ comms.poolURL }/state/pumps`, dataName: 'pumps' });
 
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
     
@@ -31,7 +31,7 @@ function Pump(props: Props) {
         const fnPump=function(data) { 
             console.log(`received pump:`)
             console.log(data)
-            doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'pumps', data }); };
+            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'pumps', data }); };
         emitter.on('pump', fnPump);
 
         return () => {

@@ -16,13 +16,6 @@ class Config {
         }
     }
     public update() {
-        // Don't overwrite the configuration if we failed during the initialization.
-        if (
-            typeof this._cfg === "undefined" ||
-            !this._cfg === null ||
-            typeof this._cfg.appVersion === "undefined"
-        )
-            return;
         return fs.writeFile(
             this.cfgPath,
             JSON.stringify(this._cfg, undefined, 2),

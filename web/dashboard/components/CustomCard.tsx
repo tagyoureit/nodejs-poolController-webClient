@@ -1,11 +1,11 @@
 import { Button, Card, CardText, CardGroup, CardBody, CardTitle, CardFooter } from 'reactstrap';
-import { hidePanel } from '../components/Socket_Client'
+import { comms } from '../components/Socket_Client'
 import * as React from 'react';
-
+import {setVis} from './PoolController';
 interface Props {
     name: string;
     id: string;
-    visibility: string;
+    visibility: string[];
     edit?: () => void
 }
 
@@ -16,7 +16,8 @@ class CustomCard extends React.Component<Props, any> {
     }
 
     handleClick = (event:any) => {
-        hidePanel(event.target.value)
+        comms.panelVisibility(event.target.value, 'hide');
+        set
     }
 
     render ()
@@ -24,7 +25,7 @@ class CustomCard extends React.Component<Props, any> {
 
         const editButton = () =>( <Button size="sm" className="mr-3" color="primary" style={{ float: 'right' }} onClick={this.props.edit}>Edit</Button> ) 
 
-        if ( this.props.visibility==='visible' )
+        if ( !this.props.visibility.includes(this.props.id) )
         {
             return (
                 <div>

@@ -4,7 +4,7 @@
   "description": "A web client for the nodejs-poolcontroller app v6.0 and higher",
   "main": "/dist/index.html",
   "scripts": {
-    "start": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/server.js\"",
+    "start": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\"",
     "dev-parcel": "parcel serve ./web/dashboard/index.html",
     "build-parcel": "parcel build ./web/dashboard/index.html"
   },
@@ -12,7 +12,7 @@
   "license": "AGPL-3.0",
   "browserslist": [
     "last 2 Chrome versions"
-    ],
+  ],
   "dependencies": {
     "axios": "^0.19.2",
     "express": "^4.17.1",
@@ -32,6 +32,8 @@
   },
   "devDependencies": {
     "@attently/riek": "^2.0.1",
+    "@babel/core": "^7.9.6",
+    "@babel/plugin-proposal-optional-chaining": "^7.9.0",
     "@types/express": "^4.17.2",
     "@types/parcel-bundler": "^1.12.1",
     "@types/react": "^16.9.3",

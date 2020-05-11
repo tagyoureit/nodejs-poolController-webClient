@@ -7,7 +7,6 @@ interface Props {
   data: IStateSchedule[];
   id: string;
   visibility: string;
-  idOfFirstUnusedSchedule: number;
 }
 
 class Schedule extends React.Component<Props, any> {
@@ -23,6 +22,22 @@ class Schedule extends React.Component<Props, any> {
     "Friday",
     "Saturday"
   ];
+
+  idOfFirstUnusedSchedule = () => {
+/*     if(data.state.equipment.controllerType===ControllerType.intellitouch) {
+        // easytouch/intellitouch will grab the next available schedules.
+        // since we are splitting up eggtimers/schedules we need to take a holistic look so we don't overwrite an existing schedule with a new one
+        for(let i=1;i<=data.config.equipment.maxSchedules;i++) {
+            let occupiedSlot=
+                data.state.schedules.filter(el => el.id===i).length||
+                data.config.eggTimers.filter(el => el.id===i).length;
+            if(!occupiedSlot) return i;
+        }
+    } else if(data.config.controllerType===ControllerType.intellicenter) {
+        // how to determine first unused?
+    } */
+}
+
   buttons(schedDays: IDetail[]): any {
     let res: any[] = [];
 

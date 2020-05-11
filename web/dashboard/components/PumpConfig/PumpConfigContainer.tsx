@@ -22,9 +22,9 @@ interface Props {
 
 function PumpConfigContainer(props: Props){
     let arr = [];
-    arr.push({ url: `${ comms.poolURL }/config/pump/availableCircuits`, name: 'availableCircuits' });
-    arr.push({ url: `${ comms.poolURL }/config/pump/${props.currentPump.id}/units`, name: 'circuitFunctions' });
-    // arr.push({ url: `${ comms.poolURL }/extended/pumps`, name: 'pumps' });
+    arr.push({ url: `${ comms.poolURL }/config/pump/availableCircuits`, dataName: 'availableCircuits' });
+    arr.push({ url: `${ comms.poolURL }/config/pump/${props.currentPump.id}/units`, dataName: 'circuitFunctions' });
+    // arr.push({ url: `${ comms.poolURL }/extended/pumps`, dataName: 'pumps' });
     const initialState = {availableCircuits: [], pumpUnits: []}
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
     /* eslint-disable react-hooks/exhaustive-deps */

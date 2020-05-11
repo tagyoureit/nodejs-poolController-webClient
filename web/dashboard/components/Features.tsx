@@ -25,16 +25,16 @@ function Features(props: Props) {
     const [popoverOpen, setPopoverOpen]=useState<boolean[]>([false]);
    
     let arr = [];
-    arr.push({ url: `${ comms.poolURL }/config/features`, name: 'cfeatures' });
-    arr.push({ url: `${ comms.poolURL }/state/features`, name: 'sfeatures' });
-    arr.push({ url: `${ comms.poolURL }/config/equipment`, name: 'equipment' });
-    arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, name: 'circuitGroups' });
+    arr.push({ url: `${ comms.poolURL }/extended/features`, dataName: 'features' });
+    // arr.push({ url: `${ comms.poolURL }/state/features`, dataName: 'sfeatures' });
+    arr.push({ url: `${ comms.poolURL }/config/equipment`, dataName: 'equipment' });
+    arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, dataName: 'circuitGroups' });
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
     /* eslint-disable react-hooks/exhaustive-deps */
      useEffect(() => {
         let emitter=comms.getEmitter();
-        const fn=function(data) { doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'sfeatures', data }); };
+        const fn=function(data) { doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data }); };
         emitter.on('feature', fn);
         return () => {
             emitter.removeListener('feature', fn);
@@ -49,7 +49,7 @@ function Features(props: Props) {
     const handleClick = ( event: any ): any =>
     {   
         let circ = event.target.value;
-        if (getItemById(data.cfeatures, circ).isMacro) comms.setCircuitState(circ);
+        if (getItemById(data.features, circ).isMacro) comms.setCircuitState(circ);
         comms.toggleCircuit( circ );
     }
     const features = () =>
@@ -67,8 +67,8 @@ function Features(props: Props) {
         //         }
         //         else
         //         {
-        let features = extend(true, [], data.cfeatures, data.sfeatures)
-        return features.map( feature =>
+        if (!data.features) {return <>No Features</>};
+        return data.features.map( feature =>
         {
             let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;
             let group = getItemById(data.circuitGroups, feature.id + offset);

@@ -31,27 +31,27 @@ function Circuits(props: Props) {
     let arr=[];
     switch(props.id) {
         case "Circuits":
-            arr.push({ url: `${ comms.poolURL }/state/circuits`, name: 'circuits' });
+            arr.push({ url: `${ comms.poolURL }/state/circuits`, dataName: 'circuits' });
             // url=`${ url }/circuits`;
             break;
         case "Circuit Groups":
-            arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, name: 'circuits' });
+            arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, dataName: 'circuits' });
             // url=`${ url }/circuitGroups`;
             break;
         case "Virtual Circuits":
-            arr.push({ url: `${ comms.poolURL }/state/virtualCircuits`, name: 'circuits' });
+            arr.push({ url: `${ comms.poolURL }/state/virtualCircuits`, dataName: 'circuits' });
             // url=`${ url }/virtualCircuits`;
             break;
     }
-    arr.push({ url: `${ comms.poolURL }/config/equipment`, name: 'equipment' });
-    arr.push({ url: `${ comms.poolURL }/config/circuit/functions`, name: 'circuitFunctions' });
+    arr.push({ url: `${ comms.poolURL }/config/equipment`, dataName: 'equipment' });
+    arr.push({ url: `${ comms.poolURL }/config/circuit/functions`, dataName: 'circuitFunctions' });
 
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
         let emitter=comms.getEmitter();
-        const fn=function(data) { doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'circuits', data }); };
+        const fn=function(data) { doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'circuits', data }); };
 
         switch(props.id) {
             case "Circuits":

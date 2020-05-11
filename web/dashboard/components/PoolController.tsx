@@ -1,12 +1,12 @@
-import * as React from "react";
+import React, { useState, useEffect, useRef } from "react";
 var extend=require("extend");
 import {
     comms
 } from "./Socket_Client";
-// import Layout from './Layout';
+
 import Navbar from "./Navbar";
 import SysInfo from "./SysInfo";
-import { Container } from "reactstrap";
+import { UncontrolledAlert, Container } from "reactstrap";
 
 import BodyState from "./BodyState";
 import Pump from "./Pumps";
@@ -14,6 +14,7 @@ import Circuits from "./Circuits";
 import Features from "./Features";
 import Schedule from "./Schedules";
 import Chlorinator from "./Chlorinator";
+import useDataApi from './DataFetchAPI';
 
 
 export interface IPoolSystem {
@@ -123,13 +124,14 @@ export interface IStateChlorinator {
     saltLevel: number;
     saltRequired: number;
     status: IDetail;
+    virtualControllerStatus: IDetail;
     poolSetpoint: number;
     spaSetpoint: number;
     superChlor: boolean;
     superChlorHours: number;
     targetOutput: number;
     name: string;
-    body: number;
+    body: IDetail;
 }
 export interface IStateSchedule {
     id: number;
@@ -335,261 +337,149 @@ export function getItemByIndex(data: any, ndx: number) {
 }
 
 export function getItemByAttr(data: any, attr: string, val: any) {
+    if (typeof data === 'undefined' || data.length === 0) {return undefined;}
     return data.filter(el => el[attr]===val).shift();
 }
 
-class PoolController extends React.Component<any, IPoolSystem> {
-    constructor(props: IPoolSystem) {
-        super(props);
-        this.state={
-            loadingMessage: 'Loading...',
-            sock: undefined,
-            poolURL: "*",
-            counter: 0,
-            _config: {
-                controllerType: ControllerType.none,
-                lastUpdated: "",
-                pool: {
-                    options: {
-                        adjustDST: false,
-                        clockMode: 12,
-                        clockSource: "manual",
-                        pumpDelay: false,
-                        manualHeat: false
-                    }
-                },
-                bodies: [],
-                schedules: [],
-                eggTimers: [],
-                customNames: [],
-                equipment: {
-                    model: "",
-                    shared: false,
-                    maxCircuits: 0,
-                    maxBodies: 0,
-                    maxChlorinators: 0,
-                    maxFeatures: 0,
-                    maxIntelliBrites: 0,
-                    maxSchedules: 0,
-                    equipmentIds: {
-                        circuits: { start: 1, end: 0 },
-                        features: { start: 0, end: 0 },
-                        virtualCircuits: { start: 237, end: 247 },
-                        circuitGroups: { start: 192, end: 202 }
-                    }
-                },
-                valves: [],
-                circuits: [],
-                circuitGroups: [],
-                features: [],
-                pumps: [],
-                chlorinators: [
-                    {
-                        name: "none",
-                        id: 1,
-                        isActive: false,
-                        body: 0,
-                        spaSetpoint: 0,
-                        poolSetpoint: 0,
-                        superChlorHours: 0,
-                        superChlor: false
-                    }
-                ],
-                remotes: [],
-                intellibrite: [],
-                heaters: [],
-                appVersion: "0.0.0"
-            },
-            _state: {
-                temps: {
-                    air: 0,
-                    solar: 0,
-                    bodies: [],
-                    units: { val: 0, name: "", desc: "" },
-                    waterSensor1: 0,
-                    waterSensor2: 0
-                },
-                pumps: [
-                    {
-                        id: 1,
-                        type: { desc: "None", val: 0, name: "none" },
-                        status: { desc: "None", val: 0, name: "none" },
-                        command: 0,
-                        driveState: 0,
-                        mode: 0,
-                        ppc: 0,
-                        runTime: 0,
-                        watts: 0,
-                        circuits: []
-                    }
-                ],
-                mode: { val: 0, name: "", desc: "" },
-                status: {
-                    val: 254,
-                    name: "not_loaded",
-                    desc: "Not Loaded",
-                    percent: 0
-                },
-                equipment: {},
-                valves: [],
-                heaters: [],
-                // circuits: [],
-                virtualCircuits: [],
-                circuitGroups: [],
-                // features: [],
-                chlorinators: [
-                    {
-                        id: 1,
-                        spaSetpoint: 0,
-                        poolSetpoint: 0,
-                        superChlorHours: 0,
-                        superChlor: false,
-                        currentOutput: 0,
-                        lastComm: 0,
-                        saltLevel: 0,
-                        saltRequired: 0,
-                        status: { val: 0, desc: "", name: "" },
-                        targetOutput: 0,
-                        name: "",
-                        body: 32
-                    }
-                ],
-                schedules: [],
-                time: new Date(),
-                valve: 0,
-                body: 0,
-                freeze: false
-            }
-        };
 
-        let a: IPoolSystem;
-        let lastUpdateTime=0;
-        this.checkURL();
-        let self=this;
-        setTimeout(function() { if (comms.poolURL === '*') {self.setState({ loadingMessage: 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.' });} }, 5000);
+const initialState: any={
+    state: {
+        equipment: {
+            controllerType: ControllerType.none
+        },
+        schedules: [],
+        status: {val: -1, percent: 0}
     }
+};
 
 
+function usePrevious(value) {
+    const ref = useRef();
+    useEffect(() => {
+      ref.current = value;
+    });
+    return ref.current;
+  }
+function PoolController() {
+    const [loadingMessage, setLoadingMessage]=useState<string>('Loading...');
+    const [poolURL, setPoolURL]=useState<string>('*');
+    const [sock, setSock]=useState<any>();
+    const [counter, setCounter]=useState(0);
+    const [visibility, setVisibility] = useState<string[]>([]);
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi([], initialState);
+    const prevPercent = usePrevious(data.state.status.percent)
 
-    checkURL() {
-        if (comms.poolURL === '*'){
-            console.log(`Checking webClient server for SSDP address every second;`)
-            setTimeout(() => this.checkURL(), 1000);
+    useEffect(() => {
+        checkURL();
+        setTimeout(function() { if(comms.poolURL==='*') { setLoadingMessage: 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.'; } }, 5000);
+    }, []);
+
+
+    const checkURL=() => {
+        if(comms.poolURL==='*') {
+            console.log(`Checking webClient server for SSDP address every second;`);
+            setTimeout(() => checkURL(), 1000);
         }
         else {
             console.log(`webClient server found pool app at: ${ comms.poolURL }`);
-            this.setState({ poolURL: comms.poolURL });
-            this.load();
-        }
-    }
-    idOfFirstUnusedSchedule() {
-        if(this.state._config.controllerType===ControllerType.intellitouch) {
-            // easytouch/intellitouch will grab the next available schedules.
-            // since we are splitting up eggtimers/schedules we need to take a holistic look so we don't overwrite an existing schedule with a new one
-            for(let i=1;i<=this.state._config.equipment.maxSchedules;i++) {
-                let occupiedSlot=
-                    this.state._state.schedules.filter(el => el.id===i).length||
-                    this.state._config.eggTimers.filter(el => el.id===i).length;
-                if(!occupiedSlot) return i;
-            }
-        } else if(this.state._config.controllerType===ControllerType.intellicenter) {
-            // how to determine first unused?
-        }
-    }
-    load() {
-        if(comms.poolURL!=="*") {
+            // setState({ poolURL: comms.poolURL });
+            setPoolURL(comms.poolURL);
 
+        }
+    };
+
+    useEffect(()=>{
+        let fetch = async ()=>{
+            let res = await comms.visibility();
+            setVisibility(res);
+        }
+        fetch();
+    },[])
+
+    useEffect(()=>{
+        if (prevPercent !== 100 && data.state.status.percent === 100){
+            let arr=[];
+            arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
+            arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
+            doFetch(arr);
+        }
+    },[prevPercent, data.state.status.percent])
+
+    useEffect(() => {
+        if(poolURL!=="*") {
+            let arr=[];
+            arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
+            arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
+            doFetch(arr);
             let sock=comms.incoming((d: any, which: string): { d: any, which: string; } => {
                 console.log({ [which]: d });
                 if(which!=="error")
-                    this.setState(state => {
+                    this;/* .setState(state => {
                         return { counter: state.counter+1 };
-                    });
+                    }); */
+                setCounter(prev => prev+1);
 
                 switch(which) {
                     case "error":
-                    case "connect":
-                        this.setState(state => {
-                            return extend(true, state, { _state: d });
-                        });
+                        // case "connect":
+                        // this.setState(state => {
+                        //     return extend(true, state, { _state: d });
+                        // });
+                        doUpdate({ updateType: 'FETCH_FAILURE' });
                         break;
                     case "controller":
-                        this.setState(state => {
-                            return extend(
-                                true,
-                                state,
-                                { _state: d }
-                            );
-                        });
+                        // this.setState(state => {
+                        //     return extend(
+                        //         true,
+                        //         state,
+                        //         { _state: d }
+                        //     );
+                        // });
+                        doUpdate({ updateType: 'MERGE_OBJECT', data: d, dataName: 'state' });
                         break;
-                    /*                     case "pump":
-                                            this.setState(state => {
-                                                let pumps=extend(true, [], state._state.pumps);
-                                                let index=state._state.pumps.findIndex(el => {
-                                                    return el.id===d.id;
-                                                });
-                                                index===-1? pumps.push(d):pumps[index]=d;
-                                                return extend(
-                                                    true,
-                                                    state,
-                                                    { _state: { pumps: pumps } }
-                                                );
-                                            });
-                                            break; */
-                    /*                     case "pumpExt":
-                                            this.setState(prevstate => {
-                                                // here we do not extend, just replace the object
-                                                let index=this.state._state.pumps.findIndex(el => {
-                                                    return el.id===d.id;
-                                                });
-                                                //let pumps=extend(true, [], prevstate._state.pumps);
-                                                prevstate._state.pumps[index]=d;
-                                                return {
-                                                    _state: prevstate._state
-                                                };
-                                            });
-                                            break; */
+
                     case "chlorinator":
-                        this.setState(state => {
-                            let chlors=extend(true, [], state._state.chlorinators);
-                            let index=state._state.chlorinators.findIndex(el => {
-                                return el.id===d.id;
-                            });
-                            index===-1? chlors.push(d):chlors[index]=d;
-                            return extend(
-                                true,
-                                state,
-                                { _state: { chlorinators: chlors } }
-                            );
-                        });
+                        /*                  this.setState(state => {
+                                             let chlors=extend(true, [], state._state.chlorinators);
+                                             let index=state._state.chlorinators.findIndex(el => {
+                                                 return el.id===d.id;
+                                             });
+                                             index===-1? chlors.push(d):chlors[index]=d;
+                                             return extend(
+                                                 true,
+                                                 state,
+                                                 { _state: { chlorinators: chlors } }
+                                             );
+                                         }); */
+                        doUpdate({ updateType: 'MERGE_OBJECT', data: d, dataName: 'state' });
                         break;
 
                     case "temps":
-                        this.setState(state => {
-                            return extend(
-                                true,
-                                state,
-                                { _state: { temps: d } }
-                            );
-                        });
+                        /*                         this.setState(state => {
+                                                    return extend(
+                                                        true,
+                                                        state,
+                                                        { _state: { temps: d } }
+                                                    );
+                                                }); */
                         break;
                     case "equipment":
-                        this.setState(state => {
-                            return extend(
-                                true,
-                                state,
-                                { _state: { equipment: d } }
-                            );
-                        });
+                        /*                         this.setState(state => {
+                                                    return extend(
+                                                        true,
+                                                        state,
+                                                        { _state: { equipment: d } }
+                                                    );
+                                                }); */
                         break;
                     case "config":
-                        this.setState(state => {
-                            return extend(
-                                true,
-                                state,
-                                { _config: d }
-                            );
-                        });
+                        /*                         this.setState(state => {
+                                                    return extend(
+                                                        true,
+                                                        state,
+                                                        { _config: d }
+                                                    );
+                                                }); */
                         break;
                     default:
                         console.log(`incoming socket ${ which } not processed by main poolcontroller.tsx`);
@@ -597,109 +487,92 @@ class PoolController extends React.Component<any, IPoolSystem> {
                         return { d, which };
                 }
             });
-            this.setState({ sock });
-            console.log(`fetching ${ comms.poolURL }/state/all`);
-            fetch(`${ comms.poolURL }/state/all`)
-                .then(res => res.json())
-                .then(
-                    result => {
-                        console.log({ state: result });
-                        this.setState(state => {
-                            return extend(true, state, { _state: result });
-                        });
-                    },
-                    error => {
-                        console.log(error);
-                    }
-                );
-            fetch(`${ comms.poolURL }/config/all`)
-                .then(res => res.json())
-                .then(
-                    result => {
-                        console.log({ config: result });
-                        this.setState(state => {
-                            return extend(true, state, { _config: result });
-                        });
-                    },
-                    error => {
-                        console.log(error);
-                    }
-                );
+            setSock(sock); // is this really needed?
         }
+    }, [poolURL]);
+
+
+
+    let className='';
+    if((data&&data.state&&data.state.status&&data.state.status.val===255)||isError) {
+        className+=" noConnection";
     }
+    const navbar=(<div><Navbar /></div>);
+    const errorPresent=() => {
+        if(isError) {
+            return <>
+                <UncontrolledAlert color="danger">
+                    Error connecting to poolController. Retrying in 10s.
+                </UncontrolledAlert>
+               {/*  <>{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}<br />isError?{isError? 'yes':'no'}</> */}
+            </>;
+        }
+        else return <></>;
+    };
 
-    render() {
-        let className='';
-        if(this.state._state.status.val===255) className+=" noConnection";
-        return (
-            <div>
+    return (
+        <div>
+            {navbar}
+            {errorPresent()}
+            <div className={className}>
+                {comms.poolURL==="*"? <>{loadingMessage}</>:
 
-                <div>
-                    <Navbar status={this.state._state.status} counter={this.state.counter}>
-                        {this.state._state.status.percent}
-                    </Navbar>
-                </div>
-                <div className={className}>
-                    {comms.poolURL==="*"? this.state.loadingMessage:
+                    <Container>
+                        <SysInfo
+                            counter={counter}
+                            id="system"
+                            visibility={data.visibility || []}
+                            isLoading={isLoading}
+                            doneLoading={doneLoading}
+                            data={data.state}
+                        />
+                        <BodyState
+                            id="bodies"
+                            visibility={data.visibility || []}
+                        />
+                        <Pump
+                            id="pumps"
+                            visibility={data.visibility || []}
+                        />
+                        <Circuits
+                            controllerType={data.state.equipment.controllerType}
+                            id="Circuits"
+                            visibility={data.visibility || []}
+                        />
+                        <Features
+                            controllerType={data.state.equipment.controllerType}
+                            hideAux={false}
+                            id="Features"
+                            visibility={data.visibility || []}
+                        />
+                        <Circuits
+                            controllerType={data.state.equipment.controllerType}
+                            id="Circuit Groups"
+                            visibility={data.visibility || []}
+                        />
+                        <Circuits
+                            controllerType={data.state.equipment.controllerType}
+                            id="Virtual Circuits"
+                            visibility={data.visibility || []}
+                        />
+                        <Schedule
+                            data={data.state.schedules}
+                            id="schedules"
+                            visibility={data.visibility || []}
+                        />
+                        <Chlorinator
+                            id="chlorinators"
+                            visibility={data.visibility || []}
+                        />
+                    </Container>
+                }
 
-                        <Container>
-                            <SysInfo
-                                counter={this.state.counter}
-                                id="system"
-                                visibility={"visible"}
-                            />
-                            <BodyState
-                                id="bodies"
-                                visibility={"visible"}
-                            />
-                            <Pump
-                                pumpStates={this.state._state.pumps}
-                                pumpConfigs={this.state._config.pumps}
-                                id="pumps"
-                                visibility={"visible"}
-                            />
-                            <Circuits
-                                controllerType={this.state._config.controllerType}
-                                id="Circuits"
-                                visibility={"visible"}
-                            />
-                            <Features
-                                controllerType={this.state._config.controllerType}
-                                hideAux={false}
-                                id="Features"
-                                visibility={"visible"}
-                            />
-                            <Circuits
-                                controllerType={this.state._config.controllerType}
-                                id="Circuit Groups"
-                                visibility={"visible"}
-                            />
-                            <Circuits
-                                controllerType={this.state._config.controllerType}
-                                id="Virtual Circuits"
-                                visibility={"visible"}
-                            />
-                            <Schedule
-                                data={this.state._state.schedules}
-                                id="schedules"
-                                visibility={"visible"}
-                                idOfFirstUnusedSchedule={this.idOfFirstUnusedSchedule()}
-
-                            />
-                            <Chlorinator
-                                chlorState={this.state._state.chlorinators[0]}
-                                chlorConfig={this.state._config.chlorinators[0]}
-                                maxBodies={this.state._config.equipment.maxBodies}
-                                id="chlorinators"
-                                visibility={"visible"}
-                            />
-                        </Container>
-                    }
-
-                </div>
             </div>
 
-        );
-    }
+          {/*<>Msg:{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}</><p /><> {JSON.stringify(data)}</> */}
+        </div>
+    );
+
 }
+
 export default PoolController;

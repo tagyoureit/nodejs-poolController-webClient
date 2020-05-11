@@ -1,8 +1,14 @@
 {
-    "discovery": {
-        "poolControllerURL": "*"
-    },
-    "web": {
-        "port": 8080
-    }
+  "discovery": {
+    "poolControllerURL": "http://localhost:4200"
+  },
+  "web": {
+    "port": 8080
+  },
+  "options": {
+    "hidePanels": [
+      "Features",
+      "Circuit Groups"
+    ]
+  }
 }
