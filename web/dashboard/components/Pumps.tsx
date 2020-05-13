@@ -51,10 +51,9 @@ function Pump(props: Props) {
 
     return (
         <div className="tab-pane active" id="pump" role="tabpanel" aria-labelledby="pump-tab">
-        {console.log(data)}
             <CustomCard name='Pumps' key='title' id={props.id}  edit={() => setModalOpen(!modalOpen)}>
                 <CardGroup className="">
-                    {data.pumps && data.pumps.map((pump) => {
+                    {data.pumps && data.pumps.length>0 && data.pumps.map((pump) => {
                         return (
                             <Card key={'pump'+pump.id+'card'}>
                                 <CardBody className='p-0' key={'pump'+pump.id+'cardbody'}>

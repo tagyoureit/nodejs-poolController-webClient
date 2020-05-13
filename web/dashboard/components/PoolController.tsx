@@ -14,7 +14,7 @@ import Features from "./Features";
 import Schedule from "./Schedules";
 import Chlorinator from "./Chlorinator";
 import useDataApi from './DataFetchAPI';
-import '../css/PoolController.css'
+import '../css/poolController.css'
 
 export interface IPoolSystem {
     loadingMessage: string;
