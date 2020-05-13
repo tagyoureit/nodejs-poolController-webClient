@@ -13,7 +13,7 @@ import useDataApi from './DataFetchAPI';
 interface Props
 {
     id: string;
-    visibility: string;
+    
 }
 
 const initialState: {chlorinators: IConfigChlorinator[] & IStateChlorinator[]} = {chlorinators: []}
@@ -21,6 +21,21 @@ function Chlorinator(props: Props){
     const [modal, setModal] = useState(false);
     const [currentChlorID, setCurrentChlorID] = useState(1);
     const [currentChlor, setCurrentChlor] = useState<IConfigChlorinator & IStateChlorinator>();
+    const addVirtualChlor = async () =>{
+        setChlorSearch(<p>Searching...</p>)
+        let res = await comms.chlorSearch();
+        if (res.data.isVirtual){
+            
+            setChlorSearch(<></>)
+            let arr=[];
+            arr.push({ url: `${ comms.poolURL }/extended/chlorinators`, dataName: 'chlorinators'});
+            doFetch(arr);
+        }
+        else {
+            setChlorSearch(<Button color='link' onClick={addVirtualChlor}>No chlorinators found.  Search again.</Button>)
+        }
+    }
+    const [chlorSearch, setChlorSearch] = useState( <Button color='link' onClick={addVirtualChlor}>Search for stand alone chlorinator.</Button>)
     let arr=[];
     arr.push({ url: `${ comms.poolURL }/extended/chlorinators`, dataName: 'chlorinators'});
 
@@ -58,18 +73,12 @@ function Chlorinator(props: Props){
         // const cc = getItemById(data.chlorinators,target)
         // setCurrentChlorID(cc);
     }
-    const addVirtualChlor = () =>{
-        comms.setChlorConfig({
-            id: 1,
-            isVirtual: true,
-            poolSetpoint: 0
-        })
-    }
+
 
     const chlorinator = () =>
     {
         if (data.chlorinators.length === 0 || typeof currentChlor === 'undefined' || typeof currentChlor.body === 'undefined' || typeof currentChlor.status === 'undefined') {return <>No chlorinator connected to system.  
-            <Button color='link' onClick={()=>comms.chlorSearch()}>Search for stand alone chlorinator.</Button>
+           {chlorSearch}
             </>
         }
             let chlorStatus;
@@ -124,7 +133,7 @@ function Chlorinator(props: Props){
         const closeBtn = <button className="close" onClick={toggle}>&times;</button>;
 
         return  (<div className="tab-pane active" id={props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
-                <CustomCard name='Chlorinator' id={props.id} visibility={props.visibility}>
+                <CustomCard name='Chlorinator' id={props.id} >
                     {!isLoading && doneLoading ? chlorinator(): <>Loading...</>}
                 </CustomCard>
                 <Modal isOpen={modal} toggle={toggle} size='xl' >

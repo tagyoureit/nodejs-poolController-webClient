@@ -1,7 +1,7 @@
 import StatusIndicator from './StatusIndicator'
 import React, {useState} from 'react';
 import { IDetail } from './PoolController';
-
+import {comms} from '../components/Socket_Client'
 import
 {
     Collapse,
@@ -12,6 +12,7 @@ import
     NavItem,
     NavLink
 } from 'reactstrap';
+import { PoolContext } from './PoolController';
 
 interface Props
 {
@@ -25,8 +26,14 @@ function PoolNav() {
     const toggle = () => {
             setIsOpen(!isOpen);
     }
+    const resetLayout = () =>{
+        comms.resetPanelVisibility()
+        toggle();
+    }
 
-        return (
+        return (                
+            <PoolContext.Consumer>
+            {({ visibility, reload }) => (
             <Navbar color="light" light sticky="top" >
                 <NavbarBrand href="/" >nodejs-PoolController
                 </NavbarBrand>
@@ -62,27 +69,32 @@ function PoolNav() {
                                 id='schedules-tab' data-toggle='tab' aria-controls='schedules' aria-selected='false'
                             >Schedules</NavLink>
                         </NavItem>
-                        <NavItem>
+{/*                         <NavItem>
                             <NavLink onClick={toggle} href="#eggtimers"
                                 id='eggtimers-tab' data-toggle='tab' aria-controls='eggtimers' aria-selected='false'
                             >EggTimers</NavLink>
-                        </NavItem>
+                        </NavItem> */}
                         <NavItem>
                             <NavLink onClick={toggle} href="#chlorinators" id='chlorinators-tab' data-toggle='tab' aria-controls='chlorinators' aria-selected='false'>Chlorinators</NavLink>
                         </NavItem>
                         <NavItem>
                             <NavLink onClick={toggle} href="#light" id='light-tab' data-toggle='tab' aria-controls='light' aria-selected='false'>Lights</NavLink>
                         </NavItem>
-                        <NavItem>
+{/*                         <NavItem>
                             <NavLink onClick={toggle} href="#debug" id='debug-tab' data-toggle='tab' aria-controls='debug' aria-selected='false'>Debug Log</NavLink>
-                        </NavItem>
+                        </NavItem> */}
                         <NavItem>
                             <NavLink onClick={toggle} href="/utilities" id='utilities' >Utilities</NavLink>
+                        </NavItem>
+                        <NavItem>
+                            <NavLink onClick={()=>{resetLayout();reload()}} id='reset' href='#'>Reset Layout</NavLink>
                         </NavItem>
                     </Nav>
                 </Collapse>
 
             </Navbar>
+            )}
+            </PoolContext.Consumer>
         )
     
 }

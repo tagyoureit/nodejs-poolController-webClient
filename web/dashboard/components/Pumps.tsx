@@ -14,7 +14,7 @@ import useDataApi from './DataFetchAPI';
 
 interface Props {
     id: string;
-    visibility: string;
+    
 }
 
 const initialState: { pumps: IStatePump[]; }={ pumps: [] };
@@ -46,13 +46,13 @@ function Pump(props: Props) {
         return (
             <PumpConfigModalPopup
                 id='pumpConfig'
-                visibility='visible' />);
+                 />);
     };
 
     return (
         <div className="tab-pane active" id="pump" role="tabpanel" aria-labelledby="pump-tab">
         {console.log(data)}
-            <CustomCard name='Pumps' key='title' id={props.id} visibility={props.visibility} edit={() => setModalOpen(!modalOpen)}>
+            <CustomCard name='Pumps' key='title' id={props.id}  edit={() => setModalOpen(!modalOpen)}>
                 <CardGroup className="">
                     {data.pumps && data.pumps.map((pump) => {
                         return (

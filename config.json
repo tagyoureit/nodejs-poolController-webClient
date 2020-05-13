@@ -7,8 +7,8 @@
   },
   "options": {
     "hidePanels": [
-      "Features",
       "Circuit Groups"
-    ]
+    ],
+    "debug": false
   }
 }

@@ -6,7 +6,7 @@ import { IStateSchedule, IDetail } from "./PoolController";
 interface Props {
   data: IStateSchedule[];
   id: string;
-  visibility: string;
+  
 }
 
 class Schedule extends React.Component<Props, any> {
@@ -183,7 +183,6 @@ class Schedule extends React.Component<Props, any> {
       >
         <CustomCard
           name="Schedules"
-          visibility={this.props.visibility}
           id={this.props.id}
         >
           {schedules}

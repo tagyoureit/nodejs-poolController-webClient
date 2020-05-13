@@ -10,7 +10,7 @@ import useDataApi from '../DataFetchAPI';
 var extend=require("extend");
 interface Props {
     id: string;
-    visibility: string;
+    
 }
 
 
@@ -69,7 +69,7 @@ function PumpConfigModalPopup(props: Props) {
         <div className="tab-pane active" id="pumpConfig" role="tabpanel" aria-labelledby="pumpConfig-tab">
         {console.log(`data.pumps...`)}
         {console.log(data.pumps)}
-            <CustomCard name='Pump Config' visibility={props.visibility} id={props.id}>
+            <CustomCard name='Pump Config'  id={props.id}>
                 <div>
                     <Nav tabs>
                         {navTabs()}

@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-var extend=require("extend");
 import {
     comms
 } from "./Socket_Client";
 
 import Navbar from "./Navbar";
 import SysInfo from "./SysInfo";
-import { UncontrolledAlert, Container } from "reactstrap";
+import { Button, UncontrolledAlert, Container } from "reactstrap";
 
 import BodyState from "./BodyState";
 import Pump from "./Pumps";
@@ -15,7 +14,7 @@ import Features from "./Features";
 import Schedule from "./Schedules";
 import Chlorinator from "./Chlorinator";
 import useDataApi from './DataFetchAPI';
-
+import '../css/PoolController.css'
 
 export interface IPoolSystem {
     loadingMessage: string;
@@ -332,6 +331,16 @@ export function getItemById(data: any, _id: number) {
         }
     }
 }
+export function getItemByVal(data: any, _val: number) {
+    if(Array.isArray(data)) {
+        let res=data.find(el => el.val===_val);
+        if(typeof res==="undefined") {
+            return 0;
+        } else {
+            return res;
+        }
+    }
+}
 export function getItemByIndex(data: any, ndx: number) {
     return data[ndx+1].shift();
 }
@@ -341,6 +350,10 @@ export function getItemByAttr(data: any, attr: string, val: any) {
     return data.filter(el => el[attr]===val).shift();
 }
 
+export const PoolContext = React.createContext({
+    visibility: [],
+    reload: () => {}
+})
 
 const initialState: any={
     state: {
@@ -363,17 +376,25 @@ function usePrevious(value) {
 function PoolController() {
     const [loadingMessage, setLoadingMessage]=useState<string>('Loading...');
     const [poolURL, setPoolURL]=useState<string>('*');
-    const [sock, setSock]=useState<any>();
+
     const [counter, setCounter]=useState(0);
     const [visibility, setVisibility] = useState<string[]>([]);
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi([], initialState);
     const prevPercent = usePrevious(data.state.status.percent)
-
+    const [debug, setDebug] = useState(false);
     useEffect(() => {
         checkURL();
         setTimeout(function() { if(comms.poolURL==='*') { setLoadingMessage: 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.'; } }, 5000);
     }, []);
 
+    const reloadFn = () => {
+        console.log(`RELOADING all data`)
+        let arr=[];
+        arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
+        arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
+        doFetch(arr);
+        fetch();
+    }
 
     const checkURL=() => {
         if(comms.poolURL==='*') {
@@ -388,11 +409,11 @@ function PoolController() {
         }
     };
 
+    const fetch = async ()=>{
+        let res = await comms.visibility();
+        setVisibility(res);
+    }
     useEffect(()=>{
-        let fetch = async ()=>{
-            let res = await comms.visibility();
-            setVisibility(res);
-        }
         fetch();
     },[])
 
@@ -487,7 +508,7 @@ function PoolController() {
                         return { d, which };
                 }
             });
-            setSock(sock); // is this really needed?
+            // setSock(sock); // is this really needed?
         }
     }, [poolURL]);
 
@@ -502,15 +523,15 @@ function PoolController() {
         if(isError) {
             return <>
                 <UncontrolledAlert color="danger">
-                    Error connecting to poolController. Retrying in 10s.
+                    Pool controller connection lost.
                 </UncontrolledAlert>
                {/*  <>{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}<br />isError?{isError? 'yes':'no'}</> */}
             </>;
         }
         else return <></>;
     };
-
     return (
+        <PoolContext.Provider value={{visibility, reload: reloadFn}} >
         <div>
             {navbar}
             {errorPresent()}
@@ -520,50 +541,45 @@ function PoolController() {
                     <Container>
                         <SysInfo
                             counter={counter}
-                            id="system"
-                            visibility={data.visibility || []}
+                            id="System"
                             isLoading={isLoading}
                             doneLoading={doneLoading}
                             data={data.state}
                         />
                         <BodyState
-                            id="bodies"
-                            visibility={data.visibility || []}
+                            id="Bodies"
                         />
                         <Pump
-                            id="pumps"
-                            visibility={data.visibility || []}
+                            id="Pumps"
                         />
                         <Circuits
-                            controllerType={data.state.equipment.controllerType}
+                            controllerType={data.state.equipment.model}
                             id="Circuits"
-                            visibility={data.visibility || []}
                         />
                         <Features
-                            controllerType={data.state.equipment.controllerType}
+                            controllerType={data.state.equipment.model}
                             hideAux={false}
                             id="Features"
-                            visibility={data.visibility || []}
                         />
                         <Circuits
-                            controllerType={data.state.equipment.controllerType}
+                            controllerType={data.state.equipment.model}
                             id="Circuit Groups"
-                            visibility={data.visibility || []}
                         />
                         <Circuits
-                            controllerType={data.state.equipment.controllerType}
+                            controllerType={data.state.equipment.model}
                             id="Virtual Circuits"
-                            visibility={data.visibility || []}
                         />
                         <Schedule
                             data={data.state.schedules}
-                            id="schedules"
-                            visibility={data.visibility || []}
+                            id="Schedules"
                         />
                         <Chlorinator
-                            id="chlorinators"
-                            visibility={data.visibility || []}
+                            id="Chlorinators"
                         />
+                        <div className='debugArea'>
+
+                        Debug: <Button style={{margin:'0px 0px 3px 0px', padding: 0, border:0}} color='link' onClick={()=>setDebug(!debug)}>{debug?'on':'off'}</Button>. <a href='https://github.com/tagyoureit/nodejs-poolController-webClient/issues/new'>Report an issue</a> or ask a question on the <a href='https://gitter.im/nodejs-poolController/Lobby'>forums</a>.
+                        </div>
                     </Container>
                 }
 
@@ -571,6 +587,7 @@ function PoolController() {
 
           {/*<>Msg:{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}</><p /><> {JSON.stringify(data)}</> */}
         </div>
+        </PoolContext.Provider>
     );
 
 }

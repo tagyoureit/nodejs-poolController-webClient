@@ -67,26 +67,31 @@ async function startBundler() {
         }
     })
 
-    app.get('/visibility', (req, res)=>{
+    app.get('/visibility', (req, res) => {
         res.send(config.getSection('options').hidePanels)
+    })
+    app.delete('/panel', (req, res) => {
+        let options=config.getSection("options")
+        options.hidePanels = [];
+        res.send(config.setSection('options', options))
     })
     app.put('/panel', (req, res) => {
         let options=config.getSection("options")
-        let {hidePanels} = options;
+        let { hidePanels }=options;
         const { name, state }=req.body;
-        if (state === 'hide') {
+        if(state==='hide') {
 
-            if (!hidePanels.includes(name)){
+            if(!hidePanels.includes(name)) {
                 hidePanels.push(name);
             }
         }
         else {
-            const index = hidePanels.indexOf(name);
-            if (index !== -1){
+            const index=hidePanels.indexOf(name);
+            if(index!==-1) {
                 hidePanels.splice(index, 1);
             }
         }
-        console.log(JSON.stringify(options,null,2))
+        console.log(JSON.stringify(options, null, 2))
         config.setSection("options", options);
     })
 

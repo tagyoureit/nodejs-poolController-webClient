@@ -1,21 +1,31 @@
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import {
-    ListGroup, ListGroupItem, Button, Popover, PopoverHeader, PopoverBody
+    Button,
+    ListGroup,
+    ListGroupItem,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
+    Popover,
+    PopoverBody,
+    PopoverHeader,
 } from 'reactstrap';
+
+import CircuitModalPopup from './CircuitConfig/CircuitModalPopup';
 import CustomCard from './CustomCard';
+import useDataApi from './DataFetchAPI';
+import { ControllerType, getItemById, IStateCircuit, PoolContext } from './PoolController';
 import { comms } from './Socket_Client';
-import React, { useState, useEffect, useReducer } from 'react';
-import { IStateCircuit, IConfigCircuit, EquipmentIdRange, getItemById, ControllerType, equipmentType, IStateCircuitGroup } from './PoolController';
+
 const play=require("../images/play-icon.svg");
 const info=require("../images/info-blue-bg.svg");
-import useDataApi from './DataFetchAPI';
-var extend=require("extend");
-
 
 interface Props {
     controllerType: ControllerType;
     hideAux: boolean,
     id: string;
-    visibility: string;
+    
 }
 
 
@@ -23,7 +33,9 @@ const initialState: { features: IStateCircuit[]; }={ features: [] };
 
 function Features(props: Props) {
     const [popoverOpen, setPopoverOpen]=useState<boolean[]>([false]);
-   
+    const [modalOpen, setModalOpen]=useState(false);
+    const [needsReload, setNeedsReload]=useState(false);
+    const {reload} = useContext(PoolContext);
     let arr = [];
     arr.push({ url: `${ comms.poolURL }/extended/features`, dataName: 'features' });
     // arr.push({ url: `${ comms.poolURL }/state/features`, dataName: 'sfeatures' });
@@ -34,7 +46,9 @@ function Features(props: Props) {
     /* eslint-disable react-hooks/exhaustive-deps */
      useEffect(() => {
         let emitter=comms.getEmitter();
-        const fn=function(data) { doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data }); };
+        const fn=function(data) { 
+            console.log(`received feature emit`)
+            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data }); };
         emitter.on('feature', fn);
         return () => {
             emitter.removeListener('feature', fn);
@@ -105,15 +119,44 @@ function Features(props: Props) {
         } )
     }
 
+    const toggleModal=() => {
+        console.log(`modalOpen (${modalOpen}) && needsReload(${needsReload}): ${modalOpen && needsReload}`) 
+        if (modalOpen && needsReload) {
+            reload();
+            setNeedsReload(false);
+        }
+        setModalOpen(!modalOpen); 
+    };
+
+    const closeBtn=<button className="close" onClick={toggleModal}>&times;</button>;
+    let className="circuit-pane active";
     return (
         <>
         {  !doneLoading?  ( <div />): 
         <div className="feature-pane active" id={props.id} role="tabpanel" aria-labelledby="feature-tab">
-            <CustomCard name={props.id} id={props.id} visibility={props.visibility}>
+            <CustomCard name={props.id} id={props.id}  edit={toggleModal}>
                 <ListGroup flush >
                     {features()}
                 </ListGroup>
             </CustomCard>
+            <Modal isOpen={modalOpen} toggle={toggleModal} size='xl' scrollable={true}>
+                <ModalHeader toggle={toggleModal} close={closeBtn}>Adjust Pump Configuration</ModalHeader>
+                <ModalBody>
+                    <CircuitModalPopup
+                        id='circuitConfig'
+                        
+                        controllerType={props.controllerType} 
+                        type='features'
+                        needsReload={needsReload}
+                        setNeedsReload={setNeedsReload}
+                        />
+
+                </ModalBody>
+                <ModalFooter>
+                    <Button onClick={toggleModal}>Close</Button>
+                </ModalFooter>
+            </Modal>
+
         </div>
         }
         </>

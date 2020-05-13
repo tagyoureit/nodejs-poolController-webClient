@@ -9,11 +9,14 @@ var extend=require("extend");
 const flame=require('../images/flame.png');
 interface Props {
     id: string;
-    visibility: string;
+    
 }
 const initialState={
     UOM: { desc: '', val: 0, name: '' },
-    temps: { bodies: [] }
+    temps: { 
+        bodies: [],
+        units: {name: 'F'}
+    }
 }
 function BodyState(props: Props) {
     const [body1, setBody1]=useState(0);
@@ -46,7 +49,7 @@ function BodyState(props: Props) {
     /* eslint-enable react-hooks/exhaustive-deps */
 
     useEffect(() => {
-        data.temps.bodies.forEach(body => {
+        data.temps && data.temps.bodies && data.temps.bodies.forEach(body => {
             console.log(`BODY: ${ body.id }  -- setPoint ${ body.setPoint }`)
             switch(body.id) {
                 case 1:
@@ -180,7 +183,7 @@ function BodyState(props: Props) {
 
     return doneLoading&&!isError&&(
         <div className='tab-pane active' id={props.id} role="tabpanel" aria-labelledby={props.id+'-tab'} >
-            <CustomCard name={(data&&data.temps.length===1? 'Body':'Bodies')} id={props.id} visibility={props.visibility}>
+            <CustomCard name={(data&&data.temps.length===1? 'Body':'Bodies')} id={props.id} >
                 <ListGroup flush >
                     {bodyDisplay()}
                 </ListGroup>

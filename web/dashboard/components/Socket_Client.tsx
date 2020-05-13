@@ -102,19 +102,29 @@ export class Comms {
         });
         // let autoDST = 1 // implement later in UI
     }
-    public setCircuit(data: any){
+    public async setCircuit(data: any){
         console.log(`sending configCircuit: ${JSON.stringify(data)}`)
-        fetch(`${ this.poolURL }/config/circuit`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
+        // fetch(`${ this.poolURL }/config/circuit`, {
+        //     method: 'PUT',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify(data)
+        // });
+
+
+        return axios({
+            method: 'put',
+            url: `${ this.poolURL }/config/circuit`, 
+            data: data
+        })
+        .then((response)=>{
+            return response;
         });
     }
-    public deleteCircuit(data: any){
+    public async deleteCircuit(data: any){
         console.log(`sending configCircuit: ${JSON.stringify(data)}`)
-        fetch(`${ this.poolURL }/config/circuit`, {
+        await fetch(`${ this.poolURL }/config/circuit`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -122,8 +132,8 @@ export class Comms {
             body: JSON.stringify(data)
         });
     }
-    public toggleCircuit(circuit: number): void {
-        fetch(`${ this.poolURL }/state/circuit/toggleState`, {
+    public async toggleCircuit(circuit: number) {
+        await fetch(`${ this.poolURL }/state/circuit/toggleState`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -132,8 +142,8 @@ export class Comms {
         });
 
     }
-    public setCircuitState(circuit: number, state: boolean=true): void {
-        fetch(`${ this.poolURL }/state/circuit/setState`, {
+    public async setCircuitState(circuit: number, state: boolean=true) {
+        await fetch(`${ this.poolURL }/state/circuit/setState`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -207,8 +217,11 @@ export class Comms {
             body: JSON.stringify(props)
         });
     }
-    public chlorSearch() {
-        axios.get(`${ this.poolURL }/config/chlorinators/search`);
+    public async chlorSearch() {
+        return axios.get(`${ this.poolURL }/config/chlorinators/search`)
+        .then((response)=>{
+            return response;
+        });
     }
 
     public deletePumpCircuit(pump, pumpCircuitId: number) {
@@ -238,8 +251,6 @@ export class Comms {
 
     public async visibility(){
         let resp = await axios('/visibility')
-        console.log(`resp?`)
-        console.log(resp)
         return resp.data;
     }
     public async panelVisibility(name: string, state: 'hide'|'show'){
@@ -249,7 +260,10 @@ export class Comms {
            name,
            state
         }) 
-
+    }
+    public async resetPanelVisibility(){
+        console.log(`resetting panels`)
+         await axios.delete('/panel') 
     }
 }
 export const comms=new Comms();

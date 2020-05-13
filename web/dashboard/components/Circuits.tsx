@@ -3,15 +3,15 @@ import {
 } from 'reactstrap';
 import CustomCard from './CustomCard';
 import { comms } from './Socket_Client';
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useContext, useState, useEffect, useReducer } from 'react';
 import { ControllerType, getItemById, IDetail, IStateCircuit } from './PoolController';
 import CircuitModalPopup from './CircuitConfig/CircuitModalPopup';
 import useDataApi from './DataFetchAPI';
-
+import { PoolContext } from './PoolController';
 interface Props {
     controllerType: ControllerType;
     id: string;
-    visibility: string;
+    
 }
 
 export interface ConfigCircuit {
@@ -28,6 +28,8 @@ const initialState: { circuits: IStateCircuit[]; }={ circuits: [] };
 
 function Circuits(props: Props) {
     const [modalOpen, setModalOpen]=useState(false);
+    const [needsReload, setNeedsReload]=useState(false);
+    const {reload} = useContext(PoolContext);
     let arr=[];
     switch(props.id) {
         case "Circuits":
@@ -74,22 +76,16 @@ function Circuits(props: Props) {
     /* eslint-enable react-hooks/exhaustive-deps */
 
     const handleClick=(event: any): any => { comms.toggleCircuit(event.target.value); };
-    const toggleModal=() => { setModalOpen(!modalOpen); };
+    const toggleModal=() => { 
+        if (modalOpen && needsReload) {
+            reload();
+            setNeedsReload(false);
+        }
+        setModalOpen(!modalOpen); 
+    };
 
     const circuit=() => {
         if(!data.circuits.length) return (<div />);
-        // TODO: Aux Extra and NOT used should be hidden.
-        // for ( var cir in data )
-        // {
-        //     // check to make sure we have the right data
-        //     if ( data[ cir ].hasOwnProperty( 'name' ) )
-        //     {
-        //         // if hideAux is true skip the unused circuits
-        //         if ( [ 'NOT USED', 'AUX EXTRA' ].indexOf( data[ cir ].name ) !== -1 && props.hideAux )
-        //         {
-        //         }
-        //         else
-        //         {
         return data.circuits.map(circuit => {
             return (
                 <ListGroupItem key={circuit.id+'circuitlistgroupkey'}>
@@ -107,7 +103,7 @@ function Circuits(props: Props) {
     let className="circuit-pane active";
     return (
         <div className={className} id={props.id} role="tabpanel" aria-labelledby="circuit-tab">
-            <CustomCard name={props.id} id={props.id} visibility={props.visibility} edit={props.id==='Circuits'? toggleModal:undefined}>
+            <CustomCard name={props.id} id={props.id}  edit={props.id==='Circuits'? toggleModal:undefined}>
                 <ListGroup flush >
                     {circuit()}
                 </ListGroup>
@@ -117,8 +113,11 @@ function Circuits(props: Props) {
                 <ModalBody>
                     <CircuitModalPopup
                         id='circuitConfig'
-                        visibility='visible'
-                        controllerType={props.controllerType} />
+                        controllerType={props.controllerType} 
+                        type='circuits'
+                        needsReload={needsReload}
+                        setNeedsReload={setNeedsReload}
+                        />
                 </ModalBody>
                 <ModalFooter>
                     <Button onClick={toggleModal}>Close</Button>

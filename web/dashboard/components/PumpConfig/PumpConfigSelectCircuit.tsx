@@ -52,6 +52,7 @@ function PumpConfigSelectCircuit(props: Props){
             let entry:React.ReactFragment = ( <DropdownItem key={`${ props.currentPumpCircuit.id }${ circ.id }CircuitSelect`}
                 value={circ.id}
                 onClick={handleClick} 
+                disabled={typeof circ.type === 'undefined'}
             >{displayText}</DropdownItem> )
             dropdownChildren.push( entry );
         }

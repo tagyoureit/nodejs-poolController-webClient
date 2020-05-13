@@ -2,3 +2,13 @@
     opacity: 0.5;
     pointer-events: none;
 }
+
+.debugArea {
+    font-size: small
+}
+.debugArea > .btn-link {
+    padding: 0px;
+    margin: 0px 0px 3px 0px;
+    border: 0;
+    font-size: inherit !important;
+}

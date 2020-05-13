@@ -1,10 +1,14 @@
 import { useState, useEffect, useReducer } from 'react';
 import axios from 'axios';
+import { PoolContext } from './PoolController';
 var extend=require("extend");
 
 const dataFetchReducer=(state, action) => {
-    console.log(`dataFetchReducer incoming:`)
-    console.log(action)
+    const debug = false;
+    if (debug){
+        console.log(`dataFetchReducer incoming:`)
+        console.log(action)
+    }
     switch(action.type) {
         case 'FETCH_INIT':
             return {
@@ -44,28 +48,31 @@ const dataFetchReducer=(state, action) => {
                     }
                 case 'MERGE_OBJECT':
                     {
-
-
+                        if (debug){   
                             console.log(`Merge (object):`);
                             console.log(action.data);
                             console.log(`to:`);
                             console.log(state.data[action.dataName]);
+                        }
                             // Object.assign(state.data[action.dataName][index], action.data);
                             let res = extend(true, {}, state.data[action.dataName], action.data)
+                        if (debug){
                             console.log(`result:`)
                             console.log(res)
                             console.log(`compare`)
                             console.log(state)
+                        }
                             state.data[action.dataName] = res
-                            console.log(state)
                             return {...state};
                     }
                 case 'MERGE_ARRAY':
                     {
                         if (Array.isArray(action.dataName)){
-                            console.log(`Merge Deep (array):`);
-                            console.log(action.data);
-                            console.log(`to:`);
+                            if (debug) {
+                                console.log(`Merge Deep (array):`);
+                                console.log(action.data);
+                                console.log(`to:`);
+                            }
                             let d = state.data;
                             for (let i=0; i<action.dataName.length; i++){
                                 d = d[action.dataName[i]];
@@ -73,33 +80,51 @@ const dataFetchReducer=(state, action) => {
                             let index=d.findIndex(el => {
                                 return el.id===action.data.id;
                             });
-
-                            console.log(d[index]);
+                            if (debug )console.log(d[index]);
                             // Object.assign(state.data[action.dataName][index], action.data);
                             let res = extend(true, {}, d[index], action.data)
-                            console.log(`result:`)
-                            console.log(res)
-                            console.log(`compare`)
-                            console.log(state)
-                            d[index] = res;
-                            console.log(state)
+                            if (debug){
+                                console.log(`result:`)
+                                console.log(res)
+                                console.log(`compare`)
+                                console.log(state)
+                            }
+                            if (index === -1){
+                                d.push(res);
+                            }
+                            else{
+                                d[index] = res;
+                            }
+                            if (debug) console.log(state)
                             return {...state};
                         }
                         else {
-                        console.log(`state...`)
-                        console.log(state)
+                            if (debug){
+                                console.log(`state...`)
+                                console.log(state)
+                            }
                         let index=state.data[action.dataName].findIndex(el => {
                             return el.id===action.data.id;
                         });
-                        console.log(`merge (array):`);
-                        console.log(action.data);
-                        console.log(`to:`);
-                        console.log(state.data[action.dataName][index]);
+                        if (debug){
+                            console.log(`merge (array):`);
+                            console.log(action.data);
+                            console.log(`to:`);
+                            console.log(state.data[action.dataName][index]);
+                            console.log(`at position (index): ${index}`)
+                        }
                         // Object.assign(state.data[action.dataName][index], action.data);
                         let res = extend(true, {}, state.data[action.dataName][index], action.data)
-                        state.data[action.dataName][index] = res;
-                        console.log(`returning...`)
-                        console.log(state)
+                        if (index === -1){
+                            state.data[action.dataName].push(res);
+                        }
+                        else {
+                            state.data[action.dataName][index] = res;
+                        }
+                        if (debug){
+                            console.log(`returning...`)
+                            console.log(state)
+                        }
                         return {...state};
                     }
                     }
@@ -116,7 +141,9 @@ const dataFetchReducer=(state, action) => {
     }
 };
 const useDataApi=(initialUrls, initialData) => {
+    const debug = false;
     const [urls, setUrls]=useState(initialUrls);
+
 
     const [state, dispatch]=useReducer(dataFetchReducer, {
         isLoading: false,
@@ -141,17 +168,13 @@ const useDataApi=(initialUrls, initialData) => {
             try {
                 let fetchArray=[];
                 urls.forEach(el => {
-                    console.log(`fetching: ${el.url}`)
+                    if (debug) console.log(`fetching: ${el.url}`)
                     fetchArray.push(axios(el.url));
                 });
                 if (fetchArray.length > 0){   
                     const res=await Promise.all(fetchArray);
                     let payload={};
                     for(let i=0;i<urls.length;i++) {
-                        console.log(`obj for url: ${JSON.stringify(urls[i])}`)
-                        console.log(res[i].data)
-                        console.log(`object.entries: ${Object.entries(res[i].data)}`)
-                        console.log(`object.keys: ${Object.keys(res[i].data)}`)
                         if (typeof urls[i].dataName === 'undefined'){
                             Object.assign(payload,res[i].data);
                         }

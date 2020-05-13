@@ -13,7 +13,7 @@ import useDataApi from '../components/DataFetchAPI';
 
 interface Props
 {
-    visibility: string,
+
     id: string,
     counter: number,
     data: any;
@@ -39,7 +39,7 @@ function SysInfo(props: Props){
         return !props.isLoading && props.doneLoading?
         (
             <div className="tab-pane active" id="system" role="tabpanel" aria-labelledby="system-tab">
-                <CustomCard name='System Information' id={props.id} visibility={props.visibility} edit={toggleModal}>
+                <CustomCard name='System Information' id={props.id}  edit={toggleModal}>
                     <Row>
                         <Col xs="6">Controller Type </Col>
                         <Col>

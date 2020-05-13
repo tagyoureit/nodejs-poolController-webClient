@@ -2,20 +2,21 @@ import {
     Button, DropdownToggle, DropdownMenu, DropdownItem, ListGroupItem, UncontrolledButtonDropdown
 } from 'reactstrap';
 import CustomCard from '../CustomCard';
-import React, { useState, useEffect, useReducer } from 'react';
-import { getItemById, IStateCircuit, IConfigEquipment, ControllerType, IDetail, } from '../PoolController';
+import React, { useContext, useState, useEffect, useReducer, Dispatch, SetStateAction } from 'react';
+import { getItemById, IStateCircuit, IConfigEquipment, ControllerType, IDetail, getItemByVal, } from '../PoolController';
 import { comms } from '../Socket_Client';
 import { RIEToggle, RIEInput, RIETextArea, RIENumber, RIETags, RIESelect } from '@attently/riek';
 import '../../css/dropdownselect';
 import useDataApi from '../DataFetchAPI';
-
 const editIcon=require('../../images/edit.png');
 const deleteIcon=require('../../images/delete.svg');
 
 interface Props {
     id: string;
-    visibility: string;
+    setNeedsReload: Dispatch<SetStateAction<boolean>>;//Dispatch<SetStateAction<boolean>>
+    needsReload: boolean
     controllerType: ControllerType;
+    type: string
 }
 interface InitialState {
     circuits: IStateCircuit[],
@@ -41,13 +42,18 @@ function CircuitModalPopup(props: Props) {
         disabledList: [],
         equipment: {}
     };
+    const update = () =>{
+        let arr=[];
+        props.type==='circuits'?
+            arr.push({ url: `${ comms.poolURL }/config/options/circuits`, dataName: 'circuits' }):
+            arr.push({ url: `${ comms.poolURL }/config/options/features`, dataName: 'circuits' });
+        doFetch(arr);
+    }
     let arr=[];
-    arr.push({ url: `${ comms.poolURL }/config/equipment`, dataName: 'equipment' });
-    arr.push({ url: `${ comms.poolURL }/config/circuit/functions`, dataName: 'circuitFunctions' });
-    arr.push({ url: `${ comms.poolURL }/state/circuits`, dataName: 'circuits' });
-    arr.push({ url: `${ comms.poolURL }/state/features`, dataName: 'features' });
-    arr.push({ url: `${ comms.poolURL }/config/circuits/names`, dataName: 'circuitNames' });
-
+    props.type==='circuits'?
+        arr.push({ url: `${ comms.poolURL }/config/options/circuits`, dataName: 'circuits' }):
+        arr.push({ url: `${ comms.poolURL }/config/options/features`, dataName: 'circuits' });
+    const [changes, setChanges] = useState([])
 
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
@@ -57,62 +63,64 @@ function CircuitModalPopup(props: Props) {
     useEffect(() => {
 
         let emitter=comms.getEmitter();
-        const fnFeature=function(data) {
-            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data });
-            setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
-        };
-        emitter.on('feature', fnFeature);
-        const fnCircuit=function(data) {
-            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'circuits', data });
-            setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
-        };
-        emitter.on('circuit', fnCircuit);
-        return () => {
-            emitter.removeListener('feature', fnFeature);
-            emitter.removeListener('circuit', fnCircuit);
-        };
+        if (props.type === 'features'){
+
+            const fnFeature=function(data) {
+                doUpdate({ updateType: 'MERGE_ARRAY', dataName: ['circuits','features'], data });
+                setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
+            };
+            emitter.on('feature', fnFeature);
+            return () => {
+                emitter.removeListener('feature', fnFeature);
+            };
+        }
+        else {
+
+            const fnCircuit=function(data) {
+                doUpdate({ updateType: 'MERGE_ARRAY', dataName: ['circuits','circuits'], data });
+                setDisabledList(disabledList => disabledList.filter(el => el!==data.id));
+            };
+            emitter.on('circuit', fnCircuit);
+            return () => {
+                emitter.removeListener('circuit', fnCircuit);
+            };
+        }
     }, []);
     /* eslint-enable react-hooks/exhaustive-deps */
+
+
 
     function addDisabledList(circ) {
         if(disabledList.includes(circ)) return;
         else setDisabledList([...disabledList, circ]);
     }
 
-    function handleCircuitChange(event: any) {
+    async function handleCircuitChange(event: any) {
         let circId=parseInt(event.target.getAttribute('data-circuit'));
         let circFunc=JSON.parse(event.target.value);
         console.log(circFunc);
-        if(circFunc.desc==='Not Used')
-            comms.deleteCircuit({ id: circId });
-        else
-            comms.setCircuit({ id: circId, type: circFunc.val });
-        addDisabledList(circId);;
-    }
-    function handleDelete(event: any) {
-        let circId=parseInt(event.target.getAttribute('data-circuit'));
-        comms.deleteCircuit({ id: circId });
-        addDisabledList(circId);
-    }
-    function handleClick(event: any) {
-        let _activeLink=event.target.target;
-        let _currentPump=parseInt(event.target.target.slice(-1));
-        console.log(_activeLink);
-        console.log(_currentPump);
-        /* this.setState({
-            activeLink: _activeLink,
-            currentPumpNum: _currentPump,
-            currentPumpState: getItemById(this.props.pumpStates, _currentPump),
-            currentCircuit: getItemById(this.props.Circuits, _currentPump)
-        }) */
-    }
-    function findCircFunc(circuit: IStateCircuit) {
-        for(let i=0;i<data.circuitFunctions.length;i++) {
-            if(data.circuitFunctions[i].val===circuit.type.val) {
-                return data.circuitFunctions[i];
-            }
+        if(circFunc.desc==='Not Used'){
+            await comms.deleteCircuit({ id: circId });
         }
-        return data.circuitFunctions[0];
+        else {
+            console.log(`{ id: circId, type: circFunc.val:  ${ circId }  ${ circFunc.val }   ${ circFunc.val||0 }`)
+            await comms.setCircuit({ id: circId, type: circFunc.val });
+        }
+        update();
+        addDisabledList(circId);
+        props.setNeedsReload(true);
+    }
+    async function handleDelete(event: any) {
+        let circId=parseInt(event.target.getAttribute('data-circuit'));
+        await comms.deleteCircuit({ id: circId });
+        addDisabledList(circId);
+        update();
+        props.setNeedsReload(true);
+    }
+
+    function findCircFunc(circuit: IStateCircuit) {
+        let cf = getItemByVal(data.circuits.functions, circuit.type);
+        return cf || data.circuits.functions[0];
     }
     function formatCF(circuit, cf) {
         if(cf.val===findCircFunc(circuit).val)
@@ -127,19 +135,19 @@ function CircuitModalPopup(props: Props) {
             return cn.desc;
     }
     function circFuncDropdown(circuit: IStateCircuit) {
-        if(Array.isArray(data.circuitFunctions)&&!data.circuitFunctions.length) return;
+        if(Array.isArray(data.circuits.functions)&&!data.circuits.functions.length) return;
         return (
             <UncontrolledButtonDropdown
                 size='sm'
                 className='mb-1 mt-1'
             >
                 <DropdownToggle caret
-                    disabled={circuit.nameId===0||disabledList.includes(circuit.id)}
+                //disabled={circuit.nameId===0||disabledList.includes(circuit.id)}
                 >
                     {findCircFunc(circuit).desc}
                 </DropdownToggle>
                 <DropdownMenu>
-                    {data.circuitFunctions.map(cf => {
+                    {data.circuits.functions.map(cf => {
                         return <DropdownItem
                             key={`circuit${ circuit.id }cf${ cf.val }circFunc`}
                             value={JSON.stringify(cf)}
@@ -155,19 +163,23 @@ function CircuitModalPopup(props: Props) {
         );
     }
 
-    const changeName=(data) => {
+    const changeName= async (data) => {
         console.log(data);
         const id=parseInt(Object.keys(data)[0], 10);
         const name=Object.values(data)[0];
-        comms.setCircuit({ id, name });
+        await comms.setCircuit({ id, name });
         addDisabledList(id);
+        update();
+        props.setNeedsReload(true);
     };
-    const changeNameById=(event) => {
+    const changeNameById= async (event) => {
         let circId=parseInt(event.target.getAttribute('data-circuit'));
         let circName=JSON.parse(event.target.value);
         console.log(circName);
-        comms.setCircuit({ id: circId, nameId: circName.val });
+        await comms.setCircuit({ id: circId, nameId: circName.val });
         addDisabledList(circId);
+        update();
+        props.setNeedsReload(true);
     };
 
     function circTypeInOrDropDown(circ) {
@@ -184,24 +196,24 @@ function CircuitModalPopup(props: Props) {
                         {circ.name}
                     </DropdownToggle>
                     <DropdownMenu
-                    modifiers={{
-                        setMaxHeight: {
-                            enabled: true,
-                            order: 890,
-                            fn: (data) =>{
-                                return {
-                                    ...data,
-                                    styles: {
-                                        ...data.styles,
-                                        overflow: 'auto',
-                                        maxHeight: '400px'
+                        modifiers={{
+                            setMaxHeight: {
+                                enabled: true,
+                                order: 890,
+                                fn: (data) => {
+                                    return {
+                                        ...data,
+                                        styles: {
+                                            ...data.styles,
+                                            overflow: 'auto',
+                                            maxHeight: '400px'
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }}
+                        }}
                     >
-                        {data.circuitNames.map(cn => {
+                        {data.circuits.equipmentNames.map(cn => {
                             return <DropdownItem
                                 key={`circuit${ circ.id }cn${ cn.val }circName`}
                                 value={JSON.stringify(cn)}
@@ -229,19 +241,17 @@ function CircuitModalPopup(props: Props) {
 
     }
     function allCircuitsDisplay(type) {
-        let _circs=[];
-        if(type==='circuits') _circs=data.circuits;
-        else _circs=data.features;
-        if(typeof _circs==='undefined'||typeof data.equipment==='undefined') return;
-        const notUsed=data.circuitFunctions.filter(circ => { return circ.name==='notused'; })[0];
+        let _circs=props.type==='circuits'?data.circuits.circuits:data.circuits.features;
+        const notUsed=data.circuits.functions.filter(circ => { return circ.name==='notused'; })[0];
         let res: React.ReactFragment[]=[];
-        let start=type==='circuits'? data.equipment.equipmentIds.circuits.start:data.equipment.equipmentIds.features.start;
-        let end=type==='circuits'? data.equipment.equipmentIds.circuits.end:data.equipment.equipmentIds.features.end;
+        let start=data.circuits.equipmentIds.start;
+        let end=data.circuits.equipmentIds.end;
         for(let i=start;i<=end;i++) {
+            if (data.circuits.invalidIds.includes(i)) continue;
             let circ=getItemById(_circs, i);
             let _style={};
             if(circ===0) {
-                circ={ id: i, name: 'Not Used', nameId: 0, type: notUsed };
+                circ={ id: i, name: 'Not Used', nameId: 0, type: data.circuits.functions[0] };
             }
             if(circ.nameId===0) _style={ opacity: '50%' };
             res.push(
@@ -250,13 +260,11 @@ function CircuitModalPopup(props: Props) {
                         <div>
                             {`${ circ.id } - `}
                             {circTypeInOrDropDown(circ)}
-
                             &nbsp;
                             {circ.name!=='Not Used'&&!disabledList.includes(circ.id)? <img src={deleteIcon} width='15px' height='15px' data-circuit={circ.id} onClick={handleDelete} />:''}
                         </div>
                         {circFuncDropdown(circ)}
                     </div>
-
                 </ListGroupItem>
             );
 
@@ -264,22 +272,21 @@ function CircuitModalPopup(props: Props) {
         return res;
     }
 
-    return (<>
-        {data.isError && 'Error loading results.'}
+    return (
+    <>
+        {data.isError&&'Error loading results.'}
         {!doneLoading? <>Loading...</>:
             <div className="tab-pane active" id="Circuit" role="tabpanel" aria-labelledby="Circuit-tab">
 
-                <CustomCard name='Circuit Config' visibility={props.visibility} id={props.id}>
-                    Circuits
-                {allCircuitsDisplay('circuits')}
-                    <br />
-                Features
-                {allCircuitsDisplay('features')}
+                <CustomCard name='Circuit Config'  id={props.id}>
+                    {allCircuitsDisplay(props.type)}
                 </CustomCard>
 
             </div>
-        }</>)
-        ;
+        }</>
+
+    )
+
 
 }
 
