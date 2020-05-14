@@ -1,6 +1,6 @@
 {
   "discovery": {
-    "poolControllerURL": "http://localhost:4200"
+    "poolControllerURL": "http://10.0.0.44:4200"
   },
   "web": {
     "port": 8080

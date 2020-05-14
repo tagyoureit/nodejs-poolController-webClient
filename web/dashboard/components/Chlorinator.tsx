@@ -82,7 +82,7 @@ function Chlorinator(props: Props){
             </>
         }
             let chlorStatus;
-            if ( currentChlor.currentOutput >= 100 )
+            if ( currentChlor.currentOutput >= 100 || currentChlor.superChlor )
             {
                 chlorStatus = `Super Chlorinate (${ currentChlor.superChlorHours } hours)`
             } else if ( currentChlor.currentOutput > 0 )

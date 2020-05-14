@@ -6,7 +6,7 @@ import UtilitiesLayout from './components/utilities/UtilitiesLayout'
 import PacketSnifferController from './components/utilities/PacketSnifferController' 
 import PacketTester from './components/utilities/PacketTester' 
 import Replay from './components/utilities/Replay' 
-import {comms} from "./components/Socket_Client";
+
 const App = () => {
     return (
             <NodeJSPoolController />

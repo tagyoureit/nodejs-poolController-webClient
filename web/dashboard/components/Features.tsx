@@ -17,7 +17,7 @@ import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
 import { ControllerType, getItemById, IStateCircuit, PoolContext } from './PoolController';
 import { comms } from './Socket_Client';
-
+import ErrorBoundary from './ErrorBoundary';
 const play=require("../images/play-icon.svg");
 const info=require("../images/info-blue-bg.svg");
 

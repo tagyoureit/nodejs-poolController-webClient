@@ -1,12 +1,12 @@
 import {Row, Col, Button, ButtonGroup, Nav, NavItem, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavLink, ButtonDropdown} from "reactstrap";
 //import {comms} from "../Socket_Client";
-import * as React from "react";
-import {IStatePumpCircuit, IDetail, getItemByAttr} from "../PoolController";
+import React, {useEffect, useState} from "react";
+import {IStatePumpCircuit, IDetail, getItemByAttr, IConfigPumpCircuit, getItemByVal} from "../PoolController";
 
 interface Props {
     disabled: boolean
     pumpUnits: IDetail[];
-    currentPumpCircuit: IStatePumpCircuit;
+    currentPumpCircuit: IConfigPumpCircuit;
     onChange: (pumpCircuit: number, obj: any)=>void
     pumpType: string
 }
@@ -14,53 +14,57 @@ interface State {
     dropdownOpen: boolean;
 }
 
-class PumpConfigSelectUnits extends React.Component<Props, State> {
-    constructor(props: Props) {
+function PumpConfigSelectUnits(props:Props) {
+/*     constructor(props: Props) {
         super(props);
-        this.toggle=this.toggle.bind(this);
-        this.handleClick=this.handleClick.bind(this);
-        this.state={dropdownOpen: false};
+        toggle=toggle.bind(this);
+        handleClick=handleClick.bind(this);
+        state={dropdownOpen: false};
+    } */
+
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    useEffect(() => {
+        let unit=getItemByVal(props.pumpUnits, props.currentPumpCircuit.units);
+
+    }, [JSON.stringify(props.currentPumpCircuit)])
+
+    const handleClick = (event: any) => {
+        console.log(`changing circuitSlot ${props.currentPumpCircuit} type to ${event.target.value}`);
+        //comms.setPumpCircuit(props.currentPump, props.currentPump, {units: event.target.value});
+        props.onChange(props.currentPumpCircuit.id, {units: parseInt(event.target.value,10)})
     }
 
-    handleClick(event: any) {
-        console.log(`changing circuitSlot ${this.props.currentPumpCircuit} type to ${event.target.value}`);
-        //comms.setPumpCircuit(this.props.currentPump, this.props.currentPump, {units: event.target.value});
-        this.props.onChange(this.props.currentPumpCircuit.id, {units: parseInt(event.target.value,10)})
+    const toggle= () => {
+            setDropdownOpen(!dropdownOpen);
     }
-
-    toggle() {
-        this.setState({
-            dropdownOpen: !this.state.dropdownOpen
-        });
-    }
-    render() {
+  
         return (
             <div>
-            {this.props.pumpType==='vsf'?
+            {props.pumpType==='vsf'?
             <ButtonDropdown
                 size="sm"
                 className="mb-1 mt-1"
-                isOpen={this.state.dropdownOpen}
-                toggle={this.toggle}
+                isOpen={dropdownOpen}
+                toggle={toggle}
             >
                 <DropdownToggle 
-                disabled={this.props.disabled}
+                disabled={props.disabled}
                 caret>
-                    {`${this.props.currentPumpCircuit.speed||this.props.currentPumpCircuit.flow} ${this.props.currentPumpCircuit.units.desc}`}
+                    {`${props.currentPumpCircuit.speed||props.currentPumpCircuit.flow} ${getItemByVal(props.pumpUnits, props.currentPumpCircuit.units).desc}`}
                 </DropdownToggle>
                 <DropdownMenu>
-                    <DropdownItem value="0" onClick={this.handleClick}>
-                        {`${getItemByAttr(this.props.pumpUnits, 'val', '0').desc}`}
+                    <DropdownItem value="0" onClick={handleClick}>
+                        {props.pumpUnits[0].desc}
                     </DropdownItem>
-                    <DropdownItem value="1" onClick={this.handleClick}>
-                        {`${getItemByAttr(this.props.pumpUnits, 'val', '1').desc}`}
+                    <DropdownItem value="1" onClick={handleClick}>
+                        {props.pumpUnits[1].desc}
                     </DropdownItem>
                 </DropdownMenu>
             </ButtonDropdown>
-            :this.props.currentPumpCircuit.circuit.id>0?`${this.props.currentPumpCircuit.speed||this.props.currentPumpCircuit.flow} ${this.props.currentPumpCircuit.units.desc}`:''}
+            :props.currentPumpCircuit.circuit>0?`${props.currentPumpCircuit.speed||props.currentPumpCircuit.flow} ${getItemByVal(props.pumpUnits, props.currentPumpCircuit.units).desc}`:''}
             </div>
         );
-    }
+    
 }
 
 export default PumpConfigSelectUnits;

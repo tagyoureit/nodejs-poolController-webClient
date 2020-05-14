@@ -40,7 +40,7 @@ function ChlorinatorCustomSlider(props: Props) {
 
     const onChangeComplete=() => {
         console.log(`setting chlor: id:${ props.chlor.id }, poolSP: ${ poolSetpoint }, spaSP:${ spaSetpoint||0 }, superChlorHrs:${ superChlorHours }`)
-        comms.setChlor(props.chlor.id, poolSetpoint, spaSetpoint||0, superChlorHours);
+        comms.setChlor(props.chlor.id, poolSetpoint, spaSetpoint||0, superChlorHours||0);
     };
 
     // Todo: don't show Spa in single body of water
@@ -65,7 +65,7 @@ function ChlorinatorCustomSlider(props: Props) {
                         />
                     </Col>
                 </Row>
-                {props.chlor.body>0&&(<><Row>
+                {props.chlor.body.val>0&&(<><Row>
                     <Col style={{ paddingTop: '25px' }}>
                         Spa
                 <Slider

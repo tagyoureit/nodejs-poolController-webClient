@@ -45,7 +45,7 @@ export interface IState {
     freeze: boolean;
 
 }
-export enum ControllerType { "intellicenter", "intellitouch", "intellicom", "none" }
+export enum ControllerType { "virtual","intellicenter", "intellitouch", "intellicom", "none" }
 export interface IConfig {
     lastUpdated: string;
     controllerType: ControllerType;
@@ -256,9 +256,11 @@ export interface IConfigCircuit {
     id: number;
     type: number;
     name: string;
-    freeze: boolean;
-    macro: boolean;
-    isActive: boolean;
+    nameId?: number;
+    freeze?: boolean;
+    macro?: boolean;
+    isActive?: boolean;
+    equipmentType?: 'circuit'|'feature'|'virtual'|'circuitGroup'
 }
 export interface IConfigFeature {
     id: number;
@@ -273,11 +275,24 @@ export interface IConfigPump {
     type: number;
     primingSpeed?: number;
     primingTime?: number;
-    minSpeed: number;
-    maxSpeed: number;
-    speedStepSize: number;
+    minSpeed?: number;
+    maxSpeed?: number;
+    minFlow?: number;
+    maxFlow?: number;
+    speedStepSize?: number;
     isActive: boolean;
+    isVirtual?: boolean;
     circuits: IConfigPumpCircuit[];
+}
+export interface IConfigPumpType {
+    val: number,
+    name: string,
+    desc: string,
+    maxCircuits: number,
+    hasAddress: boolean,
+    minFlow ?: number,
+    maxFlow ?: number,
+    maxPrimingTime?: number
 }
 export interface IConfigPumpCircuit {
     id: number;
@@ -352,7 +367,8 @@ export function getItemByAttr(data: any, attr: string, val: any) {
 
 export const PoolContext = React.createContext({
     visibility: [],
-    reload: () => {}
+    reload: () => {},
+    controllerType: ControllerType.none
 })
 
 const initialState: any={
@@ -531,7 +547,7 @@ function PoolController() {
         else return <></>;
     };
     return (
-        <PoolContext.Provider value={{visibility, reload: reloadFn}} >
+        <PoolContext.Provider value={{visibility, reload: reloadFn, controllerType: data.controllerType}} >
         <div>
             {navbar}
             {errorPresent()}

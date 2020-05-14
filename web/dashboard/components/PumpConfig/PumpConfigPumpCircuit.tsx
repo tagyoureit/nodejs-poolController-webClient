@@ -6,14 +6,15 @@ import CustomCard from '../CustomCard'
 import * as React from 'react';
 import '../../css/dropdownselect'
 import { comms } from '../Socket_Client'
-import { getItemById, IStatePump, IStatePumpCircuit, IDetail } from '../PoolController';
+import { getItemById, IStatePump, IStatePumpCircuit, IDetail, IConfigCircuit, IConfigPumpCircuit, IConfigPump } from '../PoolController';
 import PumpConfigSelectUnits from './PumpConfigSelectUnits';
 import PumpConfigSelectCircuit from "./PumpConfigSelectCircuit";
 import PumpConfigSelectSpeedSlider from "./PumpConfigSelectSpeedSlider";
 interface Props
 {
-    availableCircuits: { id: number, name: string, type: string }[];
-    currentPumpCircuit: IStatePumpCircuit
+    availableCircuits: IConfigCircuit[];
+    currentPumpCircuit: IConfigPumpCircuit
+    currentPump: IConfigPump;
     pumpType: string
     pumpUnits: IDetail[]
     disabled: boolean
@@ -50,6 +51,8 @@ class PumpConfigPumpCircuit extends React.Component<Props, State> {
                     <Col className="col">
                         <PumpConfigSelectSpeedSlider
                             currentPumpCircuit={this.props.currentPumpCircuit}
+                            pumpUnits={this.props.pumpUnits}
+                            currentPump={this.props.currentPump}
                             onChange={this.props.onChange}
                             disabled={this.props.disabled}
                         />
