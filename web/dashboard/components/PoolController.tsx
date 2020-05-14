@@ -400,7 +400,7 @@ function PoolController() {
     const [debug, setDebug] = useState(false);
     useEffect(() => {
         checkURL();
-        setTimeout(function() { if(comms.poolURL==='*') { setLoadingMessage: 'Waiting for SSDP to discover pool url.  If you need to set the IP manually, enter it in config.json as `http://host:port`.'; } }, 5000);
+        setTimeout(function() { if(comms.poolURL==='*') { setLoadingMessage: 'Waiting for SSDP to discover pool url.  Make sure that your SSDP server is enabled in the poolController/config.json file.  If you still have issues (eg your router is blocking uPNP) and need to set the IP manually, enter it in nodejs-poolController-webclient/config.json as `http://host:port`.'; } }, 5000);
     }, []);
 
     const reloadFn = () => {
