@@ -5,7 +5,7 @@ import { Button, ButtonGroup, Col, ListGroup, ListGroupItem, Row } from 'reactst
 import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
 import { comms } from './Socket_Client';
-var extend=require("extend");
+
 const flame=require('../images/flame.png');
 interface Props {
     id: string;
@@ -119,12 +119,12 @@ function BodyState(props: Props) {
             const labelStr=`{"${ low }": "${ low }", "${ high }": "${ high }"}`
             let labels=JSON.parse(labelStr)
             const showFlameSolar=() => {
-                if(body.isOn&&body.heatStatus.val===2) {
+                if(body.isOn&&body.heatStatus.name==='solar') {
                     return (<img src={flame} />)
                 }
             }
             const showFlameHeater=() => {
-                if(body.isOn&&body.heatStatus.val===1) {
+                if(body.isOn&&body.heatStatus.name==='heater') {
                     return (<img src={flame} />)
                 }
             }
