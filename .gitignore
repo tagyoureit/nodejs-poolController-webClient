@@ -58,6 +58,17 @@ typings/
 # dotenv environment variables file
 .env
 
+# ignore visual studio
+*.csproj
+*.njsproj
+*.sln
+*.njsproj.user
+obj/
+bin/
+.vs/
+# end
+
+
 # next.js build output
 .next
 dist
