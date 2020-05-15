@@ -20,7 +20,7 @@ interface Props
     counter: number;
 }
 
-function PoolNav() {
+function PoolNav(props: any) {
 
     const [isOpen, setIsOpen] = useState(false);
     const toggle = () => {
@@ -32,7 +32,7 @@ function PoolNav() {
     }
 
         return (                
-            <PoolContext.Consumer>
+        <PoolContext.Consumer>
             {({ visibility, reload }) => (
             <Navbar color="light" light sticky="top" >
                 <NavbarBrand href="/" >nodejs-PoolController
@@ -90,11 +90,14 @@ function PoolNav() {
                             <NavLink onClick={()=>{resetLayout();reload()}} id='reset' href='#'>Reset Layout</NavLink>
                         </NavItem>
                     </Nav>
+                    <br />
+                {props.children}
                 </Collapse>
 
             </Navbar>
             )}
             </PoolContext.Consumer>
+            
         )
     
 }

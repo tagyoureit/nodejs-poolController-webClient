@@ -4,7 +4,7 @@
   "description": "A web client for the nodejs-poolcontroller app v6.0 and higher",
   "main": "/dist/index.html",
   "scripts": {
-    "start": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\"",
+    "start": "rm -rf dist && ./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\"",
     "dev-parcel": "parcel serve ./web/dashboard/index.html",
     "build-parcel": "parcel build ./web/dashboard/index.html"
   },

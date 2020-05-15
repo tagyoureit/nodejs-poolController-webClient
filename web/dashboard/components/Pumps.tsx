@@ -51,12 +51,13 @@ function Pump(props: Props) {
             />);
     };
 
-    return (
+    return doneLoading && !isLoading && (
         <div className="tab-pane active" id="pump" role="tabpanel" aria-labelledby="pump-tab">
             <CustomCard name='Pumps' key='title' id={props.id} edit={() => setModalOpen(!modalOpen)}>
                 <CardGroup className="">
                     <ErrorBoundary>
-                        {data.pumps&&data.pumps.length>0&&data.pumps.map((pump) => {
+                        {data.pumps && data.pumps.length === 0 && 'Pool app did not find any pumps responding to status requests.'}
+                        {data.pumps && data.pumps.length>0 && data.pumps.map((pump) => {
                             try {
 
                                 return (

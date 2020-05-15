@@ -1,13 +1,17 @@
 {
   "discovery": {
-    "poolControllerURL": "http:/localhost:4200/"
+    "override": {
+      "protocol": "http",
+      "host": "localhost",
+      "port": 4200
+    },
+    "autoDiscovery": true
   },
   "web": {
     "port": 8080
   },
   "options": {
     "hidePanels": [
-      "Circuit Groups"
     ],
     "debug": false
   }

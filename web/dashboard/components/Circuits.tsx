@@ -86,7 +86,7 @@ function Circuits(props: Props) {
 
     const circuit=() => {
         if(!data.circuits.length) return (<div />);
-        return data.circuits.map(circuit => {
+        return data.circuits && data.circuits.length>0 && data.circuits.map(circuit => {
             return (
                 <ListGroupItem key={circuit.id+'circuitlistgroupkey'}>
                     <div className='d-flex justify-content-between'>

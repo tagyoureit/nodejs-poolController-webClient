@@ -11,7 +11,7 @@ function SysInfoEditLogger(props) {
     const [includeBroadcastActions, setIncludeBroadcastActions]=useState<number[]>([]);
     useEffect(() => {
 
-        fetch(`${ comms.poolURL }/app/config/log`)
+        fetch(`${ comms.poolData }/app/config/log`)
             .then(res => res.json())
             .then(
                 result => {
@@ -22,7 +22,7 @@ function SysInfoEditLogger(props) {
                     console.log(error);
                 }
             );
-        fetch(`${ comms.poolURL }/app/messages/broadcast/actions`)
+        fetch(`${ comms.poolData }/app/messages/broadcast/actions`)
             .then(res => res.json())
             .then(
                 result => {

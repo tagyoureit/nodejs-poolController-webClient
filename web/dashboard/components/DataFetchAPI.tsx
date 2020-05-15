@@ -1,11 +1,11 @@
 import { useState, useEffect, useReducer } from 'react';
-import axios from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { PoolContext } from './PoolController';
 var extend=require("extend");
 
 const dataFetchReducer=(state, action) => {
-    const debug = false;
-    if (debug){
+    const debug=false;
+    if(debug) {
         console.log(`dataFetchReducer incoming:`)
         console.log(action)
     }
@@ -18,6 +18,7 @@ const dataFetchReducer=(state, action) => {
                 doneLoading: false
             };
         case 'FETCH_SUCCESS':
+            delete state.error;
             return {
                 ...state,
                 isLoading: false,
@@ -26,6 +27,7 @@ const dataFetchReducer=(state, action) => {
                 doneLoading: true
             };
         case 'FETCH_FAILURE':
+            state.error = action.data || state.error;
             return {
                 ...state,
                 isLoading: false,
@@ -33,9 +35,9 @@ const dataFetchReducer=(state, action) => {
                 doneLoading: false
             };
         case 'UPDATE':
-            state.isLoading = false;
-            state.isError = false;
-            state.doneLoading = true;
+            state.isLoading=false;
+            state.isError=false;
+            state.doneLoading=true;
             switch(action.updateType) {
                 case 'REPLACE_ARRAY':
                     {
@@ -48,85 +50,85 @@ const dataFetchReducer=(state, action) => {
                     }
                 case 'MERGE_OBJECT':
                     {
-                        if (debug){   
+                        if(debug) {
                             console.log(`Merge (object):`);
                             console.log(action.data);
                             console.log(`to:`);
                             console.log(state.data[action.dataName]);
                         }
-                            // Object.assign(state.data[action.dataName][index], action.data);
-                            let res = extend(true, {}, state.data[action.dataName], action.data)
-                        if (debug){
+                        // Object.assign(state.data[action.dataName][index], action.data);
+                        let res=extend(true, {}, state.data[action.dataName], action.data)
+                        if(debug) {
                             console.log(`result:`)
                             console.log(res)
                             console.log(`compare`)
                             console.log(state)
                         }
-                            state.data[action.dataName] = res
-                            return {...state};
+                        state.data[action.dataName]=res
+                        return { ...state };
                     }
                 case 'MERGE_ARRAY':
                     {
-                        if (Array.isArray(action.dataName)){
-                            if (debug) {
+                        if(Array.isArray(action.dataName)) {
+                            if(debug) {
                                 console.log(`Merge Deep (array):`);
                                 console.log(action.data);
                                 console.log(`to:`);
                             }
-                            let d = state.data;
-                            for (let i=0; i<action.dataName.length; i++){
-                                d = d[action.dataName[i]];
+                            let d=state.data;
+                            for(let i=0;i<action.dataName.length;i++) {
+                                d=d[action.dataName[i]];
                             }
                             let index=d.findIndex(el => {
                                 return el.id===action.data.id;
                             });
-                            if (debug )console.log(d[index]);
+                            if(debug) console.log(d[index]);
                             // Object.assign(state.data[action.dataName][index], action.data);
-                            let res = extend(true, {}, d[index], action.data)
-                            if (debug){
+                            let res=extend(true, {}, d[index], action.data)
+                            if(debug) {
                                 console.log(`result:`)
                                 console.log(res)
                                 console.log(`compare`)
                                 console.log(state)
                             }
-                            if (index === -1){
+                            if(index===-1) {
                                 d.push(res);
                             }
-                            else{
-                                d[index] = res;
+                            else {
+                                d[index]=res;
                             }
-                            if (debug) console.log(state)
-                            return {...state};
+                            if(debug) console.log(state)
+                            return { ...state };
                         }
                         else {
-                            if (debug){
+                            if(debug) {
                                 console.log(`state...`)
                                 console.log(state)
                             }
-                        let index=state.data[action.dataName].findIndex(el => {
-                            return el.id===action.data.id;
-                        });
-                        if (debug){
-                            console.log(`merge (array):`);
-                            console.log(action.data);
-                            console.log(`to:`);
-                            console.log(state.data[action.dataName][index]);
-                            console.log(`at position (index): ${index}`)
+                            let index=state.data[action.dataName].findIndex(el => {
+                                return el.id===action.data.id;
+                            });
+                            if(debug) {
+                                console.log(`merge (array):`);
+                                console.log(action.data);
+                                console.log(`to:`);
+                                console.log(state.data[action.dataName][index]);
+                                console.log(`at position (index): ${ index }`)
+                            }
+                            // Object.assign(state.data[action.dataName][index], action.data);
+                            let res=extend(true, {}, state.data[action.dataName][index], action.data)
+                            if(index===-1) {
+                                state.data[action.dataName].push(res);
+                            }
+                            else {
+                                state.data[action.dataName][index]=res;
+                            }
+                            if(debug) {
+                                console.log(`returning...`)
+                                console.log(state)
+                            }
+                            return { ...state };
                         }
-                        // Object.assign(state.data[action.dataName][index], action.data);
-                        let res = extend(true, {}, state.data[action.dataName][index], action.data)
-                        if (index === -1){
-                            state.data[action.dataName].push(res);
-                        }
-                        else {
-                            state.data[action.dataName][index] = res;
-                        }
-                        if (debug){
-                            console.log(`returning...`)
-                            console.log(state)
-                        }
-                        return {...state};
-                    }
                     }
                 case 'EXTEND':
                     console.log(`type of update=extend; with data: ${ JSON.stringify(action.data) }`);
@@ -141,7 +143,7 @@ const dataFetchReducer=(state, action) => {
     }
 };
 const useDataApi=(initialUrls, initialData) => {
-    const debug = false;
+    const debug=false;
     const [urls, setUrls]=useState(initialUrls);
 
 
@@ -153,9 +155,9 @@ const useDataApi=(initialUrls, initialData) => {
     });
 
     const setUpdates=(action: { updateType: string, data: any; }) => {
-        switch (action.updateType){
+        switch(action.updateType) {
             case 'FETCH_FAILURE':
-                dispatch({type:'FETCH_FAILURE'})
+                dispatch({ type: 'FETCH_FAILURE' })
                 break;
             default:
                 dispatch({ type: 'UPDATE', ...action });
@@ -167,28 +169,28 @@ const useDataApi=(initialUrls, initialData) => {
             dispatch({ type: 'FETCH_INIT' });
             try {
                 let fetchArray=[];
+                let payload={};
                 urls.forEach(el => {
-                    if (debug) console.log(`fetching: ${el.url}`)
+                    if(debug) console.log(`fetching: ${ el.url }`)
                     fetchArray.push(axios(el.url));
                 });
-                if (fetchArray.length > 0){   
-                    const res=await Promise.all(fetchArray);
-                    let payload={};
-                    for(let i=0;i<urls.length;i++) {
-                        if (typeof urls[i].dataName === 'undefined'){
-                            Object.assign(payload,res[i].data);
-                        }
-                        else {
-                            payload[urls[i].dataName]=res[i].data;
-                        }
+                if(fetchArray.length>0) {
+                    let responseArr:AxiosResponse[] = await axios.all(fetchArray)
+                            for(let i=0;i<responseArr.length;i++) {
+                                if(typeof urls[i].dataName==='undefined') {
+                                    payload = Object.assign(true, {}, payload, responseArr[i].data);
+                                }
+                                else {
+                                    payload[urls[i].dataName]=responseArr[i].data;
+                                }
+                            }
+                        dispatch({ type: 'FETCH_SUCCESS', payload });
                     }
-                    dispatch({ type: 'FETCH_SUCCESS', payload });
                 }
-            }
-            catch(error) {
-                console.log(error);
-                dispatch({ type: 'FETCH_FAILURE' });
-            }
+                catch(error) {
+                    console.log(error);
+                    dispatch({ type: 'FETCH_FAILURE',data: `${error.message}` });
+                }
         };
         fetchData();
     }, [urls]);

@@ -5,7 +5,7 @@ import {
 
 import Navbar from "./Navbar";
 import SysInfo from "./SysInfo";
-import { Button, UncontrolledAlert, Container } from "reactstrap";
+import { Button, UncontrolledAlert, Container, Form, FormGroup, Input, Label, InputGroupAddon, InputGroupText, InputGroup, InputGroupButtonDropdown, CustomInput, DropdownMenu, DropdownItem, DropdownToggle, UncontrolledButtonDropdown } from "reactstrap";
 
 import BodyState from "./BodyState";
 import Pump from "./Pumps";
@@ -45,7 +45,7 @@ export interface IState {
     freeze: boolean;
 
 }
-export enum ControllerType { "virtual","intellicenter", "intellitouch", "intellicom", "none" }
+export enum ControllerType { "virtual", "intellicenter", "intellitouch", "intellicom", "none" }
 export interface IConfig {
     lastUpdated: string;
     controllerType: ControllerType;
@@ -290,8 +290,8 @@ export interface IConfigPumpType {
     desc: string,
     maxCircuits: number,
     hasAddress: boolean,
-    minFlow ?: number,
-    maxFlow ?: number,
+    minFlow?: number,
+    maxFlow?: number,
     maxPrimingTime?: number
 }
 export interface IConfigPumpCircuit {
@@ -361,94 +361,144 @@ export function getItemByIndex(data: any, ndx: number) {
 }
 
 export function getItemByAttr(data: any, attr: string, val: any) {
-    if (typeof data === 'undefined' || data.length === 0) {return undefined;}
+    if(typeof data==='undefined'||data.length===0) { return undefined; }
     return data.filter(el => el[attr]===val).shift();
 }
 
-export const PoolContext = React.createContext({
+export const PoolContext=React.createContext({
     visibility: [],
-    reload: () => {},
+    reload: () => { },
     controllerType: ControllerType.none
 })
 
 const initialState: any={
     state: {
         equipment: {
-            controllerType: ControllerType.none
+            controllerType: ControllerType.none,
+            model: 'No connection'
         },
         schedules: [],
-        status: {val: -1, percent: 0}
-    }
+        status: { val: -1, percent: 0 }
+    },
+    doneLoading: false
 };
 
 
 function usePrevious(value) {
-    const ref = useRef();
+    const ref=useRef();
     useEffect(() => {
-      ref.current = value;
+        ref.current=value;
     });
     return ref.current;
-  }
+}
 function PoolController() {
-    const [loadingMessage, setLoadingMessage]=useState<string>('Loading...');
-    const [poolURL, setPoolURL]=useState<string>('*');
+    const [poolURL, setPoolURL]=useState<string>();
 
     const [counter, setCounter]=useState(0);
-    const [visibility, setVisibility] = useState<string[]>([]);
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi([], initialState);
-    const prevPercent = usePrevious(data.state.status.percent)
-    const [debug, setDebug] = useState(false);
+    const [visibility, setVisibility]=useState<string[]>([]);
+    const [{ data, isLoading, isError, doneLoading, error }, doFetch, doUpdate]=useDataApi([], initialState);
+    const prevPercent=usePrevious(data.state&&data.state.status&&data.state.status.percent||0);
+    const [debug, setDebug]=useState(false);
+    const [showSetup, setShowSetup]=useState(false)
+    const [host, setHost]=useState('localhost')
+    const [port, setPort]=useState<number>(4200)
+    const [protocol, setProtocol]=useState('http')
+    const [switchDisabled, setSwitchDisabled]=useState(false);
+    let _timeout=useRef<NodeJS.Timeout>()
     useEffect(() => {
-        checkURL();
-        setTimeout(function() { if(comms.poolURL==='*') { setLoadingMessage: 'Waiting for SSDP to discover pool url.  Make sure that your SSDP server is enabled in the poolController/config.json file.  If you still have issues (eg your router is blocking uPNP) and need to set the IP manually, enter it in nodejs-poolController-webclient/config.json as `http://host:port`.'; } }, 5000);
+        getVisibility();
+
     }, []);
 
-    const reloadFn = () => {
+    useEffect(() => {
+        if(typeof comms.poolData!=='undefined') {
+            setProtocol(comms.poolData.override.protocol);
+            setHost(comms.poolData.override.host);
+            setPort(comms.poolData.override.port);
+
+            checkURL();
+
+            // setTimeout(() => { setShowSetup(true) }, 5000);
+            setShowSetup(true);
+        }
+    }, [JSON.stringify(comms.poolData), poolURL])
+
+
+
+    const checkURL=() => {
+        clearTimeout(_timeout.current)
+        console.log(comms.poolData)
+        if(typeof comms.poolURL==='undefined') {
+            console.log(`Checking webClient server for SSDP address every second;`);
+            _timeout.current=setTimeout(() => checkURL(), 1000);
+        }
+        else {
+            console.log(`webClient received config: ${ JSON.stringify(comms.poolData) } and poolURL is ${ comms.poolURL }`);
+
+            // setShowSetup(false);
+            setPoolURL(comms.poolURL);
+        }
+    };
+
+
+    const getVisibility=async () => {
+        let res=await comms.visibility();
+        setVisibility(res);
+    }
+
+    const switchSSDP=async (e) => {
+        setSwitchDisabled(true);
+        console.log(`switching AWAY from ${ comms.poolData.autoDiscovery }`)
+        if(comms.poolData.autoDiscovery) {
+            let res=await comms.startOverride();
+            console.log(res);
+        }
+        else {
+            let res=await comms.deleteOverride();
+            checkURL()
+            console.log(res);
+        }
+        setTimeout(() => { setSwitchDisabled(false) }, 2000);
+    }
+
+    const saveManualLocation=async () => {
+        let res=await comms.saveOverride(protocol, host, port)
+        console.log(`received back from saveManual: ${ JSON.stringify(res) }`)
+        checkURL();
+    }
+    useEffect(() => {
+        if(doneLoading) setShowSetup(false);
+    }, [doneLoading])
+
+
+    const reloadFn=() => {
         console.log(`RELOADING all data`)
         let arr=[];
         arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
         arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
         doFetch(arr);
-        fetch();
+        getVisibility();
     }
 
-    const checkURL=() => {
-        if(comms.poolURL==='*') {
-            console.log(`Checking webClient server for SSDP address every second;`);
-            setTimeout(() => checkURL(), 1000);
-        }
-        else {
-            console.log(`webClient server found pool app at: ${ comms.poolURL }`);
-            // setState({ poolURL: comms.poolURL });
-            setPoolURL(comms.poolURL);
-
-        }
-    };
-
-    const fetch = async ()=>{
-        let res = await comms.visibility();
-        setVisibility(res);
-    }
-    useEffect(()=>{
-        fetch();
-    },[])
-
-    useEffect(()=>{
-        if (prevPercent !== 100 && data.state.status.percent === 100){
+    // Reload data when pool app gets to 100% loaded
+    // This may be needed to reload all sections if they were prev empty but we received emits for data updates
+    useEffect(() => {
+        if(prevPercent!==100&&data.state&&data.state.status&&data.state.status.percent===100) {
             let arr=[];
             arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
             arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
             doFetch(arr);
         }
-    },[prevPercent, data.state.status.percent])
+    }, [prevPercent, doFetch])
 
     useEffect(() => {
-        if(poolURL!=="*") {
+        if(typeof poolURL!=='undefined') {
+            setShowSetup(false);
             let arr=[];
             arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
             arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
             doFetch(arr);
-            let sock=comms.incoming((d: any, which: string): { d: any, which: string; } => {
+            comms.incoming((d: any, which: string): { d: any, which: string; } => {
                 console.log({ [which]: d });
                 if(which!=="error")
                     this;/* .setState(state => {
@@ -524,10 +574,8 @@ function PoolController() {
                         return { d, which };
                 }
             });
-            // setSock(sock); // is this really needed?
         }
     }, [poolURL]);
-
 
 
     let className='';
@@ -539,70 +587,103 @@ function PoolController() {
         if(isError) {
             return <>
                 <UncontrolledAlert color="danger">
-                    Pool controller connection lost.
+                    Pool controller connection lost. {error}
+                    <br />
+                    Open Navigation menu to configure communications to poolController.
                 </UncontrolledAlert>
-               {/*  <>{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}<br />isError?{isError? 'yes':'no'}</> */}
+                {/*  <>{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}<br />isError?{isError? 'yes':'no'}</> */}
             </>;
         }
         else return <></>;
     };
     return (
-        <PoolContext.Provider value={{visibility, reload: reloadFn, controllerType: data.controllerType}} >
-        <div>
-            {navbar}
-            {errorPresent()}
-            <div className={className}>
-                {comms.poolURL==="*"? <>{loadingMessage}</>:
+        <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType: data.controllerType }} >
+            <div>
+                <Navbar>
 
-                    <Container>
-                        <SysInfo
-                            counter={counter}
-                            id="System"
-                            isLoading={isLoading}
-                            doneLoading={doneLoading}
-                            data={data.state}
-                        />
-                        <BodyState
-                            id="Bodies"
-                        />
-                        <Pump
-                            id="Pumps"
-                        />
-                        <Circuits
-                            controllerType={data.state.equipment.model}
-                            id="Circuits"
-                        />
-                        <Features
-                            controllerType={data.state.equipment.model}
-                            hideAux={false}
-                            id="Features"
-                        />
-                        <Circuits
-                            controllerType={data.state.equipment.model}
-                            id="Circuit Groups"
-                        />
-                        <Circuits
-                            controllerType={data.state.equipment.model}
-                            id="Virtual Circuits"
-                        />
-                        <Schedule
-                            data={data.state.schedules}
-                            id="Schedules"
-                        />
-                        <Chlorinator
-                            id="Chlorinators"
-                        />
-                        <div className='debugArea'>
+                    {typeof comms.poolData!=='undefined'&&<>
+                        Configure Comms<br />
+                        <CustomInput type="switch" id="ssdpSwitch" name="ssdpSwitch" label="Use SSDP" checked={comms.poolData.autoDiscovery} onChange={switchSSDP} disabled={switchDisabled? true:false} />
+                        {comms.poolData.autoDiscovery&&!comms.poolData.discoveredURL&&'Waiting for SSDP to discover pool url.  Make sure that your SSDP server is enabled in the poolController/config.json file.  If you still have issues (eg your router is blocking uPNP) and need to set the IP manually, set it below.'}
+                        {!comms.poolData.autoDiscovery&&
+                            <> <InputGroup>
+                                <InputGroupAddon addonType="prepend">
+                                    <UncontrolledButtonDropdown >
+                                        <DropdownToggle caret>
+                                            {protocol}
+                                        </DropdownToggle>
+                                        <DropdownMenu onClick={e => { setProtocol((e.target as HTMLButtonElement).value) }}>
+                                            <DropdownItem value='http'>http</DropdownItem>
+                                            <DropdownItem value='https'>https</DropdownItem>
+                                        </DropdownMenu>
+                                    </UncontrolledButtonDropdown>
+                                </InputGroupAddon>
+                                <Input type="text" name="host" id="host" value={host} onChange={(e) => { setHost(e.target.value); }} />
+                                <InputGroupAddon addonType="append">
+                                    <Input type='number' name="port" id="port" value={port.toString()} onChange={(e) => { setPort(parseInt(e.target.value, 10)); }} />
+                                </InputGroupAddon>
 
-                        Debug: <Button style={{margin:'0px 0px 3px 0px', padding: 0, border:0}} color='link' onClick={()=>setDebug(!debug)}>{debug?'on':'off'}</Button>. <a href='https://github.com/tagyoureit/nodejs-poolController-webClient/issues/new'>Report an issue</a> or ask a question on the <a href='https://gitter.im/nodejs-poolController/Lobby'>forums</a>.
+                            </InputGroup>
+                                <Button size='sm' color='link' onClick={saveManualLocation}>Save address</Button> (Current value: {poolURL})
+                        </>
+                        }
+                    </>}
+                </Navbar>
+                {errorPresent()}
+                {!doneLoading&&<Container>Loading...</Container>}
+                {doneLoading&&!data.error&&<div className={className}>
+
+                    {typeof comms.poolData!=='undefined'&&typeof comms.poolURL!=='undefined'&&
+
+                        <Container>
+                            <SysInfo
+                                counter={counter}
+                                id="System"
+                                isLoading={isLoading}
+                                doneLoading={doneLoading}
+                                data={data.state}
+                            />
+                            <BodyState
+                                id="Bodies"
+                            />
+                            <Pump
+                                id="Pumps"
+                            />
+                            <Circuits
+                                controllerType={data.state.equipment.model}
+                                id="Circuits"
+                            />
+                            <Features
+                                controllerType={data.state.equipment.model}
+                                hideAux={false}
+                                id="Features"
+                            />
+                            <Circuits
+                                controllerType={data.state.equipment.model}
+                                id="Circuit Groups"
+                            />
+                            <Circuits
+                                controllerType={data.state.equipment.model}
+                                id="Virtual Circuits"
+                            />
+                            <Schedule
+                                data={data.state.schedules}
+                                id="Schedules"
+                            />
+                            <Chlorinator
+                                id="Chlorinators"
+                            />
+                            <div className='debugArea'>
+
+                                Debug: <Button style={{ margin: '0px 0px 3px 0px', padding: 0, border: 0 }} color='link' onClick={() => setDebug(!debug)}>{debug? 'on':'off'}</Button>. <a href='https://github.com/tagyoureit/nodejs-poolController-webClient/issues/new'>Report an issue</a> or ask a question on the <a href='https://gitter.im/nodejs-poolController/Lobby'>forums</a>.
                         </div>
-                    </Container>
-                }
+                        </Container>
+                    }
 
+                </div>}
+
+                {/*<>Msg:{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}</><p /><> {JSON.stringify(data)}</> */}
             </div>
-
-          {/*<>Msg:{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}</><p /><> {JSON.stringify(data)}</> */}
-        </div>
         </PoolContext.Provider>
     );
 
