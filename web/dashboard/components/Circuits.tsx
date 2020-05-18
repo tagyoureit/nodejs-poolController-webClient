@@ -9,9 +9,7 @@ import CircuitModalPopup from './CircuitConfig/CircuitModalPopup';
 import useDataApi from './DataFetchAPI';
 import { PoolContext } from './PoolController';
 interface Props {
-    controllerType: ControllerType;
     id: string;
-    
 }
 
 export interface ConfigCircuit {
@@ -29,26 +27,32 @@ const initialState: { circuits: IStateCircuit[]; }={ circuits: [] };
 function Circuits(props: Props) {
     const [modalOpen, setModalOpen]=useState(false);
     const [needsReload, setNeedsReload]=useState(false);
-    const {reload} = useContext(PoolContext);
-    let arr=[];
-    switch(props.id) {
-        case "Circuits":
-            arr.push({ url: `${ comms.poolURL }/state/circuits`, dataName: 'circuits' });
-            // url=`${ url }/circuits`;
-            break;
-        case "Circuit Groups":
-            arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, dataName: 'circuits' });
-            // url=`${ url }/circuitGroups`;
-            break;
-        case "Virtual Circuits":
-            arr.push({ url: `${ comms.poolURL }/state/virtualCircuits`, dataName: 'circuits' });
-            // url=`${ url }/virtualCircuits`;
-            break;
-    }
-    arr.push({ url: `${ comms.poolURL }/config/equipment`, dataName: 'equipment' });
-    arr.push({ url: `${ comms.poolURL }/config/circuit/functions`, dataName: 'circuitFunctions' });
+    const { reload, poolURL, controllerType }=useContext(PoolContext);
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
+    useEffect(() => {
+        if(typeof poolURL!=='undefined') {
 
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
+            let arr=[];
+            switch(props.id) {
+                case "Circuits":
+                    arr.push({ url: `${ poolURL }/state/circuits`, dataName: 'circuits' });
+                    // url=`${ url }/circuits`;
+                    break;
+                case "Circuit Groups":
+                    arr.push({ url: `${ poolURL }/state/circuitGroups`, dataName: 'circuits' });
+                    // url=`${ url }/circuitGroups`;
+                    break;
+                case "Virtual Circuits":
+                    arr.push({ url: `${ poolURL }/state/virtualCircuits`, dataName: 'circuits' });
+                    // url=`${ url }/virtualCircuits`;
+                    break;
+            }
+            arr.push({ url: `${ poolURL }/config/equipment`, dataName: 'equipment' });
+            arr.push({ url: `${ poolURL }/config/circuit/functions`, dataName: 'circuitFunctions' });
+            doFetch(arr);
+        }
+    }, [poolURL, doFetch])
+
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
@@ -72,21 +76,21 @@ function Circuits(props: Props) {
                     emitter.removeListener('circuitGroup', fn);
                 };
         }
-    }, []); 
+    }, []);
     /* eslint-enable react-hooks/exhaustive-deps */
 
     const handleClick=(event: any): any => { comms.toggleCircuit(event.target.value); };
-    const toggleModal=() => { 
-        if (modalOpen && needsReload) {
+    const toggleModal=() => {
+        if(modalOpen&&needsReload) {
             reload();
             setNeedsReload(false);
         }
-        setModalOpen(!modalOpen); 
+        setModalOpen(!modalOpen);
     };
 
     const circuit=() => {
         if(!data.circuits.length) return (<div />);
-        return data.circuits && data.circuits.length>0 && data.circuits.map(circuit => {
+        return data.circuits&&data.circuits.length>0&&data.circuits.map(circuit => {
             return (
                 <ListGroupItem key={circuit.id+'circuitlistgroupkey'}>
                     <div className='d-flex justify-content-between'>
@@ -103,7 +107,7 @@ function Circuits(props: Props) {
     let className="circuit-pane active";
     return (
         <div className={className} id={props.id} role="tabpanel" aria-labelledby="circuit-tab">
-            <CustomCard name={props.id} id={props.id}  edit={props.id==='Circuits'? toggleModal:undefined}>
+            <CustomCard name={props.id} id={props.id} edit={props.id==='Circuits'? toggleModal:undefined}>
                 <ListGroup flush >
                     {circuit()}
                 </ListGroup>
@@ -113,11 +117,11 @@ function Circuits(props: Props) {
                 <ModalBody>
                     <CircuitModalPopup
                         id='circuitConfig'
-                        controllerType={props.controllerType} 
+                        controllerType={controllerType}
                         type='circuits'
                         needsReload={needsReload}
                         setNeedsReload={setNeedsReload}
-                        />
+                    />
                 </ModalBody>
                 <ModalFooter>
                     <Button onClick={toggleModal}>Close</Button>

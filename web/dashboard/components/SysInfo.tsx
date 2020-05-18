@@ -1,19 +1,13 @@
-import
-{
-    Row, Col, Modal, ModalHeader, ModalBody, ModalFooter, Button
-} from 'reactstrap';
+import React, { useEffect, useState } from 'react';
+import { Button, Col, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
+
+import CustomCard from './CustomCard';
+import DateTime from './DateTime';
 import StatusIndicator from './StatusIndicator';
-import CustomCard from './CustomCard'
-import DateTime from './DateTime'
-import React, {useState, useEffect} from 'react';
-import { IDetail, IStateTemp } from './PoolController';
 import SysInfoEditLogger from './SysInfoEditLogger';
-import {comms} from './Socket_Client';
-import useDataApi from '../components/DataFetchAPI';
 
 interface Props
 {
-
     id: string,
     counter: number,
     data: any;

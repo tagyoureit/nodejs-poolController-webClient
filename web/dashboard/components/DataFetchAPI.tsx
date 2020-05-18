@@ -168,6 +168,7 @@ const useDataApi=(initialUrls, initialData) => {
         const fetchData=async () => {
             dispatch({ type: 'FETCH_INIT' });
             try {
+                if (typeof urls === 'undefined')return;
                 let fetchArray=[];
                 let payload={};
                 urls.forEach(el => {
@@ -188,6 +189,7 @@ const useDataApi=(initialUrls, initialData) => {
                     }
                 }
                 catch(error) {
+                    console.log(`Not able to retrieve data.`)
                     console.log(error);
                     dispatch({ type: 'FETCH_FAILURE',data: `${error.message}` });
                 }

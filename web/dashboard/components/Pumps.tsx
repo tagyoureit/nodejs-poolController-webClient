@@ -6,9 +6,9 @@ import {
 } from 'reactstrap';
 import CustomCard from './CustomCard';
 import DateTime from './DateTime';
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useContext, useState, useEffect, useReducer } from 'react';
 import PumpConfigModalPopup from './PumpConfig/PumpConfigModalPopup';
-import { IStatePump, IConfigPump } from './PoolController';
+import { IStatePump, IConfigPump, PoolContext } from './PoolController';
 import { comms } from './Socket_Client';
 import useDataApi from './DataFetchAPI';
 import ErrorBoundary from './ErrorBoundary';
@@ -20,11 +20,18 @@ interface Props {
 
 const initialState: { pumps: IStatePump[]; }={ pumps: [] };
 function Pump(props: Props) {
+    const {poolURL} = useContext(PoolContext);
     const [modalOpen, setModalOpen]=useState(false);
-    let arr=[];
-    arr.push({ url: `${ comms.poolURL }/state/pumps`, dataName: 'pumps' });
-
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
+    
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi([], initialState);
+    
+    useEffect(()=>{
+        if (typeof poolURL !== 'undefined'){
+            let arr=[];
+            arr.push({ url: `${ poolURL }/state/pumps`, dataName: 'pumps' });
+            doFetch(arr);
+        }
+    },[poolURL, doFetch])
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {

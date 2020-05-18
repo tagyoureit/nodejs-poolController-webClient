@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Button, ButtonDropdown, ButtonGroup, Card, CardBody, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledCollapse, Container, Row, Col } from 'reactstrap';
 import { comms } from './Socket_Client';
+import { PoolContext } from './PoolController';
+import axios from 'axios';
 const extend=require("extend");
 
 function SysInfoEditLogger(props) {
@@ -9,32 +11,48 @@ function SysInfoEditLogger(props) {
     const [dropdownLevelOpen, setDropdownLevelOpen]=useState<boolean>(false);
     const [ready, setReady]=useState<boolean>(false);
     const [includeBroadcastActions, setIncludeBroadcastActions]=useState<number[]>([]);
+    const {poolURL} = useContext(PoolContext);
     useEffect(() => {
+        const fetch = async () =>{
+            let arr = []
+            arr.push(axios({
+               method: 'GET',
+               url: `${ poolURL }/app/config/log`
+           }))
+            arr.push(axios({
+               method: 'GET',
+               url: `${ poolURL }/app/messages/broadcast/actions`
+           }))
+           let res = await axios.all(arr);
+           setLog(res[0].data);
+           setBroadcast(res[1].data);
 
-        fetch(`${ comms.poolData }/app/config/log`)
-            .then(res => res.json())
-            .then(
-                result => {
-                    console.log(`equipmentIdS? ${ JSON.stringify(result.equipmentIds) }`);
-                    setLog(result);
-                },
-                error => {
-                    console.log(error);
-                }
-            );
-        fetch(`${ comms.poolData }/app/messages/broadcast/actions`)
-            .then(res => res.json())
-            .then(
-                result => {
-                    console.log(`equipmentIdS? ${ JSON.stringify(result.equipmentIds) }`);
-                    setBroadcast(result);
-                },
-                error => {
-                    console.log(error);
-                }
-            );
-
-    }, []);
+            /* 
+                fetch(`${ poolURL }/app/config/log`)
+                .then(res => res.json())
+                .then(
+                    result => {
+                        console.log(`equipmentIdS? ${ JSON.stringify(result.equipmentIds) }`);
+                        setLog(result);
+                    },
+                    error => {
+                        console.log(error);
+                    }
+                    );
+                    fetch(`${ poolURL }/app/messages/broadcast/actions`)
+                    .then(res => res.json())
+                    .then(
+                        result => {
+                            console.log(`equipmentIdS? ${ JSON.stringify(result.equipmentIds) }`);
+                            setBroadcast(result);
+                        },
+                        error => {
+                            console.log(error);
+                        }
+                        );*/
+                    } 
+                    fetch();
+    }, [poolURL]);
 
     useEffect(() => {
         if(Object.keys(log).length&&Object.keys(broadcast).length) {

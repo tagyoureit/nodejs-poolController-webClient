@@ -23,21 +23,6 @@ class Schedule extends React.Component<Props, any> {
     "Saturday"
   ];
 
-  idOfFirstUnusedSchedule = () => {
-/*     if(data.state.equipment.controllerType===ControllerType.intellitouch) {
-        // easytouch/intellitouch will grab the next available schedules.
-        // since we are splitting up eggtimers/schedules we need to take a holistic look so we don't overwrite an existing schedule with a new one
-        for(let i=1;i<=data.config.equipment.maxSchedules;i++) {
-            let occupiedSlot=
-                data.state.schedules.filter(el => el.id===i).length||
-                data.config.eggTimers.filter(el => el.id===i).length;
-            if(!occupiedSlot) return i;
-        }
-    } else if(data.config.controllerType===ControllerType.intellicenter) {
-        // how to determine first unused?
-    } */
-}
-
   buttons(schedDays: IDetail[]): any {
     let res: any[] = [];
 
@@ -139,28 +124,28 @@ class Schedule extends React.Component<Props, any> {
         return (
           <Row key={'schedule' + sched.id + "row"}>
             <Col
-              xs={3}
-              lg={2}
+              xs={4}
+              lg={4}
               key={sched.circuit.id + "col"}
               className={active ? "text-primary font-weight-bold" : ""}
             >
-              Circuit: {sched.circuit.id} (Sched: {sched.id})
+              {sched.circuit.name} (#{sched.id})
             </Col>
             <Col
-              xs={3}
-              lg={2}
+              xs={2}
+              lg={1}
               className={active ? "text-primary font-weight-bold" : ""}
             >
               {this.convertToTimeStr(sched.startTime)}
             </Col>
             <Col
-              xs={3}
-              lg={2}
+              xs={2}
+              lg={1}
               className={active ? "text-primary font-weight-bold" : ""}
             >
               {this.convertToTimeStr(sched.endTime)}
             </Col>
-            <Col xs={3} lg={6}>
+            <Col xs={3} lg={5}>
               <span className="d-lg-none">
                 {this.letters(sched.scheduleDays.days)}
               </span>

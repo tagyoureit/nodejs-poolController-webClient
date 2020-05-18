@@ -3,12 +3,11 @@ var io = require('socket.io-client');
 var patch = require('socketio-wildcard')(io.Manager);
 // var configFile = container.settings.getConfig()
 
-var address = '10.0.0.6';
-var port = 39500;
-// var address = configFile.outputToSmartThings.address
-// var port = configFile.outputToSmartThings.port
-// var secureTransport = configFile.poolController.https.enabled === 1 ? true : false
-// var logEnabled = 0
+var address = '127.0.0.1';
+var port = 8080;
+// var address = '10.0.0.39';
+// var port = 39501;
+
 
 
 var serverURL;
@@ -45,7 +44,7 @@ function notify(event, data) {
             headers: {
                 'CONTENT-TYPE': 'application/json',
                 'CONTENT-LENGTH': Buffer.byteLength(json),
-                'X-EVENT': event
+                'X-EVENT-TYPE': event
             }
         };
 

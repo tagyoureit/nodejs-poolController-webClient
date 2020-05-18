@@ -5,47 +5,35 @@ let io=require('socket.io-client');
 import axios from 'axios';
 let socket: SocketIO.Socket, patch;
 
-interface discovery {
-    override: { protocol: string, host: string, port: number }, autoDiscovery: boolean, discoveredURL: string
+export interface Discovery {
+    override: { protocol: string, host: string, port: number }, autoDiscovery: boolean, poolURL: string
 }
 export class Comms {
     private _emitter: EventEmitter=new EventEmitter();
-    public poolData: discovery;
-    public poolURL: string;
+    public poolData: Discovery;
     constructor() {
-        this.getPoolData();
+        // this.getPoolData();
     }
     private _timeout:NodeJS.Timeout;
-    public async getPoolData(reset?:boolean) {
+    private getPoolDataRunning = false;
+    public async getPoolData(reset:boolean) {
+        if (this.getPoolDataRunning) return Promise.reject();
+        this.getPoolDataRunning = true;
         console.log(`Starting getPoolData(${reset})`)
-        if (reset) {this.poolURL = undefined;
+        if (reset) {this.poolData && typeof this.poolData.poolURL === undefined;
             this.poolData = undefined;
         }
         clearTimeout(this._timeout);
-        
-        try {
-
+                try {
             let response = await axios({
                 method: 'get',
                 url:'/discover'
             })
             if(response.status!==200) throw new Error(response.statusText);
-
             this.poolData = response.data;
-            console.log(`json?  ${ JSON.stringify(response.data) }`);
-            if(response.data.autoDiscovery && response.data.discoveredURL){
-                this.poolURL = response.data.discoveredURL;
-            }
-            else if (response.data.autoDiscovery && typeof response.data.discoveredURL === 'undefined') {
-                this._timeout = setTimeout(() => { this.getPoolData(); }, 5000);
-            }
-            else if (!response.data.autoDiscovery){
-                let {protocol, host, port} = response.data.override;
-                this.poolURL =  `${protocol}://${host}:${port}`
-            }
-            if (typeof this.poolURL !== 'undefined'){
+            if (typeof this.poolData.poolURL !== 'undefined'){
                 if (socket) socket.disconnect();
-                socket=io(this.poolURL, { cookie: false });
+                socket=io(this.poolData.poolURL, { cookie: false });
                 patch=require('socketio-wildcard')(io.Manager);
                 patch(socket);
             }
@@ -54,11 +42,11 @@ export class Comms {
         catch (err){
             console.log(`Caught err - getPoolData: ${err.message}`)
             if(err.message!=='No Content') console.error(err);
-            this._timeout = setTimeout(() => { this.getPoolData(); }, 5000);
             return Promise.reject(err.message)
         }
-
-
+        finally {
+            this.getPoolDataRunning = false;
+        }
     }
     public passthrough(cb: (d: any, which: string) => void) {
         // needed to remove all listeners so we don't duplicate the listener for multiple callbacks.
@@ -116,7 +104,7 @@ export class Comms {
     }
 
     public setDateTime(newDT: any) {
-        fetch(`${ this.poolURL }/config/dateTime`, {
+        fetch(`${ this.poolData.poolURL }/config/dateTime`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -134,7 +122,7 @@ export class Comms {
     }
     public async setCircuit(data: any) {
         console.log(`sending configCircuit: ${ JSON.stringify(data) }`)
-        // fetch(`${ this.poolURL }/config/circuit`, {
+        // fetch(`${ this.poolData.poolURL }/config/circuit`, {
         //     method: 'PUT',
         //     headers: {
         //         'Content-Type': 'application/json',
@@ -145,7 +133,7 @@ export class Comms {
 
         return axios({
             method: 'put',
-            url: `${ this.poolURL }/config/circuit`,
+            url: `${ this.poolData.poolURL }/config/circuit`,
             data: data
         })
             .then((response) => {
@@ -154,7 +142,7 @@ export class Comms {
     }
     public async deleteCircuit(data: any) {
         console.log(`sending configCircuit: ${ JSON.stringify(data) }`)
-        await fetch(`${ this.poolURL }/config/circuit`, {
+        await fetch(`${ this.poolData.poolURL }/config/circuit`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -163,7 +151,7 @@ export class Comms {
         });
     }
     public async toggleCircuit(circuit: number) {
-        await fetch(`${ this.poolURL }/state/circuit/toggleState`, {
+        await fetch(`${ this.poolData.poolURL }/state/circuit/toggleState`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -173,7 +161,7 @@ export class Comms {
 
     }
     public async setCircuitState(circuit: number, state: boolean=true) {
-        await fetch(`${ this.poolURL }/state/circuit/setState`, {
+        await fetch(`${ this.poolData.poolURL }/state/circuit/setState`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -184,7 +172,7 @@ export class Comms {
     }
 
     public setHeatMode(id: number, mode: number): void {
-        fetch(`${ this.poolURL }/state/body/heatMode`, {
+        fetch(`${ this.poolData.poolURL }/state/body/heatMode`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -194,7 +182,7 @@ export class Comms {
     }
 
     public setHeatSetPoint(id: number, temp: number): void {
-        fetch(`${ this.poolURL }/state/body/setPoint`, {
+        fetch(`${ this.poolData.poolURL }/state/body/setPoint`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -205,7 +193,7 @@ export class Comms {
 
     public setChlor(id: number, poolLevel: number, spaLevel: number, superChlorinateHours: number): void {
         // socket.emit( 'setchlorinator', poolLevel, spaLevel, superChlorinateHours )
-        fetch(`${ this.poolURL }/state/chlorinator/setChlor`, {
+        fetch(`${ this.poolData.poolURL }/state/chlorinator/setChlor`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -218,7 +206,7 @@ export class Comms {
 
     public setPumpCircuit(pump, pumpCircuitId: number, obj: any) {
         let { rate, circuit, units }=obj;
-        fetch(`${ this.poolURL }/config/pump/${ pump }/pumpCircuit/${ pumpCircuitId }`, {
+        fetch(`${ this.poolData.poolURL }/config/pump/${ pump }/pumpCircuit/${ pumpCircuitId }`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -230,7 +218,7 @@ export class Comms {
 
 
     public setPump(id, pumpType) {
-        fetch(`${ this.poolURL }/config/pump/${ id }/type`, {
+        fetch(`${ this.poolData.poolURL }/config/pump/${ id }/type`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -238,8 +226,18 @@ export class Comms {
             body: JSON.stringify({ pumpType: pumpType })
         });
     }
+    public async setIBTheme(theme) {
+        let res = await fetch(`${ this.poolData.poolURL }/state/intellibrite/setTheme`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ theme })
+        });
+        return Promise.resolve(res);
+    }
     public setChlorConfig(props: any) {
-        fetch(`${ this.poolURL }/config/chlorinator/`, {
+        fetch(`${ this.poolData.poolURL }/config/chlorinator/`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -248,14 +246,14 @@ export class Comms {
         });
     }
     public async chlorSearch() {
-        return axios.get(`${ this.poolURL }/config/chlorinators/search`)
+        return axios.get(`${ this.poolData.poolURL }/config/chlorinators/search`)
             .then((response) => {
                 return response;
             });
     }
 
     public deletePumpCircuit(pump, pumpCircuitId: number) {
-        fetch(`${ this.poolURL }/config/pump/${ pump }/pumpCircuit/${ pumpCircuitId }`, {
+        fetch(`${ this.poolData.poolURL }/config/pump/${ pump }/pumpCircuit/${ pumpCircuitId }`, {
             method: 'DELETE'
         });
     }
@@ -270,7 +268,7 @@ export class Comms {
 
     public setAppLoggerOptions(obj: any) {
         console.log(`putting to server ${ JSON.stringify(obj) }`)
-        fetch(`${ this.poolURL }/app/logger/setOptions`, {
+        fetch(`${ this.poolData.poolURL }/app/logger/setOptions`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -297,30 +295,30 @@ export class Comms {
     }
 
     public async startOverride(){
-        await axios({
+        let res = await axios({
             method: 'get',
             url: '/startOverride'
         })
-        return this.getPoolData(true);
-
+        return res.data;
     }
     public async saveOverride(protocol, host, port){
-        await axios({
+        let res = await axios({
             method: 'put',
             url: `/override`,
             data: {protocol: protocol, host: host, port: port}
         })
-       return this.getPoolData(true);
+        return res.data;
     }
 
     public async deleteOverride(){
-        this.poolURL = undefined;
+        this.poolData.poolURL = undefined;
 
-        await axios({
+       let res = await axios({
             method: 'delete',
             url: '/override'
         })
-        return this.getPoolData(true);
+        return res.data;
+
     }
 }
 export const comms=new Comms();

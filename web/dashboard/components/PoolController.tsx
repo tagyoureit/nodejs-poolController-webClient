@@ -1,20 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
+import '../css/poolController.css';
+
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    comms
-} from "./Socket_Client";
+    Button,
+    Container,
+    CustomInput,
+    DropdownItem,
+    DropdownMenu,
+    DropdownToggle,
+    Input,
+    InputGroup,
+    InputGroupAddon,
+    UncontrolledAlert,
+    UncontrolledButtonDropdown,
+} from 'reactstrap';
 
-import Navbar from "./Navbar";
-import SysInfo from "./SysInfo";
-import { Button, UncontrolledAlert, Container, Form, FormGroup, Input, Label, InputGroupAddon, InputGroupText, InputGroup, InputGroupButtonDropdown, CustomInput, DropdownMenu, DropdownItem, DropdownToggle, UncontrolledButtonDropdown } from "reactstrap";
-
-import BodyState from "./BodyState";
-import Pump from "./Pumps";
-import Circuits from "./Circuits";
-import Features from "./Features";
-import Schedule from "./Schedules";
-import Chlorinator from "./Chlorinator";
+import BodyState from './BodyState';
+import Chlorinator from './Chlorinator';
+import Circuits from './Circuits';
 import useDataApi from './DataFetchAPI';
-import '../css/poolController.css'
+import Features from './Features';
+import Navbar from './Navbar';
+import Pump from './Pumps';
+import Schedule from './Schedules';
+import { comms, Discovery } from './Socket_Client';
+import SysInfo from './SysInfo';
+import Light from './Light/Light';
 
 export interface IPoolSystem {
     loadingMessage: string;
@@ -134,7 +145,7 @@ export interface IStateChlorinator {
 }
 export interface IStateSchedule {
     id: number;
-    circuit: { id: number; type: string; },
+    circuit: IStateCircuit,
     startTime: number;
     endTime: number;
     scheduleType: IDetail;
@@ -142,6 +153,7 @@ export interface IStateSchedule {
         val: number;
         days: (IDetail&{ dow: number; })[];
     };
+    equipmentType: string
 }
 export interface IStatePump {
     command: number;
@@ -368,7 +380,8 @@ export function getItemByAttr(data: any, attr: string, val: any) {
 export const PoolContext=React.createContext({
     visibility: [],
     reload: () => { },
-    controllerType: ControllerType.none
+    controllerType: ControllerType.none,
+    poolURL: undefined
 })
 
 const initialState: any={
@@ -393,50 +406,73 @@ function usePrevious(value) {
 }
 function PoolController() {
     const [poolURL, setPoolURL]=useState<string>();
-
-    const [counter, setCounter]=useState(0);
+    const [counter, setCounter] = useState(0);
     const [visibility, setVisibility]=useState<string[]>([]);
     const [{ data, isLoading, isError, doneLoading, error }, doFetch, doUpdate]=useDataApi([], initialState);
     const prevPercent=usePrevious(data.state&&data.state.status&&data.state.status.percent||0);
     const [debug, setDebug]=useState(false);
-    const [showSetup, setShowSetup]=useState(false)
     const [host, setHost]=useState('localhost')
     const [port, setPort]=useState<number>(4200)
     const [protocol, setProtocol]=useState('http')
     const [switchDisabled, setSwitchDisabled]=useState(false);
+    const [autoDiscovery, setAutoDiscovery]=useState(true);
     let _timeout=useRef<NodeJS.Timeout>()
+    /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
-        getVisibility();
-
+        let emitter=comms.getEmitter();
+        const fnError=function(data) {
+            console.log(`received error emit`)
+            doUpdate({ updateType: 'FETCH_FAILURE' });
+            // doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data }); 
+        };
+        const fnController=function(data) {
+            console.log(`received controller emit`)
+            setCounter(p=>p+1);
+            doUpdate({ updateType: 'MERGE_OBJECT', data, dataName: 'state' });
+        };
+        emitter.on('feature', fnError);
+        emitter.on('controller', fnController);
+        return () => {
+            emitter.removeListener('feature', fnError);
+            emitter.removeListener('controller', fnController);
+        }
     }, []);
+    useEffect(()=>{
+        // when pool app loads, get pool app data/location
+        checkURL().then(()=>{
+            console.log(`done`);
+        });
+    },[])
+    useEffect(()=>{
+        // when pool app gets a new poolURL, fetch data
+        if (typeof poolURL !== 'undefined') reloadFn();
+    },[poolURL])
+    /* eslint-enable react-hooks/exhaustive-deps */
 
-    useEffect(() => {
-        if(typeof comms.poolData!=='undefined') {
-            setProtocol(comms.poolData.override.protocol);
-            setHost(comms.poolData.override.host);
-            setPort(comms.poolData.override.port);
-
-            checkURL();
-
-            // setTimeout(() => { setShowSetup(true) }, 5000);
-            setShowSetup(true);
+    const checkURL=async () => {
+        clearTimeout(_timeout.current);  // in case we get here multiple times
+        try {
+            let res=await comms.getPoolData(true);
+            console.log(`res?`)
+            console.log(res)
+            console.log(`have getPoolData?: autoDiscovery:${ autoDiscovery }, protocol:${ protocol }, host:${ host }, port:${ port }, poolURL:${ poolURL }`)
+            console.log(`webClient received config: ${ JSON.stringify(res) }`);
+            setAutoDiscovery(res.autoDiscovery);
+            setProtocol(res.override.protocol);
+            setHost(res.override.host);
+            setPort(res.override.port);
+            if(typeof res.poolURL==='undefined') {
+                console.log(`Checking webClient server for SSDP address every second;`);
+                _timeout.current=setTimeout(checkURL, 3000);
+            }
+            else {
+                setPoolURL(res.poolURL);
+            }
+            return Promise.resolve();
         }
-    }, [JSON.stringify(comms.poolData), poolURL])
-
-
-
-    const checkURL=() => {
-        clearTimeout(_timeout.current)
-        console.log(comms.poolData)
-        if(typeof comms.poolURL==='undefined') {
-            console.log(`Checking webClient server for SSDP address every second;`);
-            _timeout.current=setTimeout(() => checkURL(), 1000);
-        }
-        else {
-            console.log(`webClient received config: ${ JSON.stringify(comms.poolData) } and poolURL is ${ comms.poolURL }`);
-
-            // setShowSetup(false);
-            setPoolURL(comms.poolURL);
+        catch(err) {
+            console.log(`Error getting pool discovery vars!`)
+            return Promise.reject();
         }
     };
 
@@ -448,34 +484,28 @@ function PoolController() {
 
     const switchSSDP=async (e) => {
         setSwitchDisabled(true);
-        console.log(`switching AWAY from ${ comms.poolData.autoDiscovery }`)
-        if(comms.poolData.autoDiscovery) {
-            let res=await comms.startOverride();
-            console.log(res);
+        console.log(`switching AWAY from ${ autoDiscovery }`)
+        let res: Discovery;
+        if(autoDiscovery) {
+            res=await comms.startOverride();
         }
         else {
-            let res=await comms.deleteOverride();
-            checkURL()
-            console.log(res);
+            res=await comms.deleteOverride();
         }
-        setTimeout(() => { setSwitchDisabled(false) }, 2000);
+        await checkURL();
+        setSwitchDisabled(false);
     }
 
     const saveManualLocation=async () => {
-        let res=await comms.saveOverride(protocol, host, port)
-        console.log(`received back from saveManual: ${ JSON.stringify(res) }`)
-        checkURL();
+        await comms.saveOverride(protocol, host, port)
+        await checkURL();
     }
-    useEffect(() => {
-        if(doneLoading) setShowSetup(false);
-    }, [doneLoading])
-
 
     const reloadFn=() => {
         console.log(`RELOADING all data`)
         let arr=[];
-        arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
-        arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
+        arr.push({ url: `${ poolURL }/state/all`, dataName: 'state' });
+        arr.push({ url: `${ poolURL }/config/all`, dataName: 'config' });
         doFetch(arr);
         getVisibility();
     }
@@ -485,100 +515,13 @@ function PoolController() {
     useEffect(() => {
         if(prevPercent!==100&&data.state&&data.state.status&&data.state.status.percent===100) {
             let arr=[];
-            arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
-            arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
+            arr.push({ url: `${ poolURL }/state/all`, dataName: 'state' });
+            arr.push({ url: `${ poolURL }/config/all`, dataName: 'config' });
             doFetch(arr);
         }
     }, [prevPercent, doFetch])
 
-    useEffect(() => {
-        if(typeof poolURL!=='undefined') {
-            setShowSetup(false);
-            let arr=[];
-            arr.push({ url: `${ comms.poolURL }/state/all`, dataName: 'state' });
-            arr.push({ url: `${ comms.poolURL }/config/all`, dataName: 'config' });
-            doFetch(arr);
-            comms.incoming((d: any, which: string): { d: any, which: string; } => {
-                console.log({ [which]: d });
-                if(which!=="error")
-                    this;/* .setState(state => {
-                        return { counter: state.counter+1 };
-                    }); */
-                setCounter(prev => prev+1);
-
-                switch(which) {
-                    case "error":
-                        // case "connect":
-                        // this.setState(state => {
-                        //     return extend(true, state, { _state: d });
-                        // });
-                        doUpdate({ updateType: 'FETCH_FAILURE' });
-                        break;
-                    case "controller":
-                        // this.setState(state => {
-                        //     return extend(
-                        //         true,
-                        //         state,
-                        //         { _state: d }
-                        //     );
-                        // });
-                        doUpdate({ updateType: 'MERGE_OBJECT', data: d, dataName: 'state' });
-                        break;
-
-                    case "chlorinator":
-                        /*                  this.setState(state => {
-                                             let chlors=extend(true, [], state._state.chlorinators);
-                                             let index=state._state.chlorinators.findIndex(el => {
-                                                 return el.id===d.id;
-                                             });
-                                             index===-1? chlors.push(d):chlors[index]=d;
-                                             return extend(
-                                                 true,
-                                                 state,
-                                                 { _state: { chlorinators: chlors } }
-                                             );
-                                         }); */
-                        doUpdate({ updateType: 'MERGE_OBJECT', data: d, dataName: 'state' });
-                        break;
-
-                    case "temps":
-                        /*                         this.setState(state => {
-                                                    return extend(
-                                                        true,
-                                                        state,
-                                                        { _state: { temps: d } }
-                                                    );
-                                                }); */
-                        break;
-                    case "equipment":
-                        /*                         this.setState(state => {
-                                                    return extend(
-                                                        true,
-                                                        state,
-                                                        { _state: { equipment: d } }
-                                                    );
-                                                }); */
-                        break;
-                    case "config":
-                        /*                         this.setState(state => {
-                                                    return extend(
-                                                        true,
-                                                        state,
-                                                        { _config: d }
-                                                    );
-                                                }); */
-                        break;
-                    default:
-                        console.log(`incoming socket ${ which } not processed by main poolcontroller.tsx`);
-                        console.log(d);
-                        return { d, which };
-                }
-            });
-        }
-    }, [poolURL]);
-
-
-    let className='';
+      let className='';
     if((data&&data.state&&data.state.status&&data.state.status.val===255)||isError) {
         className+=" noConnection";
     }
@@ -597,88 +540,79 @@ function PoolController() {
         else return <></>;
     };
     return (
-        <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType: data.controllerType }} >
+        <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType: data.controllerType, poolURL }} >
             <div>
                 <Navbar>
+                    Configure Comms<br />
+                    <CustomInput type="switch" id="ssdpSwitch" name="ssdpSwitch" label="Use SSDP" checked={autoDiscovery} onChange={switchSSDP} disabled={switchDisabled? true:false}/>
+                    {autoDiscovery&&typeof poolURL==='undefined'&&'Waiting for SSDP to discover pool url.  Make sure that your SSDP server is enabled in the poolController/config.json file.  If you still have issues (eg your router is blocking uPNP) and need to set the IP manually, set it below.'}
+                    {!autoDiscovery&&
+                        <> <InputGroup>
+                            <InputGroupAddon addonType="prepend">
+                                <UncontrolledButtonDropdown >
+                                    <DropdownToggle caret>
+                                        {protocol}
+                                    </DropdownToggle>
+                                    <DropdownMenu onClick={e => { setProtocol((e.target as HTMLButtonElement).value) }}>
+                                        <DropdownItem value='http'>http</DropdownItem>
+                                        <DropdownItem value='https'>https</DropdownItem>
+                                    </DropdownMenu>
+                                </UncontrolledButtonDropdown>
+                            </InputGroupAddon>
+                            <Input type="text" name="host" id="host" value={host} onChange={(e) => { setHost(e.target.value); }} />
+                            <InputGroupAddon addonType="append">
+                                <Input type='number' name="port" id="port" value={port.toString()} onChange={(e) => { setPort(parseInt(e.target.value, 10)); }} />
+                            </InputGroupAddon>
 
-                    {typeof comms.poolData!=='undefined'&&<>
-                        Configure Comms<br />
-                        <CustomInput type="switch" id="ssdpSwitch" name="ssdpSwitch" label="Use SSDP" checked={comms.poolData.autoDiscovery} onChange={switchSSDP} disabled={switchDisabled? true:false} />
-                        {comms.poolData.autoDiscovery&&!comms.poolData.discoveredURL&&'Waiting for SSDP to discover pool url.  Make sure that your SSDP server is enabled in the poolController/config.json file.  If you still have issues (eg your router is blocking uPNP) and need to set the IP manually, set it below.'}
-                        {!comms.poolData.autoDiscovery&&
-                            <> <InputGroup>
-                                <InputGroupAddon addonType="prepend">
-                                    <UncontrolledButtonDropdown >
-                                        <DropdownToggle caret>
-                                            {protocol}
-                                        </DropdownToggle>
-                                        <DropdownMenu onClick={e => { setProtocol((e.target as HTMLButtonElement).value) }}>
-                                            <DropdownItem value='http'>http</DropdownItem>
-                                            <DropdownItem value='https'>https</DropdownItem>
-                                        </DropdownMenu>
-                                    </UncontrolledButtonDropdown>
-                                </InputGroupAddon>
-                                <Input type="text" name="host" id="host" value={host} onChange={(e) => { setHost(e.target.value); }} />
-                                <InputGroupAddon addonType="append">
-                                    <Input type='number' name="port" id="port" value={port.toString()} onChange={(e) => { setPort(parseInt(e.target.value, 10)); }} />
-                                </InputGroupAddon>
-
-                            </InputGroup>
-                                <Button size='sm' color='link' onClick={saveManualLocation}>Save address</Button> (Current value: {poolURL})
-                        </>
-                        }
+                        </InputGroup>
+                            <Button size='sm' color='link' onClick={saveManualLocation}>Save address</Button> (Current value: {poolURL})
                     </>}
                 </Navbar>
                 {errorPresent()}
-                {!doneLoading&&<Container>Loading...</Container>}
-                {doneLoading&&!data.error&&<div className={className}>
+                {typeof poolURL==='undefined'||!doneLoading&&<Container>Loading...</Container>}
+                {typeof poolURL!=='undefined'&&doneLoading&&!data.error&&<div className={className}>
+                    <Container>
+                        <SysInfo
+                            counter={counter}
+                            id="System"
+                            isLoading={isLoading}
+                            doneLoading={doneLoading}
+                            data={data.state}
+                        />
+                        <BodyState
+                            id="Bodies"
+                        />
+                        <Pump
+                            id="Pumps"
+                        />
+                        <Circuits
+                            id="Circuits"
+                        />
+                        <Features
+                            id="Features"
+                        />
+                        <Light
+                            id="Lights"
+                        />
+                        <Circuits
+                            id="Circuit Groups"
+                        />
+                        <Circuits
+                            id="Virtual Circuits"
+                        />
+                        <Schedule
+                            data={data.state.schedules}
+                            id="Schedules"
+                        />
+                        <Chlorinator
+                            id="Chlorinators"
+                        />
+                        <div className='debugArea'>
 
-                    {typeof comms.poolData!=='undefined'&&typeof comms.poolURL!=='undefined'&&
-
-                        <Container>
-                            <SysInfo
-                                counter={counter}
-                                id="System"
-                                isLoading={isLoading}
-                                doneLoading={doneLoading}
-                                data={data.state}
-                            />
-                            <BodyState
-                                id="Bodies"
-                            />
-                            <Pump
-                                id="Pumps"
-                            />
-                            <Circuits
-                                controllerType={data.state.equipment.model}
-                                id="Circuits"
-                            />
-                            <Features
-                                controllerType={data.state.equipment.model}
-                                hideAux={false}
-                                id="Features"
-                            />
-                            <Circuits
-                                controllerType={data.state.equipment.model}
-                                id="Circuit Groups"
-                            />
-                            <Circuits
-                                controllerType={data.state.equipment.model}
-                                id="Virtual Circuits"
-                            />
-                            <Schedule
-                                data={data.state.schedules}
-                                id="Schedules"
-                            />
-                            <Chlorinator
-                                id="Chlorinators"
-                            />
-                            <div className='debugArea'>
-
-                                Debug: <Button style={{ margin: '0px 0px 3px 0px', padding: 0, border: 0 }} color='link' onClick={() => setDebug(!debug)}>{debug? 'on':'off'}</Button>. <a href='https://github.com/tagyoureit/nodejs-poolController-webClient/issues/new'>Report an issue</a> or ask a question on the <a href='https://gitter.im/nodejs-poolController/Lobby'>forums</a>.
+                            Debug: <Button style={{ margin: '0px 0px 3px 0px', padding: 0, border: 0 }} color='link' onClick={() => setDebug(!debug)}>{debug? 'on':'off'}</Button>. <a href='https://github.com/tagyoureit/nodejs-poolController-webClient/issues/new'>Report an issue</a> or ask a question on the <a href='https://gitter.im/nodejs-poolController/Lobby'>forums</a>.
                         </div>
-                        </Container>
-                    }
+                    </Container>
+
 
                 </div>}
 

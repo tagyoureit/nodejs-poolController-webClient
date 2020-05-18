@@ -4,8 +4,8 @@ import {
 import CustomCard from './CustomCard'
 import 'react-rangeslider/lib/index.css'
 import ChlorinatorCustomSlider from './ChlorinatorCustomSlider'
-import React, { useEffect, useState } from 'react';
-import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit } from './PoolController';
+import React, { useContext, useEffect, useState } from 'react';
+import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext } from './PoolController';
 var extend=require('extend');
 import { comms } from './Socket_Client';
 import useDataApi from './DataFetchAPI';
@@ -16,28 +16,34 @@ interface Props {
 
 const initialState: { chlorinators: IConfigChlorinator[]&IStateChlorinator[] }={ chlorinators: [] }
 function Chlorinator(props: Props) {
+    const {poolURL} = useContext(PoolContext)
     const [modal, setModal]=useState(false);
     const [currentChlorID, setCurrentChlorID]=useState(1);
     const [currentChlor, setCurrentChlor]=useState<IConfigChlorinator&IStateChlorinator>();
+    
     const addVirtualChlor=async () => {
         setChlorSearch(<p>Searching...</p>)
         let res=await comms.chlorSearch();
         if(res.data.isVirtual) {
-
             setChlorSearch(<></>)
             let arr=[];
-            arr.push({ url: `${ comms.poolURL }/extended/chlorinators`, dataName: 'chlorinators' });
+            arr.push({ url: `${ poolURL }/extended/chlorinators`, dataName: 'chlorinators' });
             doFetch(arr);
         }
         else {
             setChlorSearch(<Button color='link' onClick={addVirtualChlor}>No chlorinators found.  Search again.</Button>)
         }
     }
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
     const [chlorSearch, setChlorSearch]=useState(<Button color='link' onClick={addVirtualChlor}>Search for stand alone chlorinator.</Button>)
-    let arr=[];
-    arr.push({ url: `${ comms.poolURL }/extended/chlorinators`, dataName: 'chlorinators' });
+    useEffect(()=>{
+        if (typeof poolURL !== 'undefined'){
+            let arr=[];
+            arr.push({ url: `${ poolURL }/extended/chlorinators`, dataName: 'chlorinators' });
+            doFetch(arr);
+        }
+    },[poolURL, doFetch])
 
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {

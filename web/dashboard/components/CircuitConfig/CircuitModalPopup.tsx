@@ -3,7 +3,7 @@ import {
 } from 'reactstrap';
 import CustomCard from '../CustomCard';
 import React, { useContext, useState, useEffect, useReducer, Dispatch, SetStateAction } from 'react';
-import { getItemById, IStateCircuit, IConfigEquipment, ControllerType, IDetail, getItemByVal, } from '../PoolController';
+import { getItemById, IStateCircuit, IConfigEquipment, ControllerType, IDetail, getItemByVal, PoolContext, } from '../PoolController';
 import { comms } from '../Socket_Client';
 import { RIEToggle, RIEInput, RIETextArea, RIENumber, RIETags, RIESelect } from '@attently/riek';
 import '../../css/dropdownselect';
@@ -30,7 +30,7 @@ interface InitialState {
 }
 
 function CircuitModalPopup(props: Props) {
-
+    const {poolURL} = useContext(PoolContext);
     const initialState: InitialState=
     {
         circuits: [],
@@ -45,17 +45,21 @@ function CircuitModalPopup(props: Props) {
     const update = () =>{
         let arr=[];
         props.type==='circuits'?
-            arr.push({ url: `${ comms.poolURL }/config/options/circuits`, dataName: 'circuits' }):
-            arr.push({ url: `${ comms.poolURL }/config/options/features`, dataName: 'circuits' });
+            arr.push({ url: `${ poolURL }/config/options/circuits`, dataName: 'circuits' }):
+            arr.push({ url: `${ poolURL }/config/options/features`, dataName: 'circuits' });
         doFetch(arr);
     }
-    let arr=[];
-    props.type==='circuits'?
-        arr.push({ url: `${ comms.poolURL }/config/options/circuits`, dataName: 'circuits' }):
-        arr.push({ url: `${ comms.poolURL }/config/options/features`, dataName: 'circuits' });
-    const [changes, setChanges] = useState([])
+    useEffect(()=>{
+        if (typeof poolURL !== 'undefined') update();
+    },[poolURL])
 
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
+/*     let arr=[];
+    props.type==='circuits'?
+        arr.push({ url: `${ poolURL }/config/options/circuits`, dataName: 'circuits' }):
+        arr.push({ url: `${ poolURL }/config/options/features`, dataName: 'circuits' });
+    const [changes, setChanges] = useState([]) */
+
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
 
 
     const [disabledList, setDisabledList]=useState<number[]>([]);

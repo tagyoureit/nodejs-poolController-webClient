@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
+
+import React, { useContext, useEffect, useState } from 'react';
+import Slider from 'react-rangeslider';
 import { Button, ButtonGroup, Col, ListGroup, ListGroupItem, Row } from 'reactstrap';
+
 import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
+import { PoolContext } from './PoolController';
 import { comms } from './Socket_Client';
 
 const flame=require('../images/flame.png');
@@ -19,16 +22,23 @@ const initialState={
     }
 }
 function BodyState(props: Props) {
+    const {poolURL} = useContext(PoolContext);
     const [body1, setBody1]=useState(0);
     const [body2, setBody2]=useState(0);
     const [body3, setBody3]=useState(0);
     const [body4, setBody4]=useState(0);
-    let arr=[];
-    arr.push({ url: `${ comms.poolURL }/state/temps`, dataName: 'temps' });
-    arr.push({ url: `${ comms.poolURL }/state/heaters`, dataName: 'heaters' });
-    arr.push({ url: `${ comms.poolURL }/config/body/1/heatModes`, dataName: 'heatModes' });
+    
+    useEffect(()=>{
+        if (typeof poolURL !== 'undefined'){
+            let arr=[];
+            arr.push({ url: `${ poolURL }/state/temps`, dataName: 'temps' });
+            arr.push({ url: `${ poolURL }/state/heaters`, dataName: 'heaters' });
+            arr.push({ url: `${ poolURL }/config/body/1/heatModes`, dataName: 'heatModes' });
+            doFetch(arr);
+        }
+    },[poolURL])
 
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {

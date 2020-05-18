@@ -22,11 +22,8 @@ const play=require("../images/play-icon.svg");
 const info=require("../images/info-blue-bg.svg");
 
 interface Props {
-    controllerType: ControllerType;
-    hideAux: boolean,
     id: string;
-    
-}
+    }
 
 
 const initialState: { features: IStateCircuit[]; }={ features: [] };
@@ -35,13 +32,19 @@ function Features(props: Props) {
     const [popoverOpen, setPopoverOpen]=useState<boolean[]>([false]);
     const [modalOpen, setModalOpen]=useState(false);
     const [needsReload, setNeedsReload]=useState(false);
-    const {reload} = useContext(PoolContext);
-    let arr = [];
-    arr.push({ url: `${ comms.poolURL }/extended/features`, dataName: 'features' });
-    // arr.push({ url: `${ comms.poolURL }/state/features`, dataName: 'sfeatures' });
-    arr.push({ url: `${ comms.poolURL }/config/equipment`, dataName: 'equipment' });
-    arr.push({ url: `${ comms.poolURL }/state/circuitGroups`, dataName: 'circuitGroups' });
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
+    const {reload, poolURL, controllerType} = useContext(PoolContext);
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi([], initialState);
+    useEffect(()=>{
+        if (typeof poolURL !== 'undefined'){
+            let arr = [];
+            arr.push({ url: `${ poolURL }/extended/features`, dataName: 'features' });
+            // arr.push({ url: `${ poolURL }/state/features`, dataName: 'sfeatures' });
+            arr.push({ url: `${ poolURL }/config/equipment`, dataName: 'equipment' });
+            arr.push({ url: `${ poolURL }/state/circuitGroups`, dataName: 'circuitGroups' });
+            doFetch(arr);
+        }
+    },[poolURL])
+
 
     /* eslint-disable react-hooks/exhaustive-deps */
      useEffect(() => {
@@ -86,7 +89,7 @@ function Features(props: Props) {
         {
             let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;
             let group = getItemById(data.circuitGroups, feature.id + offset);
-            if (typeof group !== 'undefined' && typeof group.id !== 'undefined' && props.controllerType === ControllerType.intellitouch){
+            if (typeof group !== 'undefined' && typeof group.id !== 'undefined' && controllerType === ControllerType.intellitouch){
                 let details = group.circuits.map(circuit => {
                     return (<li key={feature.id+offset+circuit.circuit.id+'_circuitGroupDetails'}>{`${circuit.circuit.id} ${circuit.circuit.name}: ${circuit.desiredStateOn?'Off':'On'}`}</li>)
                 });
@@ -145,7 +148,7 @@ function Features(props: Props) {
                     <CircuitModalPopup
                         id='circuitConfig'
                         
-                        controllerType={props.controllerType} 
+                        controllerType={controllerType} 
                         type='features'
                         needsReload={needsReload}
                         setNeedsReload={setNeedsReload}

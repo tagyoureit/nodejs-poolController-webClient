@@ -5,13 +5,15 @@
       "host": "localhost",
       "port": 4200
     },
-    "autoDiscovery": true
+    "autoDiscovery": false,
+    "poolURL": "http://localhost:4200"
   },
   "web": {
     "port": 8080
   },
   "options": {
     "hidePanels": [
+      "Circuit Groups"
     ],
     "debug": false
   }

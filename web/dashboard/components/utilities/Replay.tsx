@@ -127,9 +127,15 @@ class Replay extends React.Component<any, State> {
             // Reading line by line
             rawLines.forEach((_line) => {
                 if(_line.length>10) {
-                    let line: IPackets=JSON.parse(_line)
-                    if(line.type==='packet') {
-                        allLines.push(line)
+                    try {
+
+                        let line: IPackets=JSON.parse(_line)
+                        if(line.type==='packet') {
+                            allLines.push(line)
+                        }
+                    }
+                    catch (err){
+                        console.log(`trouble reading line: ${_line}`)
                     }
                 }
             });
