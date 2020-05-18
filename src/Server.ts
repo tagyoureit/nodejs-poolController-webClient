@@ -2,7 +2,6 @@ import * as path from 'path';
 import Bundler=require('parcel-bundler');
 import express=require('express');
 import { config } from './Config';
-import { prototype } from 'events';
 
 var ssdp=require('node-ssdp').Client
     , client=new ssdp({});

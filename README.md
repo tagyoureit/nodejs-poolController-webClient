@@ -13,4 +13,8 @@ To use this client, install it as a separate application:
     * Change the port where end users will load this client.  Default is `8080`.
 1. Start the app with `npm start`.  Currently, this loads ParcelJS in a development environment and will build the app upon loading.  Future versions will include directions for a production build.
 
-nodejs-poolController by default will only listen to connections from localhost (127.0.0.1).  If you will be running this client on a different machine
+nodejs-poolController by default will only listen to connections from localhost (127.0.0.1).  If you will be running this client on a different machine edit `config.json` in the nodejs-poolController app so http/https servers listen on a different interface.
+
+# Virtual Controllers
+* [Virtual Chlorinator Controller Directions](https://github.com/tagyoureit/nodejs-poolController/wiki/Virtual-Chlorinator-Controller-v6)
+* [Virtual Pump Controller Directions](https://github.com/tagyoureit/nodejs-poolController/wiki/Virtual-Pump-Controller---v6)
