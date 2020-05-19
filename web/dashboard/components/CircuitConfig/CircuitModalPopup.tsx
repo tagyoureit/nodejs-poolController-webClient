@@ -1,13 +1,14 @@
-import {
-    Button, DropdownToggle, DropdownMenu, DropdownItem, ListGroupItem, UncontrolledButtonDropdown
-} from 'reactstrap';
-import CustomCard from '../CustomCard';
-import React, { useContext, useState, useEffect, useReducer, Dispatch, SetStateAction } from 'react';
-import { getItemById, IStateCircuit, IConfigEquipment, ControllerType, IDetail, getItemByVal, PoolContext, } from '../PoolController';
-import { comms } from '../Socket_Client';
-import { RIEToggle, RIEInput, RIETextArea, RIENumber, RIETags, RIESelect } from '@attently/riek';
 import '../../css/dropdownselect';
+
+import { RIEInput } from '@attently/riek';
+import React, { Dispatch, SetStateAction, useContext, useEffect, useReducer, useState } from 'react';
+import { DropdownItem, DropdownMenu, DropdownToggle, ListGroupItem, UncontrolledButtonDropdown } from 'reactstrap';
+
+import CustomCard from '../CustomCard';
 import useDataApi from '../DataFetchAPI';
+import { ControllerType, getItemById, getItemByVal, IDetail, IStateCircuit, PoolContext } from '../PoolController';
+import { comms } from '../Socket_Client';
+
 const editIcon=require('../../images/edit.png');
 const deleteIcon=require('../../images/delete.svg');
 
@@ -30,7 +31,7 @@ interface InitialState {
 }
 
 function CircuitModalPopup(props: Props) {
-    const {poolURL} = useContext(PoolContext);
+    const {poolURL, controllerType} = useContext(PoolContext);
     const initialState: InitialState=
     {
         circuits: [],
@@ -187,7 +188,7 @@ function CircuitModalPopup(props: Props) {
     };
 
     function circTypeInOrDropDown(circ) {
-        if(props.controllerType.toString().toLowerCase().includes('touch')) {
+        if(controllerType.toString().toLowerCase().includes('touch')) {
             return (
                 <UncontrolledButtonDropdown
                     direction="right"

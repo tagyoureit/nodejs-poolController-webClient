@@ -73,12 +73,11 @@ async function startBundler() {
         next();
     });
     app.use(express.json());
+
     app.get('/discover', (req, res) => {
         reloadVars();
         if(!autoDiscovery) {
-
             // res.status(200).send({ url: `${protocol}://${host}:${port}` });
-
         }
         else if(autoDiscovery&&typeof poolURL==='undefined') {
             console.log(`SSDP: cannot find poolController with discovery.  Please set address manually in config.json in the format of 'http://ip:port/`);
@@ -157,17 +156,23 @@ async function startBundler() {
         search();
     })
 
-    // Parcel: absolute path to entry point
-    const file=path.join(process.cwd(), './web/dashboard/index.html');
-    console.log(`Parcel serving files from: ${ file }`);
-    // Parcel: set options
-    const options={
-        outDir: './dist/web'
-    };
-    // Parcel: Initialize a new bundler
-    const bundler=new Bundler(file, options);
-    // Let express use the bundler middleware, this will let Parcel handle every request over your express server
-    app.use(bundler.middleware());
+    if(process.env.NODE_ENV!=='production') {
+        // Parcel: absolute path to entry point
+        const file=path.join(process.cwd(), './web/dashboard/index.html');
+        console.log(`Parcel serving files from: ${ file }`);
+        // Parcel: set options
+        const options={
+            outDir: './dist/web'
+        };
+        // Parcel: Initialize a new bundler
+        const bundler=new Bundler(file, options);
+        // Let express use the bundler middleware, this will let Parcel handle every request over your express server
+        app.use(bundler.middleware());
+    }
+    else 
+    {
+        app.use(express.static(path.join(__dirname,'/web')));
+    }
 
     // Listen on port 8080
     app.listen(config.getSection("web").port);

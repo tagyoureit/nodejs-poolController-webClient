@@ -1,16 +1,17 @@
-import { Container, Row, Col, Button, Table, Dropdown, ButtonDropdown, DropdownToggle, DropdownItem, DropdownMenu } from 'reactstrap'
-import { setLightColor } from '../Socket_Client'
-import Slider from 'react-rangeslider'
-import 'react-rangeslider/lib/index.css'
-import '../../css/rangeslider.css'
-import * as React from 'react';
+import '../../css/rangeslider.css';
+import 'react-rangeslider/lib/index.css';
 
+import React, { useContext, useEffect, useState } from 'react';
+import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 
-
+import { IDetail } from '../PoolController';
 
 interface Props
 {
-  data: Circuit.LightClass
+  circId: number
+  lgId: number
+  colors: IDetail[]
+  color: IDetail
 }
 
 interface State
@@ -20,100 +21,62 @@ interface State
   targetColor: number
 }
 
-class LightColor extends React.Component<Props, State> {
-  constructor( props: Props )
-  {
-    super( props )
+function LightColor(props:Props) {
+   const [dropdownOpen, setDropdownOpen] = useState(false);
+   const [disabled, setDisabled] = useState(false);
+   const [targetColor, setTargetColor] = useState<number>(-1)
 
-    this.state = {
-      dropdownOpen: false,
-      disabled: false,
-      targetColor: -1
-    }
-    this.toggleDropDown = this.toggleDropDown.bind( this )
-    this.handleClick = this.handleClick.bind( this )
+    useEffect(()=>{
+        if (typeof props.color !== 'undefined' && targetColor !== props.color.val){
+            setTargetColor(props.color.val);
+            setDisabled(false);
+        }
+    },[props.color.val, props.color, targetColor])
 
-  }
-  componentDidUpdate ( prevProps: Props, prevState: State )
+  const toggleDropDown=  ()=>{   setDropdownOpen(!dropdownOpen); }
+
+  const handleClick = (event) =>
   {
-    //Todo: this isn't re-enabling when we get the right color back
-    // enable button when we get new data
-    if ( this.state.disabled && (this.state.targetColor===this.props.data.color) )
-    {
-      this.setState( {
-        disabled: false,
-        targetColor: 0
-      } );
-    }
-  }
-    
-  toggleDropDown ()
-  {
-    this.setState( {
-      dropdownOpen: !this.state.dropdownOpen
-    } );
+    console.log(`lg... props.data.circuit, event.target.value: ${props.circId}, ${event.target.value}`)
+    //comms.setLightColor( lg... props.circId.circuit, event.target.value )
+      setDisabled(true);
+      setTargetColor(parseInt(event.target.value))
   }
 
-  handleClick (event: any)
-  {
-    console.log(`this.props.data.circuit, event.target.value: ${this.props.data.circuit}, ${event.target.value}`)
-    setLightColor( this.props.data.circuit, event.target.value )
-    this.setState( {
-      disabled: true,
-      targetColor: parseInt(event.target.value)
-    } );
-  }
 
-  render ()
-  {
     const colorVal = () =>
     {
-      switch ( this.props.data.colorSet )
+      switch ( props.color.name )
       {
-        case 0:
+        case 'white':
           return { color: 'white', background: 'gray' }
-          break;
-        case 2:
+        case 'lightgreen':
           return { background: 'white', color: 'lightgreen' }
-          break;
-        case 4:
+        case 'green':
           return { background: 'white', color: 'green'}
-          break;
-        case 6:
+        case 'cyan':
           return { background: 'white', color: 'cyan' }
-          break;
-        case 8:
+        case 'blue':
         return { background: 'white', color: 'blue' }
-        break;
-        case 10:
+        case 'lavender':
           return { background: 'white', color: 'lavender' }
-          break;
-        case 12:
-          return { background: 'white', color: 'darkmagenta' }
-          break;      
-        case 14:
-          return { background: 'white', color: 'magenta' }
-          break;      
+        case 'darkmagenta':
+          return { background: 'white', color: 'darkmagenta' }      
+        case 'lightmagenta':
+          return { background: 'white', color: 'magenta' }      
       }
     }
 
     return (
-
-
       <div>
-        <ButtonDropdown isOpen={this.state.dropdownOpen} toggle={this.toggleDropDown} disabled={this.state.disabled} >
-          <DropdownToggle caret style={colorVal()}  disabled={this.state.disabled}>
-            {this.props.data.colorSetStr}
+        <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown} disabled={disabled} >
+          <DropdownToggle caret style={colorVal()}  disabled={disabled}>
+            {props.color.desc}
                     </DropdownToggle>
           <DropdownMenu>
-            <DropdownItem key={`${this.props.data.circuit}0`} onClick={this.handleClick} value='0' style={{ color: 'white', background: 'gray' }}>White</DropdownItem>
-            <DropdownItem key={`${this.props.data.circuit}2`} onClick={this.handleClick} value='2' style={{ color:'lightgreen' }}>Light Green</DropdownItem>
-            <DropdownItem key={`${this.props.data.circuit}4`} onClick={this.handleClick} value='4' style={{ color:'green' }}>Green</DropdownItem>
-            <DropdownItem key={`${this.props.data.circuit}6`} onClick={this.handleClick} value='6' style={{ color:'cyan' }}>Cyan</DropdownItem>
-            <DropdownItem key={`${this.props.data.circuit}8`} onClick={this.handleClick} value='8' style={{ color:'blue' }}>Blue</DropdownItem>
-            <DropdownItem key={`${this.props.data.circuit}10`} onClick={this.handleClick} value='10' style={{ color:'lavender' }}>Lavender</DropdownItem>
-            <DropdownItem key={`${this.props.data.circuit}12`} onClick={this.handleClick} value='12' style={{ color:'darkmagenta' }}>Magenta</DropdownItem>
-            <DropdownItem key={`${this.props.data.circuit}`} onClick={this.handleClick} value='14' style={{ color:'magenta' }}>Light Magenta</DropdownItem>
+            {props.colors.map(color=>{
+                return <DropdownItem key={`c${props.circId}lg${props.lgId}color${color.val}`} onClick={handleClick} value={color.val}>{color.desc}</DropdownItem>
+            })}
           </DropdownMenu>
         </ButtonDropdown>
 
@@ -121,6 +84,6 @@ class LightColor extends React.Component<Props, State> {
 
     )
   }
-}
+
 
 export default LightColor;

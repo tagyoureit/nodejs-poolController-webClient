@@ -1,111 +1,77 @@
 import { Container, Row, Col, Button, Table, Dropdown, ButtonDropdown, DropdownToggle, DropdownItem, DropdownMenu } from 'reactstrap'
-import { setLightPosition } from '../Socket_Client'
+import { comms } from '../Socket_Client'
 import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
 import '../../css/rangeslider.css'
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 
 
 
 
-interface Props
-{
-  data: Circuit.LightClass
-  numLights: number
+interface Props {
+    circId: number
+    lgId: number
+    position: number
+    numLights: number
 }
 
-interface State
-{
-  dropdownOpen: boolean
-  disabled: boolean
-  targetPosition: number
-}
+function LightPosition(props: Props) {
+    const [dropdownOpen, setDropdownOpen]=useState(false);
+    const [disabled, setDisabled]=useState(false);
+    const [targetPosition, setTargetPosition]=useState<number>(-1)
 
-class LightPosition extends React.Component<Props, State> {
-  constructor( props: Props )
-  {
-    super( props )
+    useEffect(() => {
+        if(typeof props.position!=='undefined'&&targetPosition!==props.position) {
+            setTargetPosition(props.position);
+            setDisabled(false);
+        }
+    }, [props.position, targetPosition])
 
-    this.state = {
-      dropdownOpen: false,
-      disabled: false,
-      targetPosition: -1
+    const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); }
+
+    const handleClick=(event) => {
+        console.log(`lg.... props.circId, event.target.value: ${ props.circId }, ${ event.target.value }`)
+        // setLightPosition( lg, props.data.circuit, event.target.value )
+        setDisabled(true);
+        setTargetPosition(parseInt(event.target.value))
     }
-    this.toggleDropDown = this.toggleDropDown.bind( this )
-    this.handleClick = this.handleClick.bind( this )
 
-  }
-  componentDidUpdate ( prevProps: Props, prevState: State )
-  {
-    if ( this.state.disabled && (this.state.targetPosition===this.props.data.position) )
-    {
-      this.setState( {
-        disabled: false,
-        targetPosition: 0
-      } );
+    const positions=() => {
+        let positionArray: number[]=[]
+        for(let i=1;i<=props.numLights;i++) {
+            positionArray.push(i)
+        }
+        return (
+            <>
+                {positionArray.map(i => (
+                    (<DropdownItem
+                        key={`lg${props.lgId}light${ props.circId }${ i }`}
+                        onClick={handleClick}
+                        value={i}
+                    >
+                        {i}
+                    </DropdownItem>)
+
+                ))}
+            </>
+        )
     }
-  }
-    
-  toggleDropDown ()
-  {
-    this.setState( {
-      dropdownOpen: !this.state.dropdownOpen
-    } );
-  }
 
-  handleClick (event: any)
-  {
-    console.log(`this.props.data.circuit, event.target.value: ${this.props.data.circuit}, ${event.target.value}`)
-    setLightPosition( this.props.data.circuit, event.target.value )
-    this.setState( {
-      disabled: true,
-      targetPosition: parseInt(event.target.value)
-    } );
-  }
+    return (
+        <div>
+            <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown} disabled={disabled} >
+                <DropdownToggle caret disabled={disabled}>
+                    {props.position}
+                </DropdownToggle>
+                <DropdownMenu>
+                    {positions()}
+                </DropdownMenu>
+            </ButtonDropdown>
 
-  render ()
-  {
-    const positions = () =>
-    {
-      let positionArray: number[] = [] 
-      for ( let i = 1; i <= this.props.numLights; i++ )
-      {
-        positionArray.push(i)
-      }
-
-      return (
-      <>
-         {positionArray.map( i => (
-          ( <DropdownItem
-            key={`light${ this.props.data.circuit }${ i }`}
-            onClick={this.handleClick}
-            value={i}
-          >
-          {i}
-          </DropdownItem> )
-        
-        ) )} 
-      </>
-      )
-            }
-        
-            return (
-        
-        
-      <div>
-        <ButtonDropdown isOpen={this.state.dropdownOpen} toggle={this.toggleDropDown} disabled={this.state.disabled} >
-          <DropdownToggle caret disabled={this.state.disabled}>
-            {this.props.data.position}
-                    </DropdownToggle>
-          <DropdownMenu>
-            {positions()}
-          </DropdownMenu>
-        </ButtonDropdown>
-
-      </div >
+        </div >
 
     )
-  }
 }
+
 
 export default LightPosition;

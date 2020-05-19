@@ -7,14 +7,13 @@ import React, { useContext, useEffect, useState } from 'react';
 // import { setLightMode } from '../Socket_Client';
 import LightEdit from './LightEdit'
 import useDataApi from '../DataFetchAPI';
-import { PoolContext } from '../PoolController';
-import setIBTheme, { comms } from '../Socket_Client';
+import { PoolContext, IConfigOptionsLightGroups } from '../PoolController';
+import { comms } from '../Socket_Client';
 interface Props {
     id: string;
 }
 
-
-const initialState={
+const initialState:IConfigOptionsLightGroups={
     maxLightGroups: 1,
     equipmentNames: [],
     themes: [],
@@ -28,18 +27,18 @@ function Light(props: Props) {
     const [dropdownOpen, setDropdownOpen]=useState(false);
     const [modalOpen, setModalOpen]=useState(false);
 
-    const toggleModal=() => { setModalOpen(modalOpen); }
     const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); }
     const handleClick=(event: any) => { comms.setIBTheme(event.target.value); 
     }
-    const closeBtn=<button className="close" onClick={toggleModal}>&times;</button>;
+    const closeBtn=<button className="close" onClick={() => setModalOpen(!modalOpen)}>&times;</button>;
+
     const { reload, poolURL, controllerType }=useContext(PoolContext);
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
     useEffect(() => {
         if(typeof poolURL!=='undefined') {
 
             let arr=[];
-            arr.push({ url: `${ poolURL }/config/options/lightGroups`, dataName: 'lightGroups' });
+            arr.push({ url: `${ poolURL }/config/options/lightGroups`, dataName: 'options' });
             doFetch(arr);
 
         }
@@ -49,14 +48,14 @@ function Light(props: Props) {
         {!doneLoading&&<>Loading...</>}
         {doneLoading&&!isError&&
             <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
-                <CustomCard name='Lights' id={props.id} edit={toggleModal}>
+                <CustomCard name='Lights' id={props.id} edit={() => setModalOpen(!modalOpen)}>
 
                     <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown}>
                         <DropdownToggle caret>
-                            {controllerType} Light Modes
+                            Light Modes
                     </DropdownToggle>
                         <DropdownMenu>
-                            {data.lightGroups.themes.filter(theme => theme.type==='intellibrite'
+                            {data.options.themes.filter(theme => theme.type==='intellibrite'
                             && theme.name!=='colorsync' && theme.name!=='colorswim'&&theme.name!=='colorset' ).map(theme => {
                                 return <DropdownItem onClick={handleClick} value={theme.val} key={`theme-${theme.val}`}>{theme.desc}</DropdownItem>
                             })}
@@ -96,24 +95,26 @@ function Light(props: Props) {
                         </DropdownMenu>
                     </ButtonDropdown>
                     
-                    {data.lightGroups.themes.filter(theme => theme.name==='colorsync').map(theme => {
+                    {data.options.themes.filter(theme => theme.name==='colorsync').map(theme => {
                                 return <Button onClick={handleClick} value={theme.val} key={`theme-${theme.val}`} className={'ml-2'}>{theme.desc}</Button>
                             })}
-                    {data.lightGroups.themes.filter(theme => theme.name==='colorswim').map(theme => {
+                    {data.options.themes.filter(theme => theme.name==='colorswim').map(theme => {
                                 return <Button onClick={handleClick} value={theme.val} key={`theme-${theme.val}`} className={'ml-1'}>{theme.desc}</Button>
                             })}
-                    {data.lightGroups.themes.filter(theme => theme.name==='colorset').map(theme => {
+                    {data.options.themes.filter(theme => theme.name==='colorset').map(theme => {
                                 return <Button onClick={handleClick} value={theme.val} key={`theme-${theme.val}`} className={'ml-1'}>{theme.desc}</Button>
                             })}
                 </CustomCard>
 
-                <Modal isOpen={modalOpen} toggle={toggleModal} size='xl' >
-                    <ModalHeader toggle={toggleModal} close={closeBtn}>Adjust Intellibrite Lights</ModalHeader>
-                    <ModalBody>
-                        {/* <LightEdit data={props.data} /> */}
+
+                <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} size='xl' scrollable={true}>
+                <ModalHeader toggle={() => setModalOpen(!modalOpen)} close={closeBtn}>Adjust Light Groups</ModalHeader>
+                                    <ModalBody>
+                                        <h1><span style={{color:"red"}}>ALMOST IMPLEMENTED</span></h1>
+                        <LightEdit data={data.options} />
                     </ModalBody>
                     <ModalFooter>
-                        <Button onClick={toggleModal}>Close</Button>
+                    <Button onClick={() => setModalOpen(!modalOpen)}>Close</Button>
                     </ModalFooter>
                 </Modal>
             </div>

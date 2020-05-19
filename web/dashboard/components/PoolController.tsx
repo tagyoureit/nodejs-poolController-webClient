@@ -56,7 +56,7 @@ export interface IState {
     freeze: boolean;
 
 }
-export enum ControllerType { "virtual", "intellicenter", "intellitouch", "intellicom", "none" }
+export enum ControllerType { virtual="virtual", intellicenter="intellicenter", intellitouch="intellitouch", intellicom="intellitouch", suntouch="suntouch", none="none" }
 export interface IConfig {
     lastUpdated: string;
     controllerType: ControllerType;
@@ -73,9 +73,18 @@ export interface IConfig {
     pumps: IConfigPump[];
     chlorinators: IConfigChlorinator[];
     remotes: IConfigRemote[];
-    intellibrite?: IConfigIntellibrite[];
+    intellibrite?: IConfigLightGroup[];
     heaters: any[];
     appVersion: string;
+}
+export interface IConfigOptionsLightGroups { 
+    maxLightGroups: number,
+    equipmentNames: IDetail[],
+    themes: ({type:string}&IDetail)[],
+    colors: IDetail[],
+    circuits: IConfigCircuit[],
+    lightGroups: IConfigLightGroup[],
+    functions: IDetail[]
 }
 export interface EquipmentIdRange {
     circuits?: EqRange,
@@ -341,13 +350,21 @@ export interface IConfigRemote {
     pumpId?: number;
     stepSize?: number;
 }
-export interface IConfigIntellibrite {
+export interface IConfigLightGroup {
     id: number;
     isActive: number;
-    position: number;
-    colorSet: number;
-    swimDelay: number;
+    type: IDetail,
+    circuits: IConfigLightGroupCircuit[]
 }
+export interface IConfigLightGroupCircuit {
+    id: number,
+    circuit: IStateCircuit,
+    position: number;
+    color: IDetail;
+    swimDelay: number;
+    isActive: boolean;
+}
+
 export function getItemById(data: any, _id: number) {
     if(Array.isArray(data)) {
         let res=data.find(el => el.id===_id);
@@ -540,7 +557,7 @@ function PoolController() {
         else return <></>;
     };
     return (
-        <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType: data.controllerType, poolURL }} >
+        <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType:data && data.config && data.config.controllerType || 'none', poolURL }} >
             <div>
                 <Navbar>
                     Configure Comms<br />

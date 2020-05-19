@@ -5,9 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "chrome",
+            "request": "attach",
+            "name": "Attach to Chrome",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}/dist/web/" 
+        },
+        {
             "type": "node",
             "request": "launch",
-            "name": "Launch via NPM",
+            "name": "Debug Server",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run-script",
@@ -22,5 +29,11 @@
         }
        
        
+    ],
+    "compounds": [
+        {
+            "name": "Server/Client",
+            "configurations": ["Debug Server", "Attach to Chrome"]
+        }
     ]
 }

@@ -4,10 +4,15 @@
   "description": "A web client for the nodejs-poolcontroller app v6.0 and higher",
   "main": "/dist/index.html",
   "scripts": {
-    "start": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\"",
-    "dev-parcel": "parcel serve ./web/dashboard/index.html",
-    "build-parcel": "parcel build ./web/dashboard/index.html",
-    "debug:server": "./node_modules/.bin/tsc-watch --onSuccess \"node --inspect ./dist/Server.js\""
+    "start:cached": "env NODE_ENV=production node dist/Server.js",
+    "start": "npm run cleanup && npm run build && npm run start:cached",
+    "cleanup": "rimraf dist",
+    "debug:watch": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\"",
+    "dev:parcel": "parcel serve ./web/dashboard/index.html",
+    "build": "tsc && npm run build:parcel",
+    "build:parcel": "parcel build --public-url . web/dashboard/index.html --out-dir dist/web",
+    "debug:server": "./node_modules/.bin/tsc-watch --onSuccess \"node --inspect ./dist/Server.js\"",
+    "debug:client": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\""
   },
   "author": "Russell Goldin",
   "license": "AGPL-3.0",
@@ -27,6 +32,7 @@
     "react-rangeslider": "^2.2.0",
     "react-timekeeper": "^2.0.3",
     "reactstrap": "^8.0.1",
+    "rimraf": "^3.0.2",
     "socket.io": "^2.3.0",
     "socketio-wildcard": "^2.0.0",
     "tsc-watch": "^4.1.0"
