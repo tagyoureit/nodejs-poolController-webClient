@@ -2,18 +2,19 @@
   "discovery": {
     "override": {
       "protocol": "http",
-      "host": "poolcontroller.local",
+      "host": "localhost",
       "port": 4200
     },
-    "autoDiscovery": false,
-    "poolURL": "http://poolcontroller.local:4200"
+    "useSSDP": false,
+    "poolURL": "http://localhost:4200"
   },
   "web": {
     "port": 8080
   },
   "options": {
     "hidePanels": [
-      "Circuit Groups"
+      "Circuit Groups",
+      "Circuit Config"
     ],
     "debug": false
   }

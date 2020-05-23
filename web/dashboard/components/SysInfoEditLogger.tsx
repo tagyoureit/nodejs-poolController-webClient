@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Button, ButtonDropdown, ButtonGroup, Card, CardBody, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledCollapse, Container, Row, Col } from 'reactstrap';
-import { comms } from './Socket_Client';
+import { useAPI } from './Comms';
 import { PoolContext } from './PoolController';
 import axios from 'axios';
 const extend=require("extend");
@@ -11,7 +11,8 @@ function SysInfoEditLogger(props) {
     const [dropdownLevelOpen, setDropdownLevelOpen]=useState<boolean>(false);
     const [ready, setReady]=useState<boolean>(false);
     const [includeBroadcastActions, setIncludeBroadcastActions]=useState<number[]>([]);
-    const {poolURL} = useContext(PoolContext);
+    const {poolURL, emitter} = useContext(PoolContext);
+    const execute = useAPI();
     useEffect(() => {
         const fetch = async () =>{
             let arr = []
@@ -61,7 +62,7 @@ function SysInfoEditLogger(props) {
         }
     }, [broadcast, log]);
 
-    function toggleAppSetting(obj: string) {
+    const  toggleAppSetting = async (obj: string) => {
         let update={};
         switch(obj) {
             case 'log.app.enabled':
@@ -80,19 +81,19 @@ function SysInfoEditLogger(props) {
                 update = { packet: { chlorinator: { enabled: !log.packet.chlorinator.enabled } } };
                 break;
         }
-        comms.setAppLoggerOptions(update);
+        await execute('setAppLoggerOptions', update);
         setLog(extend(true, {}, log, update));
     }
 
     const toggleLevelDropDown=() => { setDropdownLevelOpen(dropdownLevelOpen => !dropdownLevelOpen); };
 
-    const setLogLevel=(evt) => {
+    const setLogLevel=async (evt) => {
         console.log(evt);
         const update={ app: { level: evt.target.value } };
-        comms.setAppLoggerOptions(update);
+        await execute('setAppLoggerOptions', update);
         setLog(extend(true, {}, log, update));
     };
-    const onCheckboxBtnClick=(selected) => {
+    const onCheckboxBtnClick=async (selected) => {
         const index=includeBroadcastActions.indexOf(selected);
         if(selected===-1) includeBroadcastActions.splice(0, includeBroadcastActions.length);
         else if(index<0) {
@@ -102,7 +103,7 @@ function SysInfoEditLogger(props) {
         }
         setIncludeBroadcastActions([...includeBroadcastActions]);
         setLog(log);
-        comms.setAppLoggerOptions({ packet: { broadcast: { includeActions: includeBroadcastActions } } });
+        await execute('setAppLoggerOptions', { packet: { broadcast: { includeActions: includeBroadcastActions } } });
     };
 
     if(ready) {

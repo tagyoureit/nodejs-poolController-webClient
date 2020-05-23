@@ -5,7 +5,7 @@ import
 import CustomCard from '../CustomCard'
 import * as React from 'react';
 import '../../css/dropdownselect'
-import { comms } from '../Socket_Client'
+import { useAPI } from '../Comms'
 import { getItemById, IStatePump, IStatePumpCircuit, IDetail, IConfigCircuit, IConfigPumpCircuit, IConfigPump } from '../PoolController';
 import PumpConfigSelectUnits from './PumpConfigSelectUnits';
 import PumpConfigSelectCircuit from "./PumpConfigSelectCircuit";
@@ -41,6 +41,7 @@ class PumpConfigPumpCircuit extends React.Component<Props, State> {
                     <Col className="col-4" style={{margin:'auto'}}>
                         Circuit{" "}
                         <PumpConfigSelectCircuit
+                            pumpId={this.props.currentPump.id}
                             availableCircuits={this.props.availableCircuits}
                             currentPumpCircuit = {this.props.currentPumpCircuit}
                             onChange={this.props.onChange}

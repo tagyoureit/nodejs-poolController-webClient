@@ -7,7 +7,7 @@ import { DropdownItem, DropdownMenu, DropdownToggle, ListGroupItem, Uncontrolled
 import CustomCard from '../CustomCard';
 import useDataApi from '../DataFetchAPI';
 import { ControllerType, getItemById, getItemByVal, IDetail, IStateCircuit, PoolContext } from '../PoolController';
-import { comms } from '../Socket_Client';
+import { useAPI } from '../Comms';
 
 const editIcon=require('../../images/edit.png');
 const deleteIcon=require('../../images/delete.svg');
@@ -31,7 +31,8 @@ interface InitialState {
 }
 
 function CircuitModalPopup(props: Props) {
-    const {poolURL, controllerType} = useContext(PoolContext);
+    const {poolURL, controllerType, emitter} = useContext(PoolContext);
+    const execute = useAPI();
     const initialState: InitialState=
     {
         circuits: [],
@@ -67,7 +68,7 @@ function CircuitModalPopup(props: Props) {
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
 
-        let emitter=comms.getEmitter();
+        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
         if (props.type === 'features'){
 
             const fnFeature=function(data) {
@@ -90,14 +91,15 @@ function CircuitModalPopup(props: Props) {
                 emitter.removeListener('circuit', fnCircuit);
             };
         }
-    }, []);
+    }
+    }, [poolURL, emitter]);
     /* eslint-enable react-hooks/exhaustive-deps */
 
 
 
     function addDisabledList(circ) {
-        if(disabledList.includes(circ)) return;
-        else setDisabledList([...disabledList, circ]);
+        // if(disabledList.includes(circ)) return;
+        // else setDisabledList([...disabledList, circ]);
     }
 
     async function handleCircuitChange(event: any) {
@@ -105,11 +107,11 @@ function CircuitModalPopup(props: Props) {
         let circFunc=JSON.parse(event.target.value);
         console.log(circFunc);
         if(circFunc.desc==='Not Used'){
-            await comms.deleteCircuit({ id: circId });
+            await execute('deleteCircuit', { id: circId });
         }
         else {
             console.log(`{ id: circId, type: circFunc.val:  ${ circId }  ${ circFunc.val }   ${ circFunc.val||0 }`)
-            await comms.setCircuit({ id: circId, type: circFunc.val });
+            await execute('setCircuit', { id: circId, type: circFunc.val });
         }
         update();
         addDisabledList(circId);
@@ -117,7 +119,7 @@ function CircuitModalPopup(props: Props) {
     }
     async function handleDelete(event: any) {
         let circId=parseInt(event.target.getAttribute('data-circuit'));
-        await comms.deleteCircuit({ id: circId });
+        await execute('deleteCircuit', { id: circId });
         addDisabledList(circId);
         update();
         props.setNeedsReload(true);
@@ -129,15 +131,15 @@ function CircuitModalPopup(props: Props) {
     }
     function formatCF(circuit, cf) {
         if(cf.val===findCircFunc(circuit).val)
-            return (<b>{cf.desc}</b>) as React.ReactFragment;
+            return (<b>{cf.desc}</b>)
         else
-            return cf.desc;
+            return <>{cf.desc}</>;
     }
     function formatCN(circuit, cn) {
         if(cn.val===circuit.nameId)
-            return (<b>{cn.desc}</b>) as React.ReactFragment;
+            return (<b>{cn.desc}</b>);
         else
-            return cn.desc;
+            return <>{cn.desc}</>;
     }
     function circFuncDropdown(circuit: IStateCircuit) {
         if(Array.isArray(data.circuits.functions)&&!data.circuits.functions.length) return;
@@ -172,7 +174,7 @@ function CircuitModalPopup(props: Props) {
         console.log(data);
         const id=parseInt(Object.keys(data)[0], 10);
         const name=Object.values(data)[0];
-        await comms.setCircuit({ id, name });
+        await execute('setCircuit', { id, name });
         addDisabledList(id);
         update();
         props.setNeedsReload(true);
@@ -181,7 +183,7 @@ function CircuitModalPopup(props: Props) {
         let circId=parseInt(event.target.getAttribute('data-circuit'));
         let circName=JSON.parse(event.target.value);
         console.log(circName);
-        await comms.setCircuit({ id: circId, nameId: circName.val });
+        await execute('setCircuit', { id: circId, nameId: circName.val });
         addDisabledList(circId);
         update();
         props.setNeedsReload(true);

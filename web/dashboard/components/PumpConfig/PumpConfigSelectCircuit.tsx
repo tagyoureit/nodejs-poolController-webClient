@@ -7,6 +7,7 @@ import { getItemById, IConfigCircuit, IConfigPumpCircuit } from '../PoolControll
 
 interface Props
 {
+    pumpId: number
     availableCircuits: IConfigCircuit[];
     currentPumpCircuit: IConfigPumpCircuit
     disabled: boolean
@@ -21,9 +22,8 @@ function PumpConfigSelectCircuit(props: Props){
     {
         console.log( `changing  circuitSlot=${ props.currentPumpCircuit.id } type to circuit ${ event.target.value } (${ getItemById(props.availableCircuits, parseInt(event.target.value, 10)) .name })` )
         let removeIDs = props.availableCircuits.filter(el=>{
-            return el.name==='Not Used' || el.name==='delete' || el.name==="Remove" || el.name === 'none'
+            return el.name.toLowerCase()==='not used' || el.name.toLowerCase()==='delete' || el.name.toLowerCase()==="remove" || el.name.toLowerCase() === 'none'
         }).map(el=>el.id)
-        console.log(`REMOVE IDS? ${removeIDs}`)
         if (removeIDs.includes(parseInt(event.currentTarget.value, 10))){
             props.onDelete(props.currentPumpCircuit.id)
         }
@@ -55,14 +55,14 @@ function PumpConfigSelectCircuit(props: Props){
             dropdownChildren.push( entry );
         } */
 
-        props.availableCircuits.forEach(circ => {
-            let entry:React.ReactFragment = ( <DropdownItem key={`${ props.currentPumpCircuit.id }${ circ.id }CircuitSelect`}
+         props.availableCircuits.forEach(circ => {
+            let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.pumpId}pumpcirc${ props.currentPumpCircuit.id }circ${ circ.id }CircuitSelect`}
                 value={circ.id}
                 onClick={handleClick} 
                 disabled={typeof circ.type === 'undefined' && circ.id !== 255}
             >{circ.name}</DropdownItem> )
             dropdownChildren.push( entry );
-        });
+        }); 
 
 
         return dropdownChildren;

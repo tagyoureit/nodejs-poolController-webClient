@@ -7,7 +7,7 @@ import { Button, ButtonGroup, Col, ListGroup, ListGroupItem, Row } from 'reactst
 import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
 import { PoolContext } from './PoolController';
-import { comms } from './Socket_Client';
+import { useAPI } from './Comms';
 
 const flame=require('../images/flame.png');
 interface Props {
@@ -22,12 +22,12 @@ const initialState={
     }
 }
 function BodyState(props: Props) {
-    const {poolURL} = useContext(PoolContext);
+    const {poolURL, emitter} = useContext(PoolContext);
     const [body1, setBody1]=useState(0);
     const [body2, setBody2]=useState(0);
     const [body3, setBody3]=useState(0);
     const [body4, setBody4]=useState(0);
-    
+    const execute = useAPI();
     useEffect(()=>{
         if (typeof poolURL !== 'undefined'){
             let arr=[];
@@ -42,7 +42,7 @@ function BodyState(props: Props) {
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
-        let emitter=comms.getEmitter();
+        if (typeof poolURL!== 'undefined' && typeof emitter !== 'undefined'){
         const fnTemps=function(data) { 
             console.log(`incoming socket temps`)
             doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'temps', data }); };
@@ -55,7 +55,8 @@ function BodyState(props: Props) {
             emitter.removeListener('temps', fnTemps);
             emitter.removeListener('body', fnBody);
         };
-    }, []);
+    }
+    }, [poolURL, emitter]);
     /* eslint-enable react-hooks/exhaustive-deps */
 
     useEffect(() => {
@@ -75,10 +76,10 @@ function BodyState(props: Props) {
                     setBody4(body.setPoint);
             }
         })
-    }, [JSON.stringify(data.temps.bodies), data.temps.bodies])
+    }, [JSON.stringify(data.temps.bodies), data.temps.bodies, data.temps])
 
-    const changeHeat=(id: number, mode: number) => {
-        comms.setHeatMode(id, mode)
+    const changeHeat=async (id: number, mode: number) => {
+        await execute('setHeatMode', {id, mode})
     }
     const changeSetPointVal=(setPoint: number, body: number) => {
         switch(body) {
@@ -100,7 +101,7 @@ function BodyState(props: Props) {
         }
 
     };
-    const changeSetPointComplete=(body: number) => {
+    const changeSetPointComplete= async (body: number) => {
         let sp=0;
         switch(body) {
             case 1:
@@ -115,10 +116,10 @@ function BodyState(props: Props) {
             case 4:
                 sp=body4;
         }
-        comms.setHeatSetPoint(body, sp)
+        await execute('setHeatSetPoint', {id: body, setPoint: sp})
     }
-    const handleOnOffClick=(event: any) => {
-        comms.toggleCircuit(event.target.value)
+    const handleOnOffClick=async (event: any) => {
+        await execute('toggleCircuit', {id: event.target.value})
     }
 
     const bodyDisplay=() => {

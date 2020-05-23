@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Button, Col, Modal, ModalBody, ModalFooter, ModalHeader, Row } from 'reactstrap';
 
 import CustomCard from './CustomCard';
 import DateTime from './DateTime';
 import StatusIndicator from './StatusIndicator';
 import SysInfoEditLogger from './SysInfoEditLogger';
+import { PoolContext } from './PoolController';
 
 interface Props
 {
@@ -13,6 +14,7 @@ interface Props
     data: any;
     isLoading: boolean
     doneLoading: boolean
+    controllerName: string
 }
 
 const initialState:any={
@@ -25,19 +27,20 @@ const initialState:any={
 
 function SysInfo(props: Props){
     const [modalOpen, setModalOpen] = useState(false);
+    const {controllerType, emitter} = useContext(PoolContext);
     const toggleModal = () => {
         // open and close the modal
        setModalOpen(!modalOpen);
     }
     const closeBtn = <button className="close" onClick={toggleModal}>&times;</button>;
-        return !props.isLoading && props.doneLoading?
+        return typeof props.data!=='string'&&typeof props.data !== 'undefined'&&!props.isLoading && props.doneLoading?
         (
             <div className="tab-pane active" id="system" role="tabpanel" aria-labelledby="system-tab">
                 <CustomCard name='System Information' id={props.id}  edit={toggleModal}>
                     <Row>
                         <Col xs="6">Controller Type </Col>
                         <Col>
-                            {props.data.equipment.model}
+                            {props.controllerName}
                         </Col>
                     </Row>
                     <Row>

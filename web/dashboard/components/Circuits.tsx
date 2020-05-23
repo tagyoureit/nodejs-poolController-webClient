@@ -2,7 +2,7 @@ import {
     ListGroup, ListGroupItem, Button, Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap';
 import CustomCard from './CustomCard';
-import { comms } from './Socket_Client';
+import { useAPI } from './Comms';
 import React, { useContext, useState, useEffect, useReducer } from 'react';
 import { ControllerType, getItemById, IDetail, IStateCircuit } from './PoolController';
 import CircuitModalPopup from './CircuitConfig/CircuitModalPopup';
@@ -27,8 +27,9 @@ const initialState: { circuits: IStateCircuit[]; }={ circuits: [] };
 function Circuits(props: Props) {
     const [modalOpen, setModalOpen]=useState(false);
     const [needsReload, setNeedsReload]=useState(false);
-    const { reload, poolURL, controllerType }=useContext(PoolContext);
+    const { reload, poolURL, controllerType, emitter }=useContext(PoolContext);
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
+    const execute = useAPI();
     useEffect(() => {
         if(typeof poolURL!=='undefined') {
 
@@ -56,7 +57,7 @@ function Circuits(props: Props) {
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
-        let emitter=comms.getEmitter();
+        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
         const fn=function(data) { doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'circuits', data }); };
 
         switch(props.id) {
@@ -76,10 +77,13 @@ function Circuits(props: Props) {
                     emitter.removeListener('circuitGroup', fn);
                 };
         }
-    }, []);
+    }
+    }, [poolURL, emitter]);
     /* eslint-enable react-hooks/exhaustive-deps */
 
-    const handleClick=(event: any): any => { comms.toggleCircuit(event.target.value); };
+    const handleClick=async (event: any) => { 
+        await execute('toggleCircuit', {id: event.target.value});
+     };
     const toggleModal=() => {
         if(modalOpen&&needsReload) {
             reload();

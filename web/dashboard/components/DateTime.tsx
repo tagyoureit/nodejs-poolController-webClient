@@ -4,7 +4,7 @@ import InfiniteCalendar from 'react-infinite-calendar';
 import 'react-infinite-calendar/styles.css';
 import Timekeeper from 'react-timekeeper';
 import '../css/modal.css'
-import { comms } from './Socket_Client'
+import { useAPI } from './Comms'
 import React, {useEffect, useState} from 'react';
 
 interface Props
@@ -15,6 +15,8 @@ function DateTime(props:Props) {
     let [modal, setModal] = useState(false);
     let [dateTime, setDateTime] = useState()
     let [newDateTime, setNewDateTime] = useState(new Date());
+    const [disabled, setDisabled] = useState(false)
+    let execute = useAPI();
     const pad= (n) =>{
         return n < 10 ? `0${n}` : n;
     }
@@ -27,23 +29,7 @@ function DateTime(props:Props) {
             setDateTime(_dt);
         }     
     },[props.origDateTime])
-/*   constructor( props: any )
-  {
-    super( props );
-    let _dt = new Date(props.origDateTime);
-    state = {
-        modal: false,
-        dateTime: _dt,
-        newDateTime: _dt,
-        time: `${_dt.getHours()}:${pad(_dt.getMinutes())}`
-      };
-      console.log(props.origDateTime)
-    toggle = toggle.bind( this )
-    submit = submit.bind( this );
-    handleTimeChange = handleTimeChange.bind( this )
-    handleDateChange = handleDateChange.bind( this )
-    cancel = cancel.bind( this )
-  } */
+
 
   const handleTimeChange = ( newTime: any ) =>
   {
@@ -71,11 +57,24 @@ function DateTime(props:Props) {
     setModal(!modal)
   }
 
+
  const submit = () =>
   {
-    // submit changes to socket
-    comms.setDateTime(newDateTime)
-    toggle()
+    const doExecute = async() => {
+        // submit changes to socket
+        await execute('setDateTime', {
+            hour: newDateTime.getHours(),
+            min: newDateTime.getMinutes(),
+            dow: Math.pow(2, newDateTime.getDay()),
+            date: newDateTime.getDate(),
+            month: newDateTime.getMonth()+1,
+            year: parseInt(newDateTime.getFullYear().toString().slice(-2), 10)
+        })
+        console.log(`Changed date/time successfully.`)
+        toggle()
+    }
+    setDisabled(true);
+    doExecute();
   }
 
   const cancel = () =>
@@ -116,7 +115,9 @@ function DateTime(props:Props) {
             </Row>
           </ModalBody>
           <ModalFooter>
-            <Button color={newDateTime === props.origDateTime ? 'secondary' : 'primary'} onClick={submit}>{newDateTime === props.origDateTime ? 'Cancel' : 'Update'}</Button>
+            <Button color={newDateTime === props.origDateTime ? 'secondary' : 'primary'} onClick={submit} 
+                disabled={disabled}
+            >{newDateTime === props.origDateTime ? 'Cancel' : 'Update'}</Button>
           </ModalFooter>
         </Modal>
       </div>
@@ -124,4 +125,4 @@ function DateTime(props:Props) {
   
 }
 
-export default DateTime;
+export default DateTime; 

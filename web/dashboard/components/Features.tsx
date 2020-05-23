@@ -16,7 +16,7 @@ import CircuitModalPopup from './CircuitConfig/CircuitModalPopup';
 import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
 import { ControllerType, getItemById, IStateCircuit, PoolContext } from './PoolController';
-import { comms } from './Socket_Client';
+import { useAPI } from './Comms';
 import ErrorBoundary from './ErrorBoundary';
 const play=require("../images/play-icon.svg");
 const info=require("../images/info-blue-bg.svg");
@@ -32,30 +32,33 @@ function Features(props: Props) {
     const [popoverOpen, setPopoverOpen]=useState<boolean[]>([false]);
     const [modalOpen, setModalOpen]=useState(false);
     const [needsReload, setNeedsReload]=useState(false);
-    const {reload, poolURL, controllerType} = useContext(PoolContext);
+    const {reload, poolURL, controllerType, emitter} = useContext(PoolContext);
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi([], initialState);
+    const execute = useAPI();
     useEffect(()=>{
-        if (typeof poolURL !== 'undefined'){
+        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
+        const fn=function(data) { 
+            console.log(`received feature emit`)
+            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data }); };
+        emitter.on('feature', fn);
+
             let arr = [];
             arr.push({ url: `${ poolURL }/extended/features`, dataName: 'features' });
             // arr.push({ url: `${ poolURL }/state/features`, dataName: 'sfeatures' });
             arr.push({ url: `${ poolURL }/config/equipment`, dataName: 'equipment' });
             arr.push({ url: `${ poolURL }/state/circuitGroups`, dataName: 'circuitGroups' });
             doFetch(arr);
-        }
-    },[poolURL])
+        
+        return () => {
+            emitter.removeListener('feature', fn);
+        };
+    }
+    },[poolURL, emitter])
 
 
     /* eslint-disable react-hooks/exhaustive-deps */
      useEffect(() => {
-        let emitter=comms.getEmitter();
-        const fn=function(data) { 
-            console.log(`received feature emit`)
-            doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data }); };
-        emitter.on('feature', fn);
-        return () => {
-            emitter.removeListener('feature', fn);
-        };
+        
     }, []); 
     /* eslint-enable react-hooks/exhaustive-deps */
     const toggle = (evt?: any) => {
@@ -66,8 +69,8 @@ function Features(props: Props) {
     const handleClick = ( event: any ): any =>
     {   
         let circ = event.target.value;
-        if (getItemById(data.features, circ).isMacro) comms.setCircuitState(circ);
-        comms.toggleCircuit( circ );
+        if (getItemById(data.features, circ).isMacro) execute('setCircuitState', {id: circ, state: true});
+        execute('toggleCircuit',  {id:circ} );
     }
     const features = () =>
     {

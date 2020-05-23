@@ -1,7 +1,7 @@
 
 import CustomCard from '../CustomCard'
 import * as React from 'react';
-import { search, searchLoad, searchStop } from '../Socket_Client'
+import { search, searchLoad, searchStop } from '../Comms'
 import
 {
     InputGroup, InputGroupAddon, Input, InputGroupText, Button,
@@ -9,7 +9,7 @@ import
 } from 'reactstrap'
 import ReactDataGrid from 'react-data-grid';
 import '../../css/react-data-grid.css'
-import { incoming, hidePanel } from '../Socket_Client';
+import { incoming, hidePanel } from '../Comms';
 
 interface Props
 {

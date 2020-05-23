@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {comms} from '../Socket_Client';
+import {comms} from '../Comms';
 import UtilitiesLayout from './UtilitiesLayout';
 import {
     Button, InputGroup, InputGroupAddon, InputGroupText, Input,

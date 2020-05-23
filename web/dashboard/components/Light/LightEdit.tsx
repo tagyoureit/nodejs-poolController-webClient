@@ -1,5 +1,5 @@
 import { Container, Row, Col, Button, Table, DropdownMenu, ButtonDropdown, Dropdown, DropdownItem, DropdownToggle } from 'reactstrap'
-import { comms } from '../Socket_Client'
+import { useAPI } from '../Comms'
 import { IConfigOptionsLightGroups } from '../PoolController'
 import 'react-rangeslider/lib/index.css'
 import '../../css/rangeslider.css'
@@ -15,10 +15,10 @@ interface Props {
 
 function LightEdit(props: Props) {
     let lightData=
-        props.data.lightGroups.map((lg, lgIdx) => {
+        props.data.lightGroups.map((lg) => {
             return lg.circuits.map((circ, circIdx) => {
                 console.log(circ)
-                return (<tr key={`lightGroup${ lgIdx }lightCircuit${ circIdx }`
+                return (<tr key={`lightGroup${ lg.id }lightCircuit${ circIdx }`
                 }>
                     <td>
                         {circ.id}
@@ -37,7 +37,7 @@ function LightEdit(props: Props) {
                         <LightPosition
                             circId={circ.position}
                             lgId={lg.id}
-                            numLights={props.data.lightGroups[lgIdx].circuits.length}
+                            numLights={props.data.lightGroups[lg.id].circuits.length}
                             position={circ.position}
                         />
                     </td>

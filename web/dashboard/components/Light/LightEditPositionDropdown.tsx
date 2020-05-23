@@ -1,12 +1,10 @@
-import { Container, Row, Col, Button, Table, Dropdown, ButtonDropdown, DropdownToggle, DropdownItem, DropdownMenu } from 'reactstrap'
-import { comms } from '../Socket_Client'
-import Slider from 'react-rangeslider'
-import 'react-rangeslider/lib/index.css'
-import '../../css/rangeslider.css'
-import React, { useState, useEffect } from 'react';
+import '../../css/rangeslider.css';
+import 'react-rangeslider/lib/index.css';
 
+import React, { useEffect, useState } from 'react';
+import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 
-
+import { useAPI } from '../Comms';
 
 interface Props {
     circId: number
@@ -19,6 +17,7 @@ function LightPosition(props: Props) {
     const [dropdownOpen, setDropdownOpen]=useState(false);
     const [disabled, setDisabled]=useState(false);
     const [targetPosition, setTargetPosition]=useState<number>(-1)
+    const execute = useAPI();
 
     useEffect(() => {
         if(typeof props.position!=='undefined'&&targetPosition!==props.position) {
@@ -29,9 +28,9 @@ function LightPosition(props: Props) {
 
     const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); }
 
-    const handleClick=(event) => {
-        console.log(`lg.... props.circId, event.target.value: ${ props.circId }, ${ event.target.value }`)
-        // setLightPosition( lg, props.data.circuit, event.target.value )
+    const handleClick=async (event) => {
+        console.log(`lg: ${props.lgId} props.circId: ${ props.circId }, new position:  ${ event.target.value }`)
+        await execute('setLightGroupAttribs',  {id: props.lgId, circuits: {id: props.circId, position: targetPosition} } )
         setDisabled(true);
         setTargetPosition(parseInt(event.target.value))
     }

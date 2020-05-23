@@ -1,63 +1,51 @@
 import { Button, Card, CardText, CardGroup, CardBody, CardTitle, CardFooter } from 'reactstrap';
-import { comms } from '../components/Socket_Client'
+import { useAPI } from './Comms'
 import * as React from 'react';
 import { PoolContext } from './PoolController';
 interface Props {
     name: string;
     id: string;
-
     edit?: () => void
+    children: React.ReactNode
 }
+function CustomCard(props: Props) {
 
-class CustomCard extends React.Component<Props, any> {
-    constructor(props: Props) {
-        super(props);
-        this.handleClick=this.handleClick.bind(this)
+    const execute=useAPI();
+
+    const handleClick= async (name: string) => {
+        await execute('panelVisibility', { name, state: 'hide' });
     }
+    const editButton=() => (<Button size="sm" className="mr-3" color="primary" style={{ float: 'right' }} onClick={props.edit}>Edit</Button>)
+    return (
+        <PoolContext.Consumer>
+            {({ visibility, reload }) => (
+                <div>
+                    {!visibility.includes(props.name)?
+                        <Card className=" border-primary">
+                            <CardBody className="p-0">
+                                <CardTitle className='card-header bg-primary text-white' >
+                                    {props.name}
+                                    <div style={{ float: 'right' }}>
+                                        <Button size="sm" className="mr-3" color="primary" style={{ float: 'right' }} onClick={() => { handleClick(props.name); reload(); }} value={props.id}>Hide</Button>
+                                        {props.edit!==undefined? editButton():''}
+                                    </div>
 
-    handleClick=(name: string) => {
-        comms.panelVisibility(name, 'hide');
+                                </CardTitle>
 
-    }
+                                <CardText tag='div' className="p-3">
 
-    render() {
+                                    {props.children}
 
-        const editButton=() => (<Button size="sm" className="mr-3" color="primary" style={{ float: 'right' }} onClick={this.props.edit}>Edit</Button>)
+                                </CardText>
 
-        {
-            return (
-                <PoolContext.Consumer>
-                    {({ visibility, reload }) => (
-                        <div>
-                            {!visibility.includes(this.props.name)?
-                                <Card className=" border-primary">
-                                    <CardBody className="p-0">
-                                        <CardTitle className='card-header bg-primary text-white' >
-                                            {this.props.name}
-                                            <div style={{ float: 'right' }}>
-                                                <Button size="sm" className="mr-3" color="primary" style={{ float: 'right' }} onClick={() => { this.handleClick(this.props.name); reload(); }} value={this.props.id}>Hide</Button>
-                                                {this.props.edit!==undefined? editButton():''}
-                                            </div>
+                            </CardBody>
 
-                                        </CardTitle>
-
-                                        <CardText tag='div' className="p-3">
-
-                                            {this.props.children}
-
-                                        </CardText>
-
-                                    </CardBody>
-
-                                </Card>
-                                :<></>}
-                        </div>
-                    )}
-                </PoolContext.Consumer>
-            )
-        }
-
-    };
+                        </Card>
+                        :<></>}
+                </div>
+            )}
+        </PoolContext.Consumer>
+    )
 }
 
 export default CustomCard;

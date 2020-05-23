@@ -6,12 +6,12 @@ import { config } from './Config';
 var ssdp=require('node-ssdp').Client
     , client=new ssdp({});
 const mSearch='urn:schemas-upnp-org:device:PoolController:1';
-let { override, autoDiscovery, poolURL }: { override: { protocol: string, host: string, port: number }, autoDiscovery: boolean, poolURL?: string }=config.getSection("discovery");
+let { override, useSSDP, poolURL }: { override: { protocol: string, host: string, port: number }, useSSDP: boolean, poolURL?: string }=config.getSection("discovery");
 let { protocol, host, port }: { protocol: string, host: string, port: number }=override;
 let timeout: NodeJS.Timeout;
 
 function search(force?: boolean) {
-    if(autoDiscovery||force) {
+    if(useSSDP||force) {
         if(typeof timeout!==undefined) clearTimeout(timeout);
         client.search(mSearch);
         timeout=setTimeout(function() {
@@ -25,12 +25,12 @@ function search(force?: boolean) {
 const reloadVars=() => {
     let d=config.getSection('discovery');
     override=d.override;
-    autoDiscovery=d.autoDiscovery;
+    useSSDP=d.useSSDP;
     poolURL=d.poolURL;
     protocol=d.override.protocol;
     host=d.override.host;
     port=d.override.port;
-    if(!autoDiscovery) {
+    if(!useSSDP) {
         if(typeof poolURL==='undefined'||poolURL!==`${ protocol }://${ host }:${ port }`) {
             let { protocol, host, port }=override;
             poolURL=`${ protocol }://${ host }:${ port }`;
@@ -41,7 +41,7 @@ const reloadVars=() => {
 const saveVars=() => {
     let d=config.getSection('discovery');
     d.override=override;
-    d.autoDiscovery=autoDiscovery;
+    d.useSSDP=useSSDP;
     d.poolURL=poolURL;
     d.override.protocol=protocol;
     d.override.host=host;
@@ -52,7 +52,7 @@ const saveVars=() => {
 async function startBundler() {
     const app=express();
     client.on('response', function inResponse(headers, code, rinfo) {
-        if(headers.ST!==mSearch||!autoDiscovery) { return; }
+        if(headers.ST!==mSearch||!useSSDP) { return; }
         clearTimeout(timeout);
         console.log('Got a response to an m-search:\n%d\n%s\n%s', code, JSON.stringify(headers, null, '  '), JSON.stringify(rinfo, null, '  '));
         // console.log(headers.LOCATION);
@@ -76,19 +76,19 @@ async function startBundler() {
 
     app.get('/discover', (req, res) => {
         reloadVars();
-        if(!autoDiscovery) {
+        if(!useSSDP) {
             // res.status(200).send({ url: `${protocol}://${host}:${port}` });
         }
-        else if(autoDiscovery&&typeof poolURL==='undefined') {
+        else if(useSSDP&&typeof poolURL==='undefined') {
             console.log(`SSDP: cannot find poolController with discovery.  Please set address manually in config.json in the format of 'http://ip:port/`);
             client.search(mSearch);
         }
-        res.status(200).json({ override, autoDiscovery, poolURL });
+        res.status(200).json({ override, useSSDP, poolURL });
     });
 
     app.get('/recheck', (req, res) => {
         reloadVars();
-        if(!autoDiscovery) {
+        if(!useSSDP) {
             console.log(`Config.json set to override SSDP: ${ poolURL }.`)
         }
         else {
@@ -128,33 +128,51 @@ async function startBundler() {
         res.send(config.setSection('options', options))
     })
 
-    app.get('/startOverride', (req, res) => {
-        autoDiscovery=false;
+    app.put('/discovery', (req, res)=>{
+        protocol=req.body.override.protocol;
+        host=req.body.override.host;
+        port=parseInt(req.body.override.port, 10);
+        useSSDP=req.body.useSSDP;
+        if (useSSDP) {
+            poolURL = undefined;
+            saveVars();
+            search();
+        }
+        else {
+            poolURL=`${ protocol }://${ host }:${ port }`;
+            saveVars();
+            client.stop();    
+        }
+        res.status(200).json({ override, useSSDP, poolURL });
+    })
+
+  /*   app.get('/startOverride', (req, res) => {
+        useSSDP=false;
         poolURL=`${ protocol }://${ host }:${ port }`
         saveVars();
         client.stop();
         if(typeof timeout!==undefined) clearTimeout(timeout);
-        res.status(200).json({ override, autoDiscovery, poolURL });
+        res.status(200).json({ override, useSSDP, poolURL });
     })
     app.put('/override', (req, res) => {
         protocol=req.body.protocol;
         host=req.body.host;
         port=parseInt(req.body.port, 10);
         poolURL=`${ protocol }://${ host }:${ port }`
-        autoDiscovery=false;
+        useSSDP=false;
         saveVars();
-        res.status(200).json({ override, autoDiscovery, poolURL });
+        res.status(200).json({ override, useSSDP, poolURL });
         client.stop();
         if(typeof timeout!==undefined) clearTimeout(timeout);
     })
 
     app.delete('/override', (req, res) => {
-        autoDiscovery=true;
+        useSSDP=true;
         poolURL=undefined;
         saveVars();
-        res.status(200).json({ override, autoDiscovery, poolURL });
+        res.status(200).json({ override, useSSDP, poolURL });
         search();
-    })
+    }) */
 
     if(process.env.NODE_ENV!=='production') {
         // Parcel: absolute path to entry point

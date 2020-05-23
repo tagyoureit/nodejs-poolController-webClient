@@ -1,7 +1,7 @@
 import StatusIndicator from './StatusIndicator'
 import React, {useState} from 'react';
 import { IDetail } from './PoolController';
-import {comms} from '../components/Socket_Client'
+import {useAPI} from './Comms'
 import
 {
     Collapse,
@@ -21,13 +21,13 @@ interface Props
 }
 
 function PoolNav(props: any) {
-
+    const execute = useAPI();
     const [isOpen, setIsOpen] = useState(false);
     const toggle = () => {
             setIsOpen(!isOpen);
     }
-    const resetLayout = () =>{
-        comms.resetPanelVisibility()
+    const resetLayout = async () =>{
+        await execute('resetPanelVisibility', )
         toggle();
     }
 

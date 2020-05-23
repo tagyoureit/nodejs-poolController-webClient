@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { sendPackets, receivePacket } from '../Socket_Client';
+import { comms } from '../Comms';
 import UtilitiesLayout from './UtilitiesLayout';
 import
 {
@@ -56,14 +56,14 @@ class PacketTester extends React.Component<any, State> {
 
     handleSend ()
     {
-        sendPackets( this.dataRowsToPackets () )
+        comms.sendPackets( this.dataRowsToPackets () )
     }
 
     handleReceive ()
     {
         console.log( `this.dataRows:` )
         console.log(this.dataRowsToPackets())
-        receivePacket( this.dataRowsToPackets() )
+        comms.receivePacket( this.dataRowsToPackets() )
     }
 
     handleAdd ( event: any )

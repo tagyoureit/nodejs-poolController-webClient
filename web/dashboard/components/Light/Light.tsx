@@ -4,11 +4,12 @@ import {
 
 import CustomCard from '../CustomCard'
 import React, { useContext, useEffect, useState } from 'react';
-// import { setLightMode } from '../Socket_Client';
+// import { setLightMode } from '../Comms';
 import LightEdit from './LightEdit'
 import useDataApi from '../DataFetchAPI';
 import { PoolContext, IConfigOptionsLightGroups } from '../PoolController';
-import { comms } from '../Socket_Client';
+import { useAPI } from '../Comms';
+import {axios} from 'axios';
 interface Props {
     id: string;
 }
@@ -26,21 +27,20 @@ const initialState:IConfigOptionsLightGroups={
 function Light(props: Props) {
     const [dropdownOpen, setDropdownOpen]=useState(false);
     const [modalOpen, setModalOpen]=useState(false);
-
+    const execute = useAPI();
     const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); }
-    const handleClick=(event: any) => { comms.setIBTheme(event.target.value); 
+    const handleClick=async (event: any) => {
+        await execute('setLightGroupTheme', {id:192  , theme:event.target.value}); 
     }
     const closeBtn=<button className="close" onClick={() => setModalOpen(!modalOpen)}>&times;</button>;
 
-    const { reload, poolURL, controllerType }=useContext(PoolContext);
+    const { reload, poolURL, controllerType, emitter }=useContext(PoolContext);
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
     useEffect(() => {
         if(typeof poolURL!=='undefined') {
-
             let arr=[];
             arr.push({ url: `${ poolURL }/config/options/lightGroups`, dataName: 'options' });
             doFetch(arr);
-
         }
     }, [poolURL, doFetch])
 

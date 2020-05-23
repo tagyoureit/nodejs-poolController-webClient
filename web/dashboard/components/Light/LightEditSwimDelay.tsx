@@ -1,5 +1,5 @@
 import { Container, Row, Col, Button, Table, Dropdown, ButtonDropdown, DropdownToggle, DropdownItem, DropdownMenu } from 'reactstrap'
-import { comms } from '../Socket_Client'
+import { useAPI } from '../Comms'
 import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
 import '../../css/rangeslider.css'

@@ -1,5 +1,5 @@
 import {Row, Col, Button, ButtonGroup, Nav, NavItem, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavLink, ButtonDropdown} from "reactstrap";
-//import {comms} from "../Socket_Client";
+//import {comms} from "../Comms";
 import React, {useEffect, useState} from "react";
 import {IStatePumpCircuit, IDetail, getItemByAttr, IConfigPumpCircuit, getItemByVal} from "../PoolController";
 

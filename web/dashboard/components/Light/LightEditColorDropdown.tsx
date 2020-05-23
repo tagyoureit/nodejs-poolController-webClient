@@ -60,7 +60,7 @@ function LightColor(props:Props) {
         return { background: 'white', color: 'blue' }
         case 'lavender':
           return { background: 'white', color: 'lavender' }
-        case 'darkmagenta':
+        case 'magenta':
           return { background: 'white', color: 'darkmagenta' }      
         case 'lightmagenta':
           return { background: 'white', color: 'magenta' }      

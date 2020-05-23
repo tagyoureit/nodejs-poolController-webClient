@@ -7,7 +7,7 @@ import ChlorinatorCustomSlider from './ChlorinatorCustomSlider'
 import React, { useContext, useEffect, useState } from 'react';
 import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext } from './PoolController';
 var extend=require('extend');
-import { comms } from './Socket_Client';
+import { useAPI } from './Comms';
 import useDataApi from './DataFetchAPI';
 interface Props {
     id: string;
@@ -16,14 +16,14 @@ interface Props {
 
 const initialState: { chlorinators: IConfigChlorinator[]&IStateChlorinator[] }={ chlorinators: [] }
 function Chlorinator(props: Props) {
-    const {poolURL} = useContext(PoolContext)
+    const {poolURL, emitter} = useContext(PoolContext)
     const [modal, setModal]=useState(false);
     const [currentChlorID, setCurrentChlorID]=useState(1);
     const [currentChlor, setCurrentChlor]=useState<IConfigChlorinator&IStateChlorinator>();
-    
+    const execute = useAPI();
     const addVirtualChlor=async () => {
         setChlorSearch(<p>Searching...</p>)
-        let res=await comms.chlorSearch();
+        let res=await execute('chlorSearch');
         if(res.data.isVirtual) {
             setChlorSearch(<></>)
             let arr=[];
@@ -54,13 +54,14 @@ function Chlorinator(props: Props) {
     }, [currentChlorID, doneLoading, JSON.stringify(data)])
 
     useEffect(() => {
-        let emitter=comms.getEmitter();
+        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
         const fnChlor=function(data) { doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'chlorinators', data }); };
         emitter.on('chlorinator', fnChlor);
         return () => {
             emitter.removeListener('chlor', fnChlor);
         };
-    }, []);
+    }
+    }, [poolURL, emitter]);
 
     /* eslint-enable react-hooks/exhaustive-deps */
 

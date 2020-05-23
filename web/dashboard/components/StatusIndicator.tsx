@@ -1,7 +1,7 @@
 import {Button, Tooltip} from 'reactstrap'
 import React, {useEffect, useState, useRef} from 'react';
 import {IDetail} from './PoolController';
-
+import {useInterval}  from '../utilities/UseInterval'
 interface State {
     seconds: number;
     tooltipOpen: boolean;
@@ -13,25 +13,7 @@ interface Props {
 }
 
 
-function useInterval(callback: ()=>void, delay:number) {
-    const savedCallback:any = useRef();
-  
-    // Remember the latest callback.
-    useEffect(() => {
-      savedCallback.current = callback;
-    }, [callback]);
-  
-    // Set up the interval.
-    useEffect(() => {
-      function tick() {
-        savedCallback.current();
-      }
-      if (delay !== null) {
-        let id = setInterval(tick, delay);
-        return () => clearInterval(id);
-      }
-    }, [delay]);
-  }
+
 
 function StatusIndicator(props: Props) {
     const [seconds, setSeconds] = useState(0);

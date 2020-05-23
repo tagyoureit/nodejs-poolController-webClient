@@ -1,5 +1,5 @@
 import { Container, Row, Col, Button } from 'reactstrap';
-import { comms } from './Socket_Client';
+import { useAPI } from './Comms';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
 import '../css/rangeslider.css';
@@ -14,7 +14,7 @@ function ChlorinatorCustomSlider(props: Props) {
     const [poolSetpoint, setPoolSetpoint]=useState(0);
     const [spaSetpoint, setSpaSetpoint]=useState(0);
     const [superChlorHours, setSuperChlorHours]=useState(0);
-
+    const execute = useAPI();
     useEffect(() => {
         setPoolSetpoint(props.chlor.poolSetpoint)
     }, [props.chlor.poolSetpoint])
@@ -40,7 +40,7 @@ function ChlorinatorCustomSlider(props: Props) {
 
     const onChangeComplete=() => {
         console.log(`setting chlor: id:${ props.chlor.id }, poolSP: ${ poolSetpoint }, spaSP:${ spaSetpoint||0 }, superChlorHrs:${ superChlorHours }`)
-        comms.setChlor(props.chlor.id, poolSetpoint, spaSetpoint||0, superChlorHours||0);
+        execute('setChlor', {id: props.chlor.id, poolSetpoint, spaSetpoint:spaSetpoint||0, superChlorHours:superChlorHours||0});
     };
 
     // Todo: don't show Spa in single body of water

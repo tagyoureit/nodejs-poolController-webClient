@@ -2,7 +2,7 @@ import
 {
     Row, Col, Button, ButtonGroup, Nav, NavItem, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavLink, ButtonDropdown
 } from 'reactstrap';
-import { comms } from '../../components/Socket_Client'
+import { useAPI } from '../Comms'
 import React, {useState, useEffect} from 'react';
 import { IDetail, IStatePump, IConfigPumpType, IConfigPump } from '../PoolController';
 var extend = require( 'extend' );

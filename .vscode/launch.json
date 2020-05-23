@@ -9,7 +9,8 @@
             "request": "attach",
             "name": "Attach to Chrome",
             "port": 9222,
-            "webRoot": "${workspaceFolder}/dist/web/" 
+            "webRoot": "${workspaceFolder}/dist/web/",
+            // "preLaunchTask": "launch chromium" 
         },
         {
             "type": "node",

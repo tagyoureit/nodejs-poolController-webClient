@@ -5,13 +5,13 @@ import CustomCard from '../CustomCard';
 import React, { useContext, useState, useEffect, useReducer } from 'react';
 import PumpConfigContainer from './PumpConfigContainer';
 import { IStatePump, IConfigPump, getItemById, IStateCircuit, IDetail, IConfigPumpType, IConfigCircuit, getItemByVal } from '../PoolController';
-import { comms } from '../Socket_Client';
+
 import useDataApi from '../DataFetchAPI';
 import ErrorBoundary from '../ErrorBoundary';
 import { PoolContext } from '../PoolController'
+import { EventEmitter } from 'events';
 interface Props {
     id: string;
-
 }
 
 export type ConfigOptionsPump={
@@ -50,31 +50,37 @@ const initialState: ConfigOptionsPump={
 function PumpConfigModalPopup(props: Props) {
     let [currentPumpId, setCurrentPumpId]=useState(1);
     let [currentPump, setCurrentPump]=useState();
+
+    const { controllerType, poolURL, emitter }: {controllerType: string, poolURL: string, emitter:EventEmitter}=useContext(PoolContext);
     let arr=[];
-    arr.push({ url: `${ comms.poolURL }/config/options/pumps`, dataName: 'options' });
+    arr.push({ url: `${ poolURL }/config/options/pumps`, dataName: 'options' });
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
-    const { controllerType }=useContext(PoolContext);
     const [pumpType, setPumpType]=useState<IConfigPumpType>();
     // const [pumpUnits, setPumpUnits] = useState<IDetail>();
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
-        let emitter=comms.getEmitter();
+        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
+            console.log(`LOADING PUMPEXT EMITTER; ${controllerType}`);
+    
         const fnPumpExt=function(data) {
             /* console.log(`received pumpExt:`);
-            console.log(data);
-            doUpdate({ updateType: 'REPLACE_ARRAY', dataName: ['options','pumps'], data }); */
+            console.log(data);*/
+            doUpdate({ updateType: 'REPLACE_ARRAY', dataName: ['options','pumps'], data }); 
             let arr=[];
-            arr.push({ url: `${ comms.poolURL }/config/options/pumps`, dataName: 'options' });
+            arr.push({ url: `${ poolURL }/config/options/pumps`, dataName: 'options' });
             doFetch(arr);
         };
         emitter.on('pumpExt', fnPumpExt);
 
         return () => {
+            console.log('UNLOADING PUMPEXT EMITTER');
+            
             emitter.removeListener('pumpExt', fnPumpExt);
         };
-    }, []);
+        }
+    }, [poolURL,emitter]);
 
     // react useEffect doesn't do deep compare; hence the JSON.stringify(data)
     useEffect(() => {
