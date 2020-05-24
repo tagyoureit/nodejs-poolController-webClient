@@ -6,12 +6,15 @@ import axios from 'axios';
 const extend=require("extend");
 
 function SysInfoEditLogger(props) {
-    const [log, setLog]=useState<any>({});
+    const [log, setLog]=useState<any>({app:{captureForReplay: false}});
     const [broadcast, setBroadcast]=useState<any>({});
     const [dropdownLevelOpen, setDropdownLevelOpen]=useState<boolean>(false);
     const [ready, setReady]=useState<boolean>(false);
     const [includeBroadcastActions, setIncludeBroadcastActions]=useState<number[]>([]);
     const {poolURL, emitter} = useContext(PoolContext);
+    const [captureButtonIsOpen, setCaptureButtonIsOpen] = useState();
+    const [captureButtonType, setCaptureButtonType] = useState(true);
+
     const execute = useAPI();
     useEffect(() => {
         const fetch = async () =>{
@@ -54,7 +57,6 @@ function SysInfoEditLogger(props) {
                     } 
                     fetch();
     }, [poolURL]);
-
     useEffect(() => {
         if(Object.keys(log).length&&Object.keys(broadcast).length) {
             setReady(true);
@@ -106,19 +108,72 @@ function SysInfoEditLogger(props) {
         await execute('setAppLoggerOptions', { packet: { broadcast: { includeActions: includeBroadcastActions } } });
     };
 
+    const changeReplay = async () =>{
+       try{
+        let update = {};
+       if (log.app.captureForReplay) {
+          
+        let data = await execute('stopReplay')
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'replay.zip'); 
+        document.body.appendChild(link);
+        link.click();
+        update = { app: { captureForReplay: false } };
+        setLog(extend(true, {}, log, update));
+        }
+        else {
+            let data;
+            if (captureButtonType){
+               data = await execute('startReplay');
+            }
+            else {data = await execute('startReplayWithoutReset')}
+            if (data === 'OK') {
+                update = { app: { captureForReplay: true } };
+                setLog(extend(true, {}, log, update));
+            }
+        }
+        }
+
+        catch (err){
+            console.log(`Error ${log.app.captureForReplay?'stopping':'starting'} replay feature: ${err.message}`)
+        }
+    }
     if(ready) {
-        return (<>
+        return (<>Packet Capture Enabled: 
+ 
+                    <ButtonDropdown 
+                    isOpen={captureButtonIsOpen} 
+                    toggle={()=>{setCaptureButtonIsOpen(!captureButtonIsOpen)}}
+                    size='sm'
+                    >
+                        <Button id="caret" color={log.app.captureForReplay? 'danger':'primary'} onClick={changeReplay}>{log.app.captureForReplay?'Stop':captureButtonType?'Capture with Reset':'Capture without Reset'}</Button>
+                        {!log.app.captureForReplay && 
+                        <><DropdownToggle caret color={log.app.captureForReplay? 'danger':'primary'}  />
+                        <DropdownMenu>
+                            <DropdownItem onClick={()=>setCaptureButtonType(true)}>Capture with Reset</DropdownItem>
+                            <DropdownItem onClick={()=>setCaptureButtonType(false)}>Capture without Reset</DropdownItem>
+                        </DropdownMenu></>}
+                        </ButtonDropdown>
+                        <br/>
                     App logging enabled:
             
-                    <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.app.enabled')} color={log.app.enabled? 'success':'secondary'} size='sm'>{log.app.enabled? 'On':'Off'}</Button>
+                    <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.app.enabled')} color={log.app.enabled? 'success':'secondary'} size='sm' disabled={log.app.captureForReplay}>{log.app.enabled? 'On':'Off'}</Button>
                     <br />
                 
                     App log level:
-            <ButtonDropdown style={{marginLeft:'5px'}} isOpen={dropdownLevelOpen} toggle={toggleLevelDropDown} size='sm'>
-                        <DropdownToggle caret>
+            <ButtonDropdown style={{marginLeft:'5px'}} isOpen={dropdownLevelOpen} toggle={toggleLevelDropDown} size='sm' 
+            disabled={log.app.captureForReplay}
+            >
+                        <DropdownToggle caret
+                        disabled={log.app.captureForReplay}
+                        >
                             {log.app.level}
                         </DropdownToggle>
-                        <DropdownMenu>
+                        <DropdownMenu
+                        
+                        >
                             <DropdownItem onClick={setLogLevel} value='error'>error</DropdownItem>
                             <DropdownItem onClick={setLogLevel} value='warn'>warn</DropdownItem>
                             <DropdownItem onClick={setLogLevel} value='info'>info</DropdownItem>
@@ -131,12 +186,16 @@ function SysInfoEditLogger(props) {
               
                     <br />
                     Log to console:
-                    <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.packet.logToConsole')} color={log.packet.logToConsole? 'success':'secondary'} size='sm'>{log.packet.logToConsole? 'On':'Off'}</Button>
+                    <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.packet.logToConsole')} color={log.packet.logToConsole? 'success':'secondary'} size='sm'
+                    disabled={log.app.captureForReplay}
+                    >{log.packet.logToConsole? 'On':'Off'}</Button>
                 <br />
                
                     Log broadcast packets: 
                    
-                    <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.packet.broadcast.enabled')} color={log.packet.broadcast.enabled? 'success':'secondary'} size='sm'>{log.packet.broadcast.enabled? 'On':'Off'}</Button>
+                    <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.packet.broadcast.enabled')} color={log.packet.broadcast.enabled? 'success':'secondary'} size='sm'
+                    disabled={log.app.captureForReplay}
+                    >{log.packet.broadcast.enabled? 'On':'Off'}</Button>
             
             <Button style={{marginLeft:'5px'}} color="link" id="toggler2" size='sm'>
                 Include Broadcast Actions...
@@ -146,7 +205,9 @@ function SysInfoEditLogger(props) {
                     <CardBody>
                         <ButtonGroup vertical={true}>
 
-                            <Button color="primary" onClick={() => onCheckboxBtnClick(-1)} active={!includeBroadcastActions.length} size='sm' key='include.-1'>All</Button>
+                            <Button color="primary" onClick={() => onCheckboxBtnClick(-1)} active={!includeBroadcastActions.length} size='sm' key='include.-1'
+                            disabled={log.app.captureForReplay}
+                            >All</Button>
                             {broadcast.map(el => {
                                 return (<Button color="primary" onClick={() => onCheckboxBtnClick(el.val)} active={includeBroadcastActions.includes(el.val)} size='sm' key={`include.${ el.val }`}>{`${ el.val } - ${ el.desc }`}</Button>);
                             })}
@@ -156,9 +217,21 @@ function SysInfoEditLogger(props) {
                 </Card>
             </UncontrolledCollapse>
             <br />
-            Log pump messages: <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.packet.pump.enabled')} color={log.packet.pump.enabled? 'success':'secondary'} size='sm'>{log.packet.pump.enabled? 'On':'Off'}</Button>
+            Log pump messages: <Button 
+            style={{marginLeft:'5px'}} 
+            onClick={() => toggleAppSetting('log.packet.pump.enabled')} 
+            color={log.packet.pump.enabled? 'success':'secondary'} 
+            size='sm'
+            disabled={log.app.captureForReplay}
+            >{log.packet.pump.enabled? 'On':'Off'}</Button>
             <br />
-            Log chlorinator messages: <Button style={{marginLeft:'5px'}} onClick={() => toggleAppSetting('log.packet.chlorinator.enabled')} color={log.packet.chlorinator.enabled? 'success':'secondary'} size='sm'>{log.packet.chlorinator.enabled? 'On':'Off'}</Button>
+            Log chlorinator messages: <Button 
+            style={{marginLeft:'5px'}} 
+            onClick={() => toggleAppSetting('log.packet.chlorinator.enabled')} 
+            color={log.packet.chlorinator.enabled? 'success':'secondary'} 
+            size='sm'
+            disabled={log.app.captureForReplay}
+            >{log.packet.chlorinator.enabled? 'On':'Off'}</Button>
             <br />
         </>);
     }

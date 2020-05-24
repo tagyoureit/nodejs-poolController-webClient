@@ -447,9 +447,9 @@ function PoolController() {
     /* eslint-disable react-hooks/exhaustive-deps */
    
      useEffect(() => {
-        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
+         if (typeof poolURL !== 'undefined'){
+            if (typeof emitter !== 'undefined' && typeof emitterRef.current === 'undefined') emitterRef.current = emitter;
             console.log(`SETTING EMITTERS`);
-            if (typeof emitterRef.current === 'undefined') emitterRef.current = emitter;
            const fnError=function(data) {
                if(isError) return;
                // setPoolURL(undefined); // need to do this because somewhere it was being unset and this will force it to be reset upon reconnect
@@ -478,7 +478,7 @@ function PoolController() {
                 emitter.removeListener('controller', fnController);
             }
       }
-    }, [poolURL, emitter]); 
+    }, [poolURL]); 
 
 
      useEffect(() => {

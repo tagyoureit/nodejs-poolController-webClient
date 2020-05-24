@@ -213,6 +213,19 @@ export const useAPI=() => {
             case 'setAppLoggerOptions':
                 opts.url=`${ poolURL }/app/logger/setOptions`
                 break;
+            case 'startReplay':
+                opts.method = 'get'
+                opts.url = `${ poolURL }/app/config/startReplay`
+                break;
+            case 'startReplayWithoutReset':
+                opts.method = 'get'
+                opts.url = `${ poolURL }/app/config/startReplayWithoutReset`
+                break;
+            case 'stopReplay':
+                opts.method = 'get'
+                opts.responseType = 'blob'
+                opts.url = `${ poolURL }/app/config/stopReplay`
+                break;
             // LIGHT GROUPS
             case 'setLightGroupTheme':
                 opts.url=`${ poolURL }/state/circuit/setTheme`
@@ -220,6 +233,7 @@ export const useAPI=() => {
             case 'setLightGroupAttribs':
                 opts.url=`${ poolURL }/config/lightGroup`
                 break;
+
             default:
                 console.log(`missing API call ${action}`)
                 return Promise.reject(`missing API call ${action}`)
