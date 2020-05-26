@@ -63,6 +63,7 @@ function LightSwimDelay(props: Props) {
 
     return (
         <div>
+             {`circ:id-${props.circId}, lgid:${props.lgId}`}
             <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown} disabled={disabled} >
                 <DropdownToggle caret disabled={disabled}>
                     {props.swimDelay? props.swimDelay:'0'}s

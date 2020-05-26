@@ -58,6 +58,8 @@ function LightPosition(props: Props) {
 
     return (
         <div>
+                       {`circ:id-${props.circId}, lgid:${props.lgId}`}
+
             <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown} disabled={disabled} >
                 <DropdownToggle caret disabled={disabled}>
                     {props.position}

@@ -213,18 +213,18 @@ export const useAPI=() => {
             case 'setAppLoggerOptions':
                 opts.url=`${ poolURL }/app/logger/setOptions`
                 break;
-            case 'startReplay':
+            case 'startPacketCapture':
                 opts.method = 'get'
-                opts.url = `${ poolURL }/app/config/startReplay`
+                opts.url = `${ poolURL }/app/config/startPacketCapture`
                 break;
-            case 'startReplayWithoutReset':
+            case 'startPacketCaptureWithoutReset':
                 opts.method = 'get'
-                opts.url = `${ poolURL }/app/config/startReplayWithoutReset`
+                opts.url = `${ poolURL }/app/config/startPacketCaptureWithoutReset`
                 break;
             case 'stopReplay':
                 opts.method = 'get'
                 opts.responseType = 'blob'
-                opts.url = `${ poolURL }/app/config/stopReplay`
+                opts.url = `${ poolURL }/app/config/stopPacketCapture`
                 break;
             // LIGHT GROUPS
             case 'setLightGroupTheme':

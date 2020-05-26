@@ -4,8 +4,10 @@ import { useAPI } from './Comms';
 import { PoolContext } from './PoolController';
 import axios from 'axios';
 const extend=require("extend");
-
-function SysInfoEditLogger(props) {
+interface Props {
+    setIsRecording: (a:boolean)=>void
+}
+function SysInfoEditLogger(props:Props) {
     const [log, setLog]=useState<any>({app:{captureForReplay: false}});
     const [broadcast, setBroadcast]=useState<any>({});
     const [dropdownLevelOpen, setDropdownLevelOpen]=useState<boolean>(false);
@@ -122,18 +124,20 @@ function SysInfoEditLogger(props) {
         link.click();
         update = { app: { captureForReplay: false } };
         setLog(extend(true, {}, log, update));
+        props.setIsRecording(false);
         }
         else {
             let data;
             if (captureButtonType){
-               data = await execute('startReplay');
+                data = await execute('startPacketCapture');
             }
-            else {data = await execute('startReplayWithoutReset')}
+            else {data = await execute('startPacketCaptureWithoutReset')}
             if (data === 'OK') {
                 update = { app: { captureForReplay: true } };
                 setLog(extend(true, {}, log, update));
             }
         }
+        props.setIsRecording(true);
         }
 
         catch (err){

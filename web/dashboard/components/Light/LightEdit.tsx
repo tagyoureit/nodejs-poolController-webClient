@@ -35,7 +35,7 @@ function LightEdit(props: Props) {
                     </td>
                     <td>
                         <LightPosition
-                            circId={circ.position}
+                            circId={circ.id}
                             lgId={lg.id}
                             numLights={props.data.lightGroups[lg.id].circuits.length}
                             position={circ.position}

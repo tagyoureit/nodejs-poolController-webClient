@@ -4,6 +4,7 @@ import 'react-rangeslider/lib/index.css';
 import React, { useContext, useEffect, useState } from 'react';
 import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 
+import { useAPI } from '../Comms';
 import { IDetail } from '../PoolController';
 
 interface Props
@@ -25,7 +26,7 @@ function LightColor(props:Props) {
    const [dropdownOpen, setDropdownOpen] = useState(false);
    const [disabled, setDisabled] = useState(false);
    const [targetColor, setTargetColor] = useState<number>(-1)
-
+   const execute = useAPI();
     useEffect(()=>{
         if (typeof props.color !== 'undefined' && targetColor !== props.color.val){
             setTargetColor(props.color.val);
@@ -39,6 +40,7 @@ function LightColor(props:Props) {
   {
     console.log(`lg... props.data.circuit, event.target.value: ${props.circId}, ${event.target.value}`)
     //comms.setLightColor( lg... props.circId.circuit, event.target.value )
+    execute('configLightGroup', {})
       setDisabled(true);
       setTargetColor(parseInt(event.target.value))
   }
@@ -69,6 +71,7 @@ function LightColor(props:Props) {
 
     return (
       <div>
+ {`circ:id-${props.circId}, lgid:${props.lgId}`}
         <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown} disabled={disabled} >
           <DropdownToggle caret style={colorVal()}  disabled={disabled}>
             {props.color.desc}
