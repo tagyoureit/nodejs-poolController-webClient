@@ -221,7 +221,7 @@ export const useAPI=() => {
                 opts.method = 'get'
                 opts.url = `${ poolURL }/app/config/startPacketCaptureWithoutReset`
                 break;
-            case 'stopReplay':
+            case 'stopPacketCapture':
                 opts.method = 'get'
                 opts.responseType = 'blob'
                 opts.url = `${ poolURL }/app/config/stopPacketCapture`

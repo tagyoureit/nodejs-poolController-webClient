@@ -115,7 +115,7 @@ function SysInfoEditLogger(props:Props) {
         let update = {};
        if (log.app.captureForReplay) {
           
-        let data = await execute('stopReplay')
+        let data = await execute('stopPacketCapture')
         const url = window.URL.createObjectURL(new Blob([data]));
         const link = document.createElement('a');
         link.href = url;

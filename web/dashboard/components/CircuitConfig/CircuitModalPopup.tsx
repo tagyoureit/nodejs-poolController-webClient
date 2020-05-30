@@ -126,7 +126,7 @@ function CircuitModalPopup(props: Props) {
     }
 
     function findCircFunc(circuit: IStateCircuit) {
-        let cf = getItemByVal(data.circuits.functions, circuit.type);
+        let cf = getItemByVal(data.circuits.functions, circuit.type.val);
         return cf || data.circuits.functions[0];
     }
     function formatCF(circuit, cf) {
@@ -247,7 +247,7 @@ function CircuitModalPopup(props: Props) {
         }
 
     }
-    function allCircuitsDisplay(type) {
+    function allCircuitsDisplay() {
         let _circs=props.type==='circuits'?data.circuits.circuits:data.circuits.features;
         const notUsed=data.circuits.functions.filter(circ => { return circ.name==='notused'; })[0];
         let res: React.ReactFragment[]=[];
@@ -268,7 +268,7 @@ function CircuitModalPopup(props: Props) {
                             {`${ circ.id } - `}
                             {circTypeInOrDropDown(circ)}
                             &nbsp;
-                            {circ.name!=='Not Used'&&!disabledList.includes(circ.id)? <img src={deleteIcon} width='15px' height='15px' data-circuit={circ.id} onClick={handleDelete} />:''}
+                             {circ.name!=='Not Used'&&!disabledList.includes(circ.id)? <img src={deleteIcon} width='15px' height='15px' data-circuit={circ.id} onClick={handleDelete} />:''}
                         </div>
                         {circFuncDropdown(circ)}
                     </div>
@@ -286,7 +286,7 @@ function CircuitModalPopup(props: Props) {
             <div className="tab-pane active" id="Circuit" role="tabpanel" aria-labelledby="Circuit-tab">
 
                 <CustomCard name='Circuit Config'  id={props.id}>
-                    {allCircuitsDisplay(props.type)}
+                    {allCircuitsDisplay()}
                 </CustomCard>
 
             </div>

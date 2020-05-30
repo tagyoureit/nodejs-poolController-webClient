@@ -6,7 +6,7 @@ interface Props {
     name: string;
     id: string;
     edit?: () => void
-    children: React.ReactNode
+    children: any
 }
 function CustomCard(props: Props) {
 

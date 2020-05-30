@@ -29,13 +29,16 @@ interface State {
 
 type PacketType='packet'|'socket'|'api'
 type DirectionType='inbound'|'outbound'
+type ShortDirectionType='in'|'out'
 interface IPackets {
     counter: number
     type: PacketType
-    direction: DirectionType
+    direction?: DirectionType
+    dir?: ShortDirectionType
     level: string
     timestamp: string
-    packet: number[]
+    packet?: number[]
+    pkt?: number[][]
 }
 
 class Replay extends React.Component<any, State> {
@@ -47,7 +50,6 @@ class Replay extends React.Component<any, State> {
             columns: [{key: `counter`, name: `#`, width: 80},
             {key: 'type', name: 'Type', width: 75},
             {key: `direction`, name: `Direction`, width: 90},
-            {key: `level`, name: `Level`, width: 60},
             {key: 'timestamp', name: 'H:M:S.s', width: 110, formatter: this.dateFormatter},
             {key: 'packet', name: 'Packet', formatter: this.packetFormatter}
             ],
@@ -128,14 +130,10 @@ class Replay extends React.Component<any, State> {
             rawLines.forEach((_line) => {
                 if(_line.length>10) {
                     try {
-
-                        let line: IPackets=JSON.parse(_line)
-                        if(line.type==='packet') {
-                            allLines.push(line)
-                        }
+                        allLines.push(JSON.parse(_line))                            
                     }
                     catch (err){
-                        console.log(`trouble reading line: ${_line}`)
+                        console.log(`trouble reading line: ${_line} - ${err.message}`)
                     }
                 }
             });
@@ -146,7 +144,16 @@ class Replay extends React.Component<any, State> {
                 totalPackets++
 
             })
-
+            if (typeof allLines[0].dir !== 'undefined'){
+                this.setState({
+                    columns: [{key: `counter`, name: `#`, width: 80},
+                    {key: 'type', name: 'Type', width: 75},
+                    {key: `dir`, name: `Direction`, width: 90},
+                    {key: 'timestamp', name: 'H:M:S.s', width: 110, formatter: this.dateFormatter},
+                    {key: 'pkt', name: 'Packet', formatter: this.packetFormatter}
+                ]
+            })
+            }
             this.setState({
                 packets: allLines,
                 numPackets: Object.keys(allLines).length

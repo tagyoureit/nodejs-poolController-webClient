@@ -45,6 +45,7 @@ const dataFetchReducer=(state, action) => {
                 doneLoading: false
             };
         case 'UPDATE':
+            if (typeof state.data === 'undefined') return state;
             state.isLoading=false;
             state.isError=false;
             state.doneLoading=true;

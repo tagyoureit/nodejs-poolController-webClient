@@ -13,8 +13,6 @@
   },
   "options": {
     "hidePanels": [
-      "Circuit Groups",
-      "Circuit Config"
     ],
     "debug": false
   }

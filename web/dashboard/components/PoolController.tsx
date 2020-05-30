@@ -463,7 +463,7 @@ function PoolController() {
             } */
             const fnController=function(data) {
                 console.log(`received controller emit`)
-                setCounter(p => p+1);
+                //setCounter(p => p+1);
                 doUpdate({ updateType: 'MERGE_OBJECT', data, dataName: 'state' });
             };
             emitter.on('manager-error', fnError);
