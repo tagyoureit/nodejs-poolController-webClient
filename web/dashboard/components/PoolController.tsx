@@ -27,6 +27,7 @@ import { useAPI, Discovery, useComms } from './Comms';
 import SysInfo from './SysInfo';
 import Light from './Light/Light';
 import { useInterval } from '../utilities/UseInterval'
+import Replay from './utilities/Replay'
 var extend=require("extend");
 export interface IPoolSystem {
     loadingMessage: string;
@@ -326,6 +327,7 @@ export interface IConfigPumpCircuit {
 export interface IConfigChlorinator {
     id: number;
     isActive: boolean;
+    isVirtual: boolean;
     body: number;
     spaSetpoint: number;
     poolSetpoint: number;
@@ -353,17 +355,18 @@ export interface IConfigRemote {
 }
 export interface IConfigLightGroup {
     id: number;
-    isActive: number;
-    type: IDetail,
+    name?: string;
+    isActive?: number;
+    type?: IDetail,
     circuits: IConfigLightGroupCircuit[]
 }
 export interface IConfigLightGroupCircuit {
     id: number,
-    circuit: IStateCircuit,
-    position: number;
-    color: IDetail;
-    swimDelay: number;
-    isActive: boolean;
+    circuit?: number,
+    position?: number;
+    color?: number;
+    swimDelay?: number;
+    isActive?: boolean;
 }
 
 export function getItemById(data: any, _id: number) {
@@ -400,7 +403,11 @@ export const PoolContext=React.createContext({
     reload: () => { },
     controllerType: ControllerType.none,
     poolURL: undefined,
-    emitter: undefined
+    emitter: undefined,
+    socket: undefined
+})
+export const PoolURLContext=React.createContext({
+    poolURL: undefined
 })
 
 const initialState: any={
@@ -431,13 +438,13 @@ function PoolController() {
     const prevPercent=usePrevious(data&&data.state&&data.state.status&&data.state.status.percent||0);
     const [debug, setDebug]=useState(false);
     const [switchDisabled, setSwitchDisabled]=useState(false);
-    const [{override, useSSDP}, poolURL, emitter, setCommsData, retry] = useComms();
+    const [{override, useSSDP}, poolURL, emitter, setCommsData, retry, socket] = useComms();
     const execute = useAPI();
     const [protocol, setProtocol]=useState(override.protocol)
     const [host, setHost]=useState(override.host)
     const [port, setPort]=useState<number>(override.port)
-    const emitterRef = useRef() 
-    
+    const emitterRef = useRef(undefined);
+    const socketRef = useRef(undefined);
 
     useEffect(() => {
         if (override.protocol !== protocol) setProtocol(override.protocol);
@@ -445,40 +452,38 @@ function PoolController() {
         if (override.port !== port) setPort(override.port);
     }, [override.protocol, override.host, override.port]);
     /* eslint-disable react-hooks/exhaustive-deps */
-   
+
      useEffect(() => {
          if (typeof poolURL !== 'undefined'){
             if (typeof emitter !== 'undefined' && typeof emitterRef.current === 'undefined') emitterRef.current = emitter;
+            if (typeof socket !== 'undefined' && typeof socketRef.current === 'undefined') socketRef.current = socket;
             console.log(`SETTING EMITTERS`);
            const fnError=function(data) {
                if(isError) return;
-               // setPoolURL(undefined); // need to do this because somewhere it was being unset and this will force it to be reset upon reconnect
                doUpdate({ updateType: 'FETCH_FAILURE' });
             };
-/*             const fnReconnect=()=> {
-                console.log(`Socket Manager reconnected.`)
-                //setPoolURL(undefined);
-                // setTimeout(reloadFn,100);
-                checkURL();
-            } */
+             const fnReconnect=()=> {
+                console.log(`Socket reconnected.`)
+            }
             const fnController=function(data) {
                 console.log(`received controller emit`)
-                //setCounter(p => p+1);
+                setCounter(p => p+1);
                 doUpdate({ updateType: 'MERGE_OBJECT', data, dataName: 'state' });
             };
-            emitter.on('manager-error', fnError);
-            // emitter.on('connect_error', fnError);
-            // emitter.on('connect_timeout', fnError);
-            // emitter.on('manager-reconnect', fnReconnect);
-            emitter.on('controller', fnController);
-            return () => {
-                emitter.removeListener('manager-error', fnError);
-                // emitter.removeListener('connect_error', fnError);
-                emitter.removeListener('connect_timeout', fnError);
-                emitter.removeListener('controller', fnController);
+            if (typeof emitterRef.current !== 'undefined'){
+                emitterRef.current.on('socket-connect_error', fnError);
+                emitterRef.current.on('socket-disconnect', fnError);
+                emitterRef.current.on('socket-reconnect', fnReconnect);
+                emitterRef.current.on('controller', fnController);
+                return () => {
+                    emitterRef.current.removeListener('manager-error', fnError);
+                    // emitter.removeListener('connect_error', fnError);
+                    emitterRef.current.removeListener('connect_timeout', fnError);
+                    emitterRef.current.removeListener('controller', fnController);
+                }
             }
       }
-    }, [poolURL]); 
+    }, [poolURL, socket]);
 
 
      useEffect(() => {
@@ -487,40 +492,8 @@ function PoolController() {
         if(typeof poolURL!=='undefined') reloadFn();
     }, [poolURL])
     /* eslint-enable react-hooks/exhaustive-deps */
- 
-    // const checkURL=async () => {
-    //     console.log(`calling comms.getPoolData(true)`)
-    //     let res=await comms.getPoolData(true);
-    //     console.log(`webClient received config: ${ JSON.stringify(res) }`);
-    //     setuseSSDP(res.useSSDP);
-    //     setProtocol(res.override.protocol);
-    //     setHost(res.override.host);
-    //     setPort(res.override.port);
-    //     if(typeof res.poolURL==='undefined') {
-    //         console.log(`Checking webClient server for SSDP address every second;`);
-    //         //setPoolURL(undefined);
-    //     }
-    //     else {
-    //         clearInterval(_timeout.current);
-    //         _timeout.current=undefined;
-    //         if(typeof poolURL!==res.poolURL) reloadFn();
-    //         console.log(`setting POOLURL: ${ res.poolURL } (was ${ poolURL })`)
-    //         setPoolURL(res.poolURL);
-    //         // resolve(poolURL);
-    //     }
 
-    //     /*         if (typeof _timeout.current !== 'undefined') {
-    //                 console.log(`trying to call checkURL but it's already running`)
-    //                 return Promise.reject('checkURL already running');
-    //             }
-    //             return new Promise((resolve, reject)=>{
-    //                 // _timeout.current = setInterval(internalFn, 3000, resolve)
-    //             }) */
-    // };
-    // useInterval(() => { checkURL() }, typeof poolURL==='undefined'? 3000:null);
-
-
-    const getVisibility=async () => {
+   const getVisibility=async () => {
         let res = await execute('visibility');
         setVisibility(res);
     }
@@ -530,20 +503,16 @@ function PoolController() {
         console.log(`switching AWAY from ${ useSSDP }`)
         let data: Discovery;
         if(useSSDP) {
-            // res=await comms.startOverride();
             let cd = extend(true,{},{override, useSSDP},{useSSDP: false})
             data = await setCommsData(cd);
         }
         else {
             let cd = extend(true,{},{override, useSSDP},{useSSDP: true})
             data = await setCommsData(cd);
-            // res=await comms.deleteOverride();
         }
-        //setPoolURL(undefined);
-        // setUseSSDP(data.useSSDP);
         setProtocol(data.override.protocol);
         setHost(data.override.host);
-        setPort(data.override.port);        
+        setPort(data.override.port);
         setSwitchDisabled(false);
     }
 
@@ -557,11 +526,9 @@ function PoolController() {
             useSSDP
         };
         let resData = await setCommsData(cd);
-        // await execute('saveOverride', protocol, host, port)
-        //setPoolURL(undefined);
         console.log(`save override: ${resData}`)
     }
- 
+
      const reloadFn=() => {
         console.log(`RELOADING all data.  poolURL=${ poolURL } ${ typeof poolURL==='undefined'&&'ABORTING.' }`)
         if (typeof poolURL === 'undefined') return;
@@ -571,11 +538,6 @@ function PoolController() {
         doFetch(arr);
         getVisibility();
     }
-    
- /*    const reloadFn=() => {
-        // setTimeout(reloadFnLocal, 100);
-       // reloadFnLocal();
-    }  */
 
     // Reload data when pool app gets to 100% loaded
     // This may be needed to reload all sections if they were prev empty but we received emits for data updates
@@ -583,19 +545,17 @@ function PoolController() {
         if(prevPercent!==100&&data.state&&data.state.status&&data.state.status.percent===100) {
             reloadFn();
         }
-    }, [prevPercent]) 
+    }, [prevPercent])
 
     useEffect(() => {
         console.log(`emitter changed!`)
         console.log(emitter);
-        
     }, [emitter]);
 
     let className='';
     if((data&&data.state&&data.state.status&&data.state.status.val===255)||isError||!doneLoading) {
         className+=" noConnection";
     }
-    const navbar=(<div><Navbar /></div>);
     const errorPresent=() => {
         if(isError) {
             return <>
@@ -610,7 +570,8 @@ function PoolController() {
         else return <></>;
     };
     return (
-        <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType: data&&data.config&&data.config.controllerType||'none', poolURL, emitter:emitterRef.current }} >
+        <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType: data&&data.config&&data.config.controllerType||'none', poolURL, emitter:emitterRef.current, socket: socketRef.current }} >
+        <PoolURLContext.Provider value={{poolURL: poolURL || undefined}}>
             <div>
                 <Navbar>
                     Configure Comms<br />
@@ -638,9 +599,11 @@ function PoolController() {
                             <Button size='sm' color='link' onClick={saveManualLocation}>Save address</Button> (Current value: {poolURL})
                     </>}
                 </Navbar>
+
                 {errorPresent()}
                 {/* {typeof poolURL==='undefined'||!doneLoading&&<Container>Loading...</Container>} */}
                 {/* {typeof poolURL!=='undefined'&& */}
+
                 {<div className={className}>
                     <Container>
                            <SysInfo
@@ -679,17 +642,19 @@ function PoolController() {
                         <Chlorinator
                             id="Chlorinators"
                         />
+                         <Replay
+                            id="Replay"
+                         />
                         <div className='debugArea'>
 
                             Debug: <Button style={{ margin: '0px 0px 3px 0px', padding: 0, border: 0 }} color='link' onClick={() => setDebug(!debug)}>{debug? 'on':'off'}</Button>. <a href='https://github.com/tagyoureit/nodejs-poolController-webClient/issues/new'>Report an issue</a> or ask a question on the <a href='https://gitter.im/nodejs-poolController/Lobby'>forums</a>.
                         </div>
                     </Container>
-
-
                 </div>}
 
                 {/*<>Msg:{loadingMessage}<br />isLoading?{isLoading? 'yes':'no'}<br />doneLoading?{doneLoading? 'yes':'no'}</><p /><> {JSON.stringify(data)}</> */}
             </div>
+            </PoolURLContext.Provider>
         </PoolContext.Provider>
     );
 

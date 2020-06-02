@@ -1,16 +1,15 @@
 import { Container, Row, Col, Button, Table, Dropdown, ButtonDropdown, DropdownToggle, DropdownItem, DropdownMenu } from 'reactstrap'
-import { useAPI } from '../Comms'
 import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
 import '../../css/rangeslider.css'
 import React, { useContext, useEffect, useState } from 'react';
-
+import { IConfigLightGroupCircuit } from '../PoolController'
+import { useAPI } from '../Comms'
 //TODO: when the modal is showing and this dropdown is open, the modal is scrolling in the background instead of the dropdown scrolling
 
 interface Props {
-    circId: number
+    circ: IConfigLightGroupCircuit
     lgId: number
-    swimDelay: number
 }
 
 interface State {
@@ -22,21 +21,23 @@ interface State {
 function LightSwimDelay(props: Props) {
     const [dropdownOpen, setDropdownOpen]=useState(false);
     const [disabled, setDisabled]=useState(false);
-    const [swimDelay, setSwimDelay]=useState<number>(-1)
-
+    const [targetSwimDelay, setTargetSwimDelay]=useState<number>(undefined)
+    let {id: circId, circuit: circuitId, swimDelay} = props.circ;
+    const execute = useAPI();
     useEffect(() => {
-        if(typeof props.swimDelay!=='undefined'&&swimDelay!==props.swimDelay) {
-            setSwimDelay(props.swimDelay);
+        if(typeof swimDelay==='undefined') return
+        if (targetSwimDelay===swimDelay) {
             setDisabled(false);
         }
-    }, [props.swimDelay, swimDelay])
+    }, [swimDelay, targetSwimDelay])
 
     const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); }
 
     const handleClick=(event) => {
         //    setLightSwimDelay( props.data.circuit, event.target.value )
+        setTargetSwimDelay(parseInt(event.target.value,10))
         setDisabled(true);
-        setSwimDelay(parseInt(event.target.value))
+        execute('configLightGroup', {id: props.lgId, circuits: [{circuit: circuitId, swimDelay: event.target.value}]})
     }
 
     const delays=() => {
@@ -44,12 +45,11 @@ function LightSwimDelay(props: Props) {
         for(let i=0;i<=60;i++) {
             positionArray.push(i)
         }
-
         return (
             <>
                 {positionArray.map(i => (
                     (<DropdownItem
-                        key={`delaylg${ props.lgId }circ${ props.circId }${ i }`}
+                        key={`delaylg${ props.lgId }circ${ circId }${ i }`}
                         onClick={handleClick}
                         value={i}
                     >
@@ -63,12 +63,28 @@ function LightSwimDelay(props: Props) {
 
     return (
         <div>
-             {`circ:id-${props.circId}, lgid:${props.lgId}`}
             <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown} disabled={disabled} >
                 <DropdownToggle caret disabled={disabled}>
-                    {props.swimDelay? props.swimDelay:'0'}s
+                    {targetSwimDelay || swimDelay || '0'}s
                     </DropdownToggle>
-                <DropdownMenu>
+                <DropdownMenu
+                modifiers={{
+                    setMaxHeight: {
+                        enabled: true,
+                        order: 890,
+                        fn: (data) =>{
+                            return {
+                                ...data,
+                                styles: {
+                                    ...data.styles,
+                                    overflow: 'auto',
+                                    maxHeight: '200px'
+                                }
+                            }
+                        }
+                    }
+                }}
+                >
                     {delays()}
                 </DropdownMenu>
             </ButtonDropdown>

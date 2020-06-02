@@ -1,13 +1,13 @@
 import { EventEmitter } from 'events';
 import io from 'socket.io-client';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosPromise } from 'axios';
 import { Socket } from "socket.io";
 let socket: SocketIOClient.Socket, patch;
 let manager: Socket
 
 var extend=require("extend");
 import { useReducer, useState, useEffect, useContext } from 'react';
-import { PoolContext } from './PoolController';
+import { PoolContext, PoolURLContext } from './PoolController';
 
 export interface Discovery {
     override: { protocol: string, host: string, port: number }, useSSDP: boolean, poolURL: string
@@ -69,38 +69,18 @@ export const useComms=(): any[] => {
             socket=io(poolURL);
             patch=require('socketio-wildcard')(io.Manager);
             patch(socket);
-
-            // socket.on('connect', () => {
-            //     console.log(`Socket Connected.`);
-
-            //     socket.on('*', (data) => {
-            //         console.log(`data.data[0]`)
-            //         console.log(data.data[0])
-            //         if(data.data[1]===null||data.data[1]===undefined) {
-            //             console.log(`ALERT: Null socket data received for ${ data.data[0] }`);
-            //         } else {
-            //             emitter.emit(data.data[0], data.data[1]);
-            //         }
-            //     });
-            //     socket.on('controller', (data => {
-            //         console.log(`received controller emit!`)
-            //     }))
-            //     socket.on('circuit', (data)=>{
-            //         console.log(`CIRCUIT SOCKET: ${JSON.stringify(data)}`);
-
-            //     })
-            //     /*  manager=new io.Manager(poolURL);
-            //      manager.on('connect_error', (data) => {
-            //          console.log(`MANAGER connect error.`)
-            //          emitter.emit('manager-error', { val: 255, desc: 'Connection Error', name: 'error' })
-            //      });
-            //      manager.on('reconnect', (data) => {
-            //          emitter.emit('manager-reconnect');
-            //      })
-            //      manager.on('*', (data)=>{
-            //          console.log(`Manager emit: ${data.data[0]}`)
-            //      }) */
-            // })
+                 socket.on('connect_error', (data) => {
+                     console.log(`SOCKET connect error.`)
+                     emitter.emit('socket-connect_error', { val: 255, desc: 'Connection Error', name: 'error' })
+                 });
+                 socket.on('disconnect', (data) => {
+                     console.log(`SOCKET disconnect.`)
+                     emitter.emit('socket-disconnect', { val: 255, desc: 'Connection Error', name: 'error' })
+                 });
+                 socket.on('reconnect', (data) => {
+                     console.log(`SOCKET reconnect.`)
+                     emitter.emit('socket-reconnect');
+                 });
             socket.on('*', (data) => {
                 console.log(`Incoming socket: ${ data.data[0] } with data`)
                 console.log(data.data[1])
@@ -149,14 +129,15 @@ export const useComms=(): any[] => {
         }
         return updateComms();
     }
-    return [commsData, poolURL, emitter, updateCommsData, setRetry];
+    return [commsData, poolURL, emitter, updateCommsData, setRetry, socket];
 
 }
 
 
 export const useAPI=() => {
-    const { poolURL, emitter }=useContext(PoolContext);
-      const execute=async (action: string, data?: any) => {
+    // const { poolURL, emitter }=useContext(PoolContext);
+    const {poolURL} = useContext(PoolURLContext)
+    const execute=async (action: string, data?: any) => {
         let opts: AxiosRequestConfig={
             method: 'put',
             data: data
@@ -204,6 +185,7 @@ export const useAPI=() => {
                 break;
             // CHLORINATOR
             case 'chlorSearch':
+                opts.method = 'get'
                 opts.url=`${ poolURL }/config/chlorinators/search`
                 break;
             case 'setChlor':
@@ -233,17 +215,22 @@ export const useAPI=() => {
             case 'setLightGroupAttribs':
                 opts.url=`${ poolURL }/config/lightGroup`
                 break;
-
+            case 'configLightGroup':
+                opts.url=`${ poolURL }/config/lightGroup`
+                break;
+            // UTILITIES
             default:
                 console.log(`missing API call ${action}`)
                 return Promise.reject(`missing API call ${action}`)
-
-
         }
-        let res=await axios(opts);
-        return res.data;
+        try {
+            let res=await axios(opts);
+            return res.data;
+        }
+        catch (err){
+            console.log(`Error fetching data: ${err.message}`);
+            return Promise.reject(err);
+        }
     }
-
     return execute
 }
-// export const comms=new Comms();

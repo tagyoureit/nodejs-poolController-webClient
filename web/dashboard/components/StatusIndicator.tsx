@@ -43,9 +43,9 @@ function StatusIndicator(props: Props) {
 
         let {percent, val, desc}=status;
         let _color='red';
-        if (seconds <= 30) _color = 'green'
-        else if (seconds > 30 && seconds <= 60) _color = 'yellow'
-        else if (seconds > 61) _color = 'red';
+        if (seconds <= 60) _color = 'green'
+        else if (seconds > 60 && seconds <= 120) _color = 'yellow'
+        else if (seconds > 120) _color = 'red';
         let toolTipText=`Last update: ${seconds}s`;
 
         return (

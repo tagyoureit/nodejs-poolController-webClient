@@ -1,90 +1,87 @@
-import { Container, Row, Col, Button, Table, DropdownMenu, ButtonDropdown, Dropdown, DropdownItem, DropdownToggle } from 'reactstrap'
-import { useAPI } from '../Comms'
-import { IConfigOptionsLightGroups } from '../PoolController'
-import 'react-rangeslider/lib/index.css'
-import '../../css/rangeslider.css'
+import '../../css/rangeslider.css';
+import 'react-rangeslider/lib/index.css';
+
 import React, { useContext, useEffect, useState } from 'react';
-import LightColor from './LightEditColorDropdown'
-import LightPosition from './LightEditPositionDropdown'
+import { Container, Table } from 'reactstrap';
+
+import { IConfigOptionsLightGroups } from '../PoolController';
+import LightColor from './LightEditColorDropdown';
+import LightPosition from './LightEditPositionDropdown';
 import LightSwimDelay from './LightEditSwimDelay';
 
-
 interface Props {
-    data: IConfigOptionsLightGroups
+    data: IConfigOptionsLightGroups;
 }
 
 function LightEdit(props: Props) {
     let lightData=
-        props.data.lightGroups.map((lg) => {
-            return lg.circuits.map((circ, circIdx) => {
-                console.log(circ)
-                return (<tr key={`lightGroup${ lg.id }lightCircuit${ circIdx }`
-                }>
+        props.data.lightGroups.map((lg, lgIdx) => {
+            return (<Table key={`lightGroup${ lg.id }lightidx${ lgIdx }`}><thead >
+                <tr >
                     <td>
-                        {circ.id}
+                    {lg.name}
                     </td>
-                    <td>
-                        {circ.circuit.name}
-                    </td>
-                    <td>
-                        <LightColor
-                            circId={circ.id}
-                            lgId={lg.id}
-                            colors={props.data.colors}
-                            color={circ.color} />
-                    </td>
-                    <td>
-                        <LightPosition
-                            circId={circ.id}
-                            lgId={lg.id}
-                            numLights={props.data.lightGroups[lg.id].circuits.length}
-                            position={circ.position}
-                        />
-                    </td>
-                    <td>
-                        <LightSwimDelay
-                            circId={circ.id}
-                            lgId={lg.id}
-                            swimDelay={circ.swimDelay}
-                        />
-                    </td>
-                </tr>)
-            })
-        })
+                </tr>
+                <tr>
+                    <th>#</th>
+                    <th>Circuit</th>
+                    <th>Color</th>
+                    <th>Position</th>
+                    <th>Delay</th>
+                </tr>
+            </thead>
+                <tbody>
 
+                    {lg.circuits.map((circ, circIdx) => {
+                        return (
+                            <tr key={`lightGroup${ lg.id }lightgidx${ lgIdx }circ${ circIdx }`}>
+                                <td>
+                                    {circ.id}
+                                </td>
+                                <td>
+                                    {props.data.circuits.find(c => c.id===circ.circuit)?.name}
+                                </td>
+                                <td>
+                                    <LightColor
+                                        circ={circ}
+                                        lgId={lg.id}
+                                        colors={props.data.colors}
+                                    />
+                                </td>
+                                <td>
+                                    <LightPosition
+                                        circ={circ}
+                                        lgId={lg.id}
+                                        numLights={props.data.lightGroups[lgIdx].circuits.length}
+                                    />
+                                </td>
+                                <td>
+                                    <LightSwimDelay
+                                        circ={circ}
+                                        lgId={lg.id}
+                                    />
+                                </td>
+                            </tr>);
+                    })}
+                </tbody>
+            </Table>
 
-
+            );
+        });
 
     const heightStyle={
         height: '300px'
-    }
+    };
 
-    return ( <>
-      
-
+    return (<>
         <div>
             <Container style={heightStyle} >
-                <Table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Circuit</th>
-                            <th>Color</th>
-                            <th>Position</th>
-                            <th>Delay</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {lightData}
-                    </tbody>
-
-                </Table>
+                {lightData}
             </Container>
 
         </div >
     </>
-    )
-
+    );
 }
 
 export default LightEdit;

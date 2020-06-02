@@ -74,20 +74,7 @@ function Features(props: Props) {
     }
     const features = () =>
     {
-        // if ( !state.features.length || typeof equipmentIds === 'undefined' ) return ( <div /> );
-        // TODO: Aux Extra and NOT used should be hidden.
-        // for ( var cir in data )
-        // {
-        //     // check to make sure we have the right data
-        //     if ( data[ cir ].hasOwnProperty( 'name' ) )
-        //     {
-        //         // if hideAux is true skip the unused circuits
-        //         if ( [ 'NOT USED', 'AUX EXTRA' ].indexOf( data[ cir ].name ) !== -1 && props.hideAux )
-        //         {
-        //         }
-        //         else
-        //         {
-        if (!data.features) {return <>No Features</>};
+        if (!data.features || !data.equipment) {return <>No Features</>};
         return data.features.map( feature =>
         {
             let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;

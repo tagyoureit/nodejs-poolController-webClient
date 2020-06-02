@@ -40,11 +40,15 @@ function SysInfo(props: Props) {
             setIsRecording(res[0].data.app.captureForReplay);
         }
 
-        fetch();
+        if (typeof poolURL !== 'undefined') fetch();
     }, [poolURL]);
     const toggleModal=() => {
         // open and close the modal
         setModalOpen(!modalOpen);
+    }
+    const dateParse = (date: any) => {
+        var s = date.split(/[^0-9]/);
+        return new Date(s[0], s[1] - 1, s[2], s[3], s[4], s[5]);
     }
     const closeBtn=<button className="close" onClick={toggleModal}>&times;</button>;
     return typeof props.data!=='string'&&typeof props.data!=='undefined'&&!props.isLoading&&props.doneLoading?
@@ -66,7 +70,7 @@ function SysInfo(props: Props) {
                     <Row>
                         <Col xs="6">Date/Time </Col>
                         <Col>
-                            <DateTime origDateTime={props.data.time} />
+                            <DateTime origDateTime={dateParse(props.data.time)} />
                         </Col>
                     </Row>
 

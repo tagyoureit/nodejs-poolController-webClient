@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, Dispatch } from 'react';
 import { Button, ButtonDropdown, ButtonGroup, Card, CardBody, DropdownItem, DropdownMenu, DropdownToggle, UncontrolledCollapse, Container, Row, Col } from 'reactstrap';
 import { useAPI } from './Comms';
 import { PoolContext } from './PoolController';
 import axios from 'axios';
 const extend=require("extend");
 interface Props {
-    setIsRecording: (a:boolean)=>void
+    setIsRecording: Dispatch<(prevState: undefined) => undefined>
 }
 function SysInfoEditLogger(props:Props) {
     const [log, setLog]=useState<any>({app:{captureForReplay: false}});

@@ -4,11 +4,11 @@ import {
 import CustomCard from './CustomCard'
 import 'react-rangeslider/lib/index.css'
 import ChlorinatorCustomSlider from './ChlorinatorCustomSlider'
-import React, { useContext, useEffect, useState } from 'react';
-import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext } from './PoolController';
-var extend=require('extend');
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext, PoolURLContext } from './PoolController';
 import { useAPI } from './Comms';
 import useDataApi from './DataFetchAPI';
+import axios from 'axios';
 interface Props {
     id: string;
 
@@ -17,25 +17,31 @@ interface Props {
 const initialState: { chlorinators: IConfigChlorinator[]&IStateChlorinator[] }={ chlorinators: [] }
 function Chlorinator(props: Props) {
     const {poolURL, emitter} = useContext(PoolContext)
+    const {poolURL : pu} = useContext(PoolURLContext);
     const [modal, setModal]=useState(false);
     const [currentChlorID, setCurrentChlorID]=useState(1);
     const [currentChlor, setCurrentChlor]=useState<IConfigChlorinator&IStateChlorinator>();
     const execute = useAPI();
     const addVirtualChlor=async () => {
-        setChlorSearch(<p>Searching...</p>)
-        let res=await execute('chlorSearch');
-        if(res.data.isVirtual) {
-            setChlorSearch(<></>)
-            let arr=[];
-            arr.push({ url: `${ poolURL }/extended/chlorinators`, dataName: 'chlorinators' });
-            doFetch(arr);
+        setChlorSearchMessage(`Searching...`)
+        try {
+            
+            let res=await execute('chlorSearch');
+            if (res.isVirtual) {
+                let arr=[];
+                arr.push({ url: `${ poolURL }/extended/chlorinators`, dataName: 'chlorinators' });
+                doFetch(arr);
+            }
+            else {
+                setChlorSearchMessage(`No chlorinators found.  Search again.`)
+            }
         }
-        else {
-            setChlorSearch(<Button color='link' onClick={addVirtualChlor}>No chlorinators found.  Search again.</Button>)
+        catch (err) {
+            setChlorSearchMessage(`Error: ${err.message}. No chlorinators found.  Search again.`)
         }
     }
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
-    const [chlorSearch, setChlorSearch]=useState(<Button color='link' onClick={addVirtualChlor}>Search for stand alone chlorinator.</Button>)
+    const [chlorSearchMessage, setChlorSearchMessage] = useState(`Search for chlorinator.`);
     useEffect(()=>{
         if (typeof poolURL !== 'undefined'){
             let arr=[];
@@ -81,7 +87,8 @@ function Chlorinator(props: Props) {
     const chlorinator=() => {
         if(data.chlorinators.length===0||typeof currentChlor==='undefined'||typeof currentChlor.body==='undefined'||typeof currentChlor.status==='undefined') {
             return <>No chlorinator connected to system.
-           {chlorSearch}
+            <br />
+           {chlorSearchMessage === `Searching...` ? chlorSearchMessage:<Button color='link' onClick={addVirtualChlor}>{chlorSearchMessage}</Button>}
             </>
         }
         let chlorStatus;
@@ -102,7 +109,7 @@ function Chlorinator(props: Props) {
                     </Col>
                 </Row>
 
-                {currentChlor.virtualControllerStatus&&currentChlor.virtualControllerStatus!==-1&&(<Row>
+                {currentChlor?.isVirtual && currentChlor.virtualControllerStatus&&currentChlor.virtualControllerStatus.val!==-1&&(<Row>
                     <Col xs="6">Virtual Controller Status:</Col>
                     <Col xs="6">{currentChlor.virtualControllerStatus.desc}</Col>
                 </Row>)}

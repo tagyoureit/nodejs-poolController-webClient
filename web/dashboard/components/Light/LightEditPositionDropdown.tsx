@@ -1,38 +1,37 @@
 import '../../css/rangeslider.css';
 import 'react-rangeslider/lib/index.css';
-
-import React, { useEffect, useState } from 'react';
+import { useAPI } from '../Comms'
+import React, { useEffect, useState, useRef } from 'react';
 import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
+import { IConfigLightGroupCircuit } from '../PoolController'
 
-import { useAPI } from '../Comms';
 
 interface Props {
-    circId: number
+    circ: IConfigLightGroupCircuit
     lgId: number
-    position: number
     numLights: number
 }
-
 function LightPosition(props: Props) {
     const [dropdownOpen, setDropdownOpen]=useState(false);
     const [disabled, setDisabled]=useState(false);
-    const [targetPosition, setTargetPosition]=useState<number>(-1)
+    const [targetPosition, setTargetPosition]=useState<number>(undefined)
     const execute = useAPI();
 
     useEffect(() => {
-        if(typeof props.position!=='undefined'&&targetPosition!==props.position) {
-            setTargetPosition(props.position);
-            setDisabled(false);
-        }
-    }, [props.position, targetPosition])
+        console.log(`props.circ.position: ${props.circ.position} -- targetPosition: ${targetPosition}`  )
+        if (typeof props.circ.position==='undefined') return;
+        if(targetPosition===props.circ.position) {
+             setDisabled(false);
+         }
+    }, [props.circ.position])
 
     const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); }
 
     const handleClick=async (event) => {
-        console.log(`lg: ${props.lgId} props.circId: ${ props.circId }, new position:  ${ event.target.value }`)
-        await execute('setLightGroupAttribs',  {id: props.lgId, circuits: {id: props.circId, position: targetPosition} } )
+        console.log(`lg: ${props.lgId} circId: ${ props.circ.id }, new position:  ${ event.target.value }`)
         setDisabled(true);
         setTargetPosition(parseInt(event.target.value))
+        execute('configLightGroup', {id: props.lgId, circuits: [{circuit: props.circ.circuit, position: event.target.value}]})
     }
 
     const positions=() => {
@@ -44,7 +43,7 @@ function LightPosition(props: Props) {
             <>
                 {positionArray.map(i => (
                     (<DropdownItem
-                        key={`lg${props.lgId}light${ props.circId }${ i }`}
+                        key={`lg${props.lgId}light${ props.circ.id }${ i }`}
                         onClick={handleClick}
                         value={i}
                     >
@@ -58,11 +57,9 @@ function LightPosition(props: Props) {
 
     return (
         <div>
-                       {`circ:id-${props.circId}, lgid:${props.lgId}`}
-
             <ButtonDropdown isOpen={dropdownOpen} toggle={toggleDropDown} disabled={disabled} >
                 <DropdownToggle caret disabled={disabled}>
-                    {props.position}
+                    {targetPosition || props.circ.position}
                 </DropdownToggle>
                 <DropdownMenu>
                     {positions()}

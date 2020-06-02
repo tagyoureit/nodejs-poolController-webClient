@@ -125,31 +125,31 @@ class Schedule extends React.Component<Props, any> {
           <Row key={'schedule' + sched.id + "row"}>
             <Col
               xs={4}
-              lg={4}
+              md={3}
               key={sched.circuit.id + "col"}
-              className={active ? "text-primary font-weight-bold" : ""}
+              className={`${active ? "text-primary font-weight-bold" : ""} pr-0 pr-md-0`}
             >
               {sched.circuit.name} (#{sched.id})
             </Col>
             <Col
               xs={2}
-              lg={1}
-              className={active ? "text-primary font-weight-bold" : ""}
+              md={1}
+              className={`${active ? "text-primary font-weight-bold" : ""} p-0`}
             >
               {this.convertToTimeStr(sched.startTime)}
             </Col>
             <Col
               xs={2}
-              lg={1}
-              className={active ? "text-primary font-weight-bold" : ""}
+              md={1}
+              className={`${active ? "text-primary font-weight-bold" : ""} p-0`}
             >
               {this.convertToTimeStr(sched.endTime)}
             </Col>
-            <Col xs={3} lg={5}>
-              <span className="d-lg-none">
+            <Col xs={4} md={7} className={'p-0'}>
+              <span className="d-md-none p-0">
                 {this.letters(sched.scheduleDays.days)}
               </span>
-              <span className="d-none d-lg-block">
+              <span className="d-none d-md-block p-0">
                 {this.buttons(sched.scheduleDays.days)}
               </span>
             </Col>
