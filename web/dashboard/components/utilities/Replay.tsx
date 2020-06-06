@@ -84,46 +84,6 @@ function Replay(props) {
     const { socket }: { socket: SocketIOClient.Socket }=useContext(PoolContext);
     const [version, setversion]=useState(5);
     let replayTimer: any=useRef()
-    /* 
-    constructor(props: State) {
-        super(props);
-
-        state={
-            numPackets: 0,
-            columns: [{key: `counter`, name: `#`, width: 80},
-            {key: 'type', name: 'Type', width: 75},
-            {key: `direction`, name: `Direction`, width: 90},
-            {key: 'timestamp', name: 'H:M:S.s', width: 110, formatter: dateFormatter},
-            {key: 'packet', name: 'Packet', formatter: packetFormatter}
-            ],
-            packets: [],
-            selectedIndexes: [],
-            runTo: 0,
-            lineToSend: 0,
-            linesSent: 0,
-            replayButtonColor: 'primary',
-            replayButtonText: 'Replay',
-            replayDirection: 'toApp',
-            directionDropDownOpen: false,
-            includePacketTypeDropDownOpen: false,
-            includePacketTypes: 'inbound'
-        }
-
-        handleFile=handleFile.bind(this)
-        dateFormatter=dateFormatter.bind(this)
-        onRowsSelected=onRowsSelected.bind(this)
-        runToThisLine=runToThisLine.bind(this)
-        handleReset=handleReset.bind(this)
-        handleReplayButton=handleReplayButton.bind(this)
-        replayFile=replayFile.bind(this)
-        resetIntervalTimer=resetIntervalTimer.bind(this)
-        handleIncludeDirectionChange=handleIncludeDirectionChange.bind(this);
-        toggleDirectionDropDown=toggleDirectionDropDown.bind(this);
-        toggleIncludePacketTypes=toggleIncludePacketTypes.bind(this);
-        handleIncludePacketTypes=handleIncludePacketTypes.bind(this);
-    } */
-
-
 
     const onRowsSelected=(rows: SelectionParams<any>[]) => {
         console.log(`pressed row ${ rows[0].rowIdx }`)
@@ -272,7 +232,7 @@ function Replay(props) {
 
                 setreplayButtonColor('success')
                 setreplayButtonText('Replaying...');
-                replayTimer.current=setInterval(replayFile, 25);
+                replayTimer.current=setInterval(replayFile, 225);
 
             }
             else {
