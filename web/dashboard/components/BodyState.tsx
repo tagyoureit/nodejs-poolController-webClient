@@ -154,7 +154,7 @@ function BodyState(props: Props) {
                     <Col>Temp</Col>
                     <Col >
                         {body.temp}
-                        {body.isOn? ``:` (Last)`}
+                        {!body.isOn && ` (Last)`}
                     </Col>
                 </Row>
                 <Row>

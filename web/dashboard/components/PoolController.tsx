@@ -423,19 +423,12 @@ const initialState: any={
 };
 
 
-function usePrevious(value) {
-    const ref=useRef();
-    useEffect(() => {
-        ref.current=value;
-    });
-    return ref.current;
-}
+
 function PoolController() {
     // const [poolURL, setPoolURL]=useState<string>();
     const [counter, setCounter]=useState(0);
-    const [visibility, setVisibility]=useState<string[]>([]);
+    const [visibility, setVisibility]=useState<string[]>(['Replay']);
     const [{ data, isLoading, isError, doneLoading, error }, doFetch, doUpdate]=useDataApi([], initialState);
-    const prevPercent=usePrevious(data&&data.state&&data.state.status&&data.state.status.percent||0);
     const [debug, setDebug]=useState(false);
     const [switchDisabled, setSwitchDisabled]=useState(false);
     const [{override, useSSDP}, poolURL, emitter, setCommsData, retry, socket] = useComms();
@@ -465,10 +458,11 @@ function PoolController() {
              const fnReconnect=()=> {
                 console.log(`Socket reconnected.`)
             }
-            const fnController=function(data) {
+            const fnController=function(_data) {
                 console.log(`received controller emit`)
                 setCounter(p => p+1);
-                doUpdate({ updateType: 'MERGE_OBJECT', data, dataName: 'state' });
+                if (data.state.status.percent !== 100 && _data.status.percent === 100) reloadFn();
+                doUpdate({ updateType: 'MERGE_OBJECT', data: _data, dataName: 'state' });
             };
             if (typeof emitterRef.current !== 'undefined'){
                 emitterRef.current.on('socket-connect_error', fnError);
@@ -538,14 +532,6 @@ function PoolController() {
         doFetch(arr);
         getVisibility();
     }
-
-    // Reload data when pool app gets to 100% loaded
-    // This may be needed to reload all sections if they were prev empty but we received emits for data updates
-     useEffect(() => {
-        if(prevPercent!==100&&data.state&&data.state.status&&data.state.status.percent===100) {
-            reloadFn();
-        }
-    }, [prevPercent])
 
     useEffect(() => {
         console.log(`emitter changed!`)
