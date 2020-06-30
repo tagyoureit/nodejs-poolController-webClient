@@ -53,6 +53,7 @@ function Pump(props: Props) {
     const closeBtn=<button className="close" onClick={() => setModalOpen(!modalOpen)}>&times;</button>;
 
 
+    
     return doneLoading&&!isLoading&&(
         <div className="tab-pane active" id="pump" role="tabpanel" aria-labelledby="pump-tab">
             <CustomCard name='Pumps' key='title' id={props.id} edit={() => setModalOpen(!modalOpen)}>
@@ -65,7 +66,7 @@ function Pump(props: Props) {
                                 return (
                                     <Card key={'pump'+pump.id+'card'}>
                                         <CardBody className='p-0' key={'pump'+pump.id+'cardbody'}>
-                                            <CardTitle className='card-header'>  {pump.id}: {pump.type.desc}</CardTitle>
+                                            <CardTitle className='card-header'>  {pump.id}: {pump.name || pump.type.desc}</CardTitle>
                                             <CardText className='text-right mr-3 pt-0'>
                                                 Watts: {pump.watts}
                                                 <br />

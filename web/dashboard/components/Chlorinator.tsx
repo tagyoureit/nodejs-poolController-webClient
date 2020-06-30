@@ -83,72 +83,71 @@ function Chlorinator(props: Props) {
         // setCurrentChlorID(cc);
     }
 
+    const chlorStatus = (percent: number, superChlor: boolean, superChlorHours: number) => {
 
-    const chlorinator=() => {
-        if(data.chlorinators.length===0||typeof currentChlor==='undefined'||typeof currentChlor.body==='undefined'||typeof currentChlor.status==='undefined') {
-            return <>No chlorinator connected to system.
-            <br />
-           {chlorSearchMessage === `Searching...` ? chlorSearchMessage:<Button color='link' onClick={addVirtualChlor}>{chlorSearchMessage}</Button>}
-            </>
-        }
-        let chlorStatus;
-        if(currentChlor.currentOutput>=100||currentChlor.superChlor) {
-            chlorStatus=`Super Chlorinate (${ currentChlor.superChlorHours } hours)`
-        } else if(currentChlor.currentOutput>0) {
-            chlorStatus='On'
+        if(percent>=100||superChlor) {
+            return `Super Chlorinate (${ superChlorHours } hours)`
+        } else if(percent>0) {
+            return 'On'
         }
         else {
-            chlorStatus='Off'
+            return 'Off'
         }
-        return (<ListGroup key={currentChlor.id+'chlorlistgroup'}>
-            <ListGroupItem >
-                <Row>
-                    <Col xs="6">{currentChlor.name} ({currentChlor.id})</Col>
-                    <Col>
-                        <Button onClick={toggleFromButton} value={currentChlor.id} color={currentChlor.currentOutput>0? 'success':'primary'}>{chlorStatus}</Button>
-                    </Col>
-                </Row>
-
-                {currentChlor?.isVirtual && currentChlor.virtualControllerStatus&&currentChlor.virtualControllerStatus.val!==-1&&(<Row>
-                    <Col xs="6">Virtual Controller Status:</Col>
-                    <Col xs="6">{currentChlor.virtualControllerStatus.desc}</Col>
-                </Row>)}
-                <Row>
-                    <Col xs="6">Salt</Col>
-                    <Col xs="6">{currentChlor.saltLevel} ppm</Col>
-                </Row>
-                <Row>
-                    <Col xs="6">Current Output</Col>
-                    <Col xs="6">{currentChlor.currentOutput} %</Col>
-                </Row>
-                <Row>
-                    <Col xs="6">{currentChlor.body&&currentChlor.body.desc} Setpoint
-                            </Col>
-                    <Col xs="6">{currentChlor.body.val===0? `${ currentChlor.poolSetpoint }%`:`${ currentChlor.poolSetpoint }% / ${ currentChlor.spaSetpoint }%`}
-                    </Col>
-                </Row>
-                <Row>
-                    <Col xs="6">Status</Col>
-                    <Col xs="6">{currentChlor.status.desc}</Col>
-                </Row>
-            </ListGroupItem>
-        </ListGroup>)
-    }
-
+    } 
 
     if(data.chlorinators===false) return (<div />);
     const closeBtn=<button className="close" onClick={toggle}>&times;</button>;
 
     return (<div className="tab-pane active" id={props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
         <CustomCard name='Chlorinator' id={props.id} >
-            {!isLoading&&doneLoading? chlorinator():<>Loading...</>}
+        {data.chlorinators.length===0||typeof currentChlor==='undefined' &&
+            <>No chlorinator connected to system.
+            <br />
+           {chlorSearchMessage === `Searching...` ? chlorSearchMessage:<Button color='link' onClick={addVirtualChlor}>{chlorSearchMessage}</Button>}
+            </>
+        }
+            {isLoading || !doneLoading|| typeof currentChlor === 'undefined' ? <>Loading...</>:
+                <ListGroup key={currentChlor.id+'chlorlistgroup'}>
+                <ListGroupItem >
+                    <Row>
+                        <Col xs="6">{currentChlor.name} ({currentChlor.id})</Col>
+                        <Col>
+                            <Button onClick={toggleFromButton} value={currentChlor.id} color={currentChlor.currentOutput>0? 'success':'primary'}>{chlorStatus(currentChlor.currentOutput, currentChlor.superChlor, currentChlor.superChlorHours)}</Button>
+                        </Col>
+                    </Row>
+    
+                    {currentChlor?.isVirtual && currentChlor.virtualControllerStatus&&currentChlor.virtualControllerStatus.val!==-1&&(<Row>
+                        <Col xs="6">Virtual Controller Status:</Col>
+                        <Col xs="6">{currentChlor.virtualControllerStatus.desc}</Col>
+                    </Row>)}
+                    <Row>
+                        <Col xs="6">Salt</Col>
+                        <Col xs="6">{currentChlor.saltLevel} ppm</Col>
+                    </Row>
+                    <Row>
+                        <Col xs="6">Current Output</Col>
+                        <Col xs="6">{currentChlor.currentOutput} %</Col>
+                    </Row>
+                    <Row>
+                        <Col xs="6">{currentChlor.body&&currentChlor.body.desc} Setpoint
+                                </Col>
+                        <Col xs="6">{currentChlor?.body?.val===0? `${ currentChlor.poolSetpoint }%`:`${ currentChlor.poolSetpoint }% / ${ currentChlor.spaSetpoint }%`}
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col xs="6">Status</Col>
+                        <Col xs="6">{currentChlor.status.desc}</Col>
+                    </Row>
+                </ListGroupItem>
+            </ListGroup>
+            }
         </CustomCard>
         <Modal isOpen={modal} toggle={toggle} size='xl' >
             <ModalHeader toggle={toggle} close={closeBtn}>Adjust Chlorinator Levels for ID:{currentChlorID}</ModalHeader>
             <ModalBody>
-                <ChlorinatorCustomSlider
+                {currentChlor && <ChlorinatorCustomSlider
                     chlor={currentChlor}
-                />
+                />}
             </ModalBody>
             <ModalFooter>
                 <Button onClick={toggle}>Close</Button>

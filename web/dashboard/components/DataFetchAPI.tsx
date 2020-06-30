@@ -4,7 +4,7 @@ import { PoolContext } from './PoolController';
 var extend=require("extend");
 
 const dataFetchReducer=(state, action) => {
-    const debug=true;
+    const debug=false;
     if(debug) {
         console.log(`dataFetchReducer incoming:`);
         console.log(action);
@@ -152,6 +152,29 @@ const dataFetchReducer=(state, action) => {
                             return { ...state };
                         }
                     }
+
+                case 'REPLACE':
+                    {
+                        // used to completely replace an object (object is modified on the local component)
+                        // eg used in Chem Controllers to add/remove one.  This wouldn't work with the other methods
+                        if(Array.isArray(action.dataName)) {
+                            let d=state.data;
+                            for(let i=0;i<action.dataName.length;i++) {
+                                d=d[action.dataName[i]];
+                            }
+                            // if we replace the array with another array we replace the reference,
+                            // so need to empty out the original and push the new.
+                            let len = d.length;
+                            d.splice(0,len);
+                            for (let i = 0; i < action.data.length; i++){
+                                d.push(action.data[i]);
+                            }
+                            return { ...state };
+                        }
+                        else if (typeof action.dataName !== 'undefined') state.data[action.dataName] = action.data
+                        else state.data = action.data;
+                        return {...state};
+                    }
                 case 'EXTEND':
                     console.log(`type of update=extend; with data: ${ JSON.stringify(action.data) }`);
                     break;
@@ -165,7 +188,7 @@ const dataFetchReducer=(state, action) => {
     }
 };
 const useDataApi=(initialUrls, initialData) => {
-    const debug=true;
+    const debug=false;
     const [urls, setUrls]=useState(initialUrls);
 
 

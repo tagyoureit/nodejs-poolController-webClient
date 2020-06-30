@@ -38,6 +38,13 @@ function PumpConfigContainer(props: Props) {
             data: { pumpType }
         })
     }
+    const setPump = async(data: any) => {
+        await axios({
+            method: 'put',
+            url: `${ poolURL }/config/pump`,
+            data: data
+        })
+    }
     const changePumpCircuit=async (pumpCircuit: number, obj: any) => {
         console.log(`changing pump ${ props.currentPumpId } circuitSlot ${ pumpCircuit } to ${ JSON.stringify(obj, null, 2) }`);
         await axios({
@@ -100,8 +107,9 @@ function PumpConfigContainer(props: Props) {
                 <PumpConfigSelectType
                     currentPump={props.currentPump}
                     currentPumpId={props.currentPumpId}
-                    currentPumpName={currentPumpType.desc}
-                    onChange={changePumpType}
+                    currentPumpType={currentPumpType.desc}
+                    handleChangePumpType={changePumpType}
+                    setPump={setPump}
                     pumpTypes={props.options.pumpTypes}
                 />
             </Col>

@@ -12,3 +12,34 @@
     border: 0;
     font-size: inherit !important;
 }
+
+.center {
+    display: flex;
+    justify-content: center; /* align horizontal */
+    align-items: center; /* align vertical */
+}
+
+.centerText {
+    text-align: center;
+}
+
+/*  CHEM CONTROLLER */
+.topAbs10Percent { 
+    /* align chem controller top */
+    position: absolute;
+    top: 10px
+}
+
+.bottomFixed {
+    position: absolute;
+    bottom: 0px;
+}
+
+.centerSVG {
+    margin: auto;
+    display: block;
+}
+
+.halfLineHeight {
+    line-height: 0.5;
+}

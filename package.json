@@ -28,6 +28,7 @@
     "react": "^16.13.1",
     "react-data-grid": "^6.1.0",
     "react-dom": "^16.13.1",
+    "react-horizontal-stacked-bar-chart": "^8.15.2",
     "react-infinite-calendar": "^2.3.1",
     "react-rangeslider": "^2.2.0",
     "react-timekeeper": "^2.1.1",

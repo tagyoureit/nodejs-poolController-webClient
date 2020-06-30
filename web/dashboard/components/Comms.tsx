@@ -154,6 +154,9 @@ export const useAPI=() => {
             case 'setCircuit':
                 opts.url=`${ poolURL }/config/circuit`
                 break;
+            case 'setFeature':
+                opts.url=`${ poolURL }/config/feature`
+                break;
             case 'toggleCircuit':
                 opts.url = `${poolURL}/state/circuit/toggleState`;
                 break
@@ -208,6 +211,11 @@ export const useAPI=() => {
                 opts.responseType = 'blob'
                 opts.url = `${ poolURL }/app/config/stopPacketCapture`
                 break;
+            // CHEM CONTROLLERS
+            case 'setChemControllerConfig':
+                opts.url = `${ poolURL }/config/chemController`
+                break;
+            
             // LIGHT GROUPS
             case 'setLightGroupTheme':
                 opts.url=`${ poolURL }/state/circuit/setTheme`

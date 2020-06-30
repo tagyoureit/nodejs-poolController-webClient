@@ -87,7 +87,9 @@ function PoolNav(props: any) {
                             <NavLink onClick={toggle} href="/utilities" id='utilities' >Utilities</NavLink>
                         </NavItem>
                         <NavItem>
-                            <NavLink onClick={()=>{resetLayout();reload()}} id='reset' href='#'>Reset Layout</NavLink>
+                            <NavLink onClick={()=>{resetLayout();
+                                reload()}
+                                } id='reset' href='#'>Reset Layout</NavLink>
                         </NavItem>
                     </Nav>
                     <br />

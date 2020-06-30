@@ -27,6 +27,7 @@ import { useAPI, Discovery, useComms } from './Comms';
 import SysInfo from './SysInfo';
 import Light from './Light/Light';
 import { useInterval } from '../utilities/UseInterval'
+import ChemController from './ChemController'
 import Replay from './utilities/Replay'
 var extend=require("extend");
 export interface IPoolSystem {
@@ -306,6 +307,7 @@ export interface IConfigPump {
     isActive: boolean;
     isVirtual?: boolean;
     circuits: IConfigPumpCircuit[];
+    name: string;
 }
 export interface IConfigPumpType {
     val: number,
@@ -368,6 +370,44 @@ export interface IConfigLightGroupCircuit {
     swimDelay?: number;
     isActive?: boolean;
 }
+
+export interface IStateChemController {
+    id: number
+    name: string
+    address?: number
+    body?: IDetail
+    type: IDetail
+    pHLevel: number
+    orpLevel: number
+    saltLevel: number
+    waterFlow: number
+    acidTankLevel: number
+    orpTankLevel: number
+    status1: IDetail
+    status2: IDetail
+    phDosingTime: number
+    orpDosingTime: number
+    saturationIndex: number
+    temp: number
+    tempUnits: IDetail
+    virtualControllerStatus: IDetail
+}
+
+export interface IConfigChemController {
+    id: number
+    name: string
+    address?: number
+    body?: IDetail
+    type: IDetail
+    isActive: boolean
+    isVirtual: boolean
+    pHSetpoint: number
+    orpSetpoint: number
+    calciumHardness: number
+    cyanuricAcid: number
+    alkalinity: number
+}
+export interface IExtendedChemController extends IConfigChemController, IStateChemController{}
 
 export function getItemById(data: any, _id: number) {
     if(Array.isArray(data)) {
@@ -627,6 +667,9 @@ function PoolController() {
                         />
                         <Chlorinator
                             id="Chlorinators"
+                        />
+                        <ChemController
+                            id="Chem Controllers"
                         />
                          <Replay
                             id="Replay"

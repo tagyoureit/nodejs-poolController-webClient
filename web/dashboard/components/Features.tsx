@@ -133,10 +133,10 @@ function Features(props: Props) {
                 </ListGroup>
             </CustomCard>
             <Modal isOpen={modalOpen} toggle={toggleModal} size='xl' scrollable={true}>
-                <ModalHeader toggle={toggleModal} close={closeBtn}>Configure Circuits</ModalHeader>
+                <ModalHeader toggle={toggleModal} close={closeBtn}>Configure Features</ModalHeader>
                 <ModalBody>
                     <CircuitModalPopup
-                        id='circuitConfig'
+                        id='featureConfig'
                         
                         controllerType={controllerType} 
                         type='features'

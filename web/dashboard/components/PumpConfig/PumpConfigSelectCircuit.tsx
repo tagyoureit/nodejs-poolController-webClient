@@ -34,27 +34,6 @@ function PumpConfigSelectCircuit(props: Props){
     const circuitSelectors = () =>
     {
         let dropdownChildren: React.ReactFragment[] = [];
-/*         for ( let i = 0; i < props.availableCircuits.length; i++ )
-        {
-            // insert first header
-            if (i === 0) dropdownChildren.push(<DropdownItem key={`${ props.currentPumpCircuit.id }${ i*100 }CircuitSelect`} header={true} >{props.availableCircuits[ i ].type}</DropdownItem>)
-            // insert divider
-            if (i > 0 && props.availableCircuits[ i ].type !== props.availableCircuits[ i-1 ].type ){
-
-                dropdownChildren.push(<DropdownItem key={`${ props.currentPumpCircuit.id }${ i*100 }CircuitSelect`} divider={true}></DropdownItem>)
-                dropdownChildren.push(<DropdownItem key={`${ props.currentPumpCircuit.id }${ i*101 }CircuitSelect`} header={true}>{ i===props.availableCircuits.length-1?'':props.availableCircuits[ i ].type}</DropdownItem>)
-            }
-            let circ = props.availableCircuits[ i ];
-            let displayText = circ.name==='Remove'?(<p className='text-danger' color='red'>{circ.name}</p>):circ.name;
-
-            let entry:React.ReactFragment = ( <DropdownItem key={`${ props.currentPumpCircuit.id }${ circ.id }CircuitSelect`}
-                value={circ.id}
-                onClick={handleClick} 
-                disabled={typeof circ.type === 'undefined'}
-            >{displayText}</DropdownItem> )
-            dropdownChildren.push( entry );
-        } */
-
          props.availableCircuits.forEach(circ => {
             let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.pumpId}pumpcirc${ props.currentPumpCircuit.id }circ${ circ.id }CircuitSelect`}
                 value={circ.id}
@@ -63,8 +42,6 @@ function PumpConfigSelectCircuit(props: Props){
             >{circ.name}</DropdownItem> )
             dropdownChildren.push( entry );
         }); 
-
-
         return dropdownChildren;
     }
     const label = () => {

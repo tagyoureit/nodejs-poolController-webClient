@@ -16,14 +16,14 @@ function ChlorinatorCustomSlider(props: Props) {
     const [superChlorHours, setSuperChlorHours]=useState(0);
     const execute = useAPI();
     useEffect(() => {
-        setPoolSetpoint(props.chlor.poolSetpoint)
-    }, [props.chlor.poolSetpoint])
+        setPoolSetpoint(props?.chlor?.poolSetpoint)
+    }, [props.chlor?.poolSetpoint])
     useEffect(() => {
-        setSpaSetpoint(props.chlor.spaSetpoint);
-    }, [props.chlor.spaSetpoint])
+        setSpaSetpoint(props?.chlor?.spaSetpoint);
+    }, [props.chlor?.spaSetpoint])
     useEffect(() => {
-        setSuperChlorHours(props.chlor.superChlorHours);
-    }, [props.chlor.superChlorHours])
+        setSuperChlorHours(props?.chlor?.superChlorHours);
+    }, [props.chlor?.superChlorHours])
 
     const onChangePool=(poolLvl: number) => {
         setPoolSetpoint(poolLvl);
@@ -50,6 +50,7 @@ function ChlorinatorCustomSlider(props: Props) {
     const customPercentLabels={ 0: "Off", 50: "50%", 100: "100%" };
     const customTimeLabels={ 0: "Off", 12: "12", 24: "24" };
 
+    if (typeof props.chlor === 'undefined') return (<div>No Chlor</div>)
     return (
 
         <div>

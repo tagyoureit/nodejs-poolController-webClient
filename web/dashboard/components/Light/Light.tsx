@@ -1,5 +1,5 @@
 import {
-    Row, Col, Button, ButtonGroup, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Modal, ModalHeader, ModalBody, ModalFooter
+    Row, Col, Button, ButtonGroup, ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem, Modal, ModalHeader, ModalBody, ModalFooter, ListGroupItem, ListGroup
 } from 'reactstrap';
 
 import CustomCard from '../CustomCard';
@@ -69,6 +69,9 @@ function Light(props: Props) {
                         return (<div key={`lightGroup${ lightGroup.id }`}>
 
                             {lightGroup?.type?.desc}&nbsp;
+                            <ListGroup>
+                                <ListGroupItem>
+
                             {lightGroup.action.val? `: Please wait... ${ lightGroup.action.desc }`:<><ButtonDropdown
                                 isOpen={dropdownOpen}
                                 toggle={toggleDropDown}
@@ -86,24 +89,32 @@ function Light(props: Props) {
                                     })}
                                 </DropdownMenu>
                             </ButtonDropdown>
+                                <ButtonGroup>
 
+                                
                                 {data.options.themes.filter(theme => theme.name==='on').map(theme => {
                                     return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-2'}>{theme.desc}</Button>;
                                 })}
                                 {data.options.themes.filter(theme => theme.name==='off').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-2'}>{theme.desc}</Button>;
+                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} >{theme.desc}</Button>;
                                 })}
+                                </ButtonGroup>
+                                <ButtonGroup>
+
                                 {data.options.themes.filter(theme => theme.name==='colorsync').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-2'}>{theme.desc}</Button>;
+                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-2'}>Sync</Button>;
                                 })}
                                 {data.options.themes.filter(theme => theme.name==='colorswim').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-1'}>{theme.desc}</Button>;
+                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} >Swim</Button>;
                                 })}
                                 {data.options.themes.filter(theme => theme.name==='colorset').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-1'}>{theme.desc}</Button>;
+                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} >Set</Button>;
                                 })}
+                                </ButtonGroup>
                             </>}
                             {data.options.lightGroups.length>0&&<br />}
+                            </ListGroupItem>
+                            </ListGroup>
                         </div>);
                     })
                     }

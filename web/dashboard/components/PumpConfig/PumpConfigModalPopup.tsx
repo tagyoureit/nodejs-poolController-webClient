@@ -1,15 +1,21 @@
-import {
-    Nav, NavItem, NavLink
-} from 'reactstrap';
-import CustomCard from '../CustomCard';
-import React, { useContext, useState, useEffect, useReducer } from 'react';
-import PumpConfigContainer from './PumpConfigContainer';
-import { IStatePump, IConfigPump, getItemById, IStateCircuit, IDetail, IConfigPumpType, IConfigCircuit, getItemByVal } from '../PoolController';
+import { EventEmitter } from 'events';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
+import { Nav, NavItem, NavLink } from 'reactstrap';
 
+import CustomCard from '../CustomCard';
 import useDataApi from '../DataFetchAPI';
 import ErrorBoundary from '../ErrorBoundary';
-import { PoolContext } from '../PoolController'
-import { EventEmitter } from 'events';
+import {
+    getItemById,
+    getItemByVal,
+    IConfigCircuit,
+    IConfigPump,
+    IConfigPumpType,
+    IDetail,
+    PoolContext,
+} from '../PoolController';
+import PumpConfigContainer from './PumpConfigContainer';
+
 interface Props {
     id: string;
 }
@@ -29,7 +35,8 @@ const initialState: ConfigOptionsPump={
         "id": 1,
         "type": 0,
         "isActive": true,
-        "circuits": []
+        "circuits": [],
+        "name": 'none'
     }],
     pumpTypes: [{
         "val": 0,
@@ -57,7 +64,6 @@ function PumpConfigModalPopup(props: Props) {
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(arr, initialState);
 
     const [pumpType, setPumpType]=useState<IConfigPumpType>();
-    // const [pumpUnits, setPumpUnits] = useState<IDetail>();
 
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
@@ -65,8 +71,6 @@ function PumpConfigModalPopup(props: Props) {
             console.log(`LOADING PUMPEXT EMITTER; ${controllerType}`);
     
         const fnPumpExt=function(data) {
-            /* console.log(`received pumpExt:`);
-            console.log(data);*/
             doUpdate({ updateType: 'REPLACE_ARRAY', dataName: ['options','pumps'], data }); 
             let arr=[];
             arr.push({ url: `${ poolURL }/config/options/pumps`, dataName: 'options' });
@@ -99,7 +103,7 @@ function PumpConfigModalPopup(props: Props) {
         if(doneLoading) {
 
             return data.options.pumps.map((pump, idx) => {
-                const desc=getItemByVal(data.options.pumpTypes, pump.type).desc
+                const desc=pump.name
                 return (<NavItem key={`navPumpConfigKey${ pump.id }`}>
                     <NavLink href="#" target={pump.id.toString()} onClick={() => setCurrentPumpId(pump.id)} active={currentPumpId===
                         pump.id? true:false}

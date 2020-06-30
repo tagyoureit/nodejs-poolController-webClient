@@ -111,7 +111,12 @@ function CircuitModalPopup(props: Props) {
         }
         else {
             console.log(`{ id: circId, type: circFunc.val:  ${ circId }  ${ circFunc.val }   ${ circFunc.val||0 }`)
-            await execute('setCircuit', { id: circId, type: circFunc.val });
+            if (props.type === 'features'){
+                await execute('setFeature', { id: circId, type: circFunc.val });
+            }
+            else {
+                await execute('setCircuit', { id: circId, type: circFunc.val });
+            }
         }
         update();
         addDisabledList(circId);
@@ -285,7 +290,7 @@ function CircuitModalPopup(props: Props) {
         {!doneLoading? <>Loading...</>:
             <div className="tab-pane active" id="Circuit" role="tabpanel" aria-labelledby="Circuit-tab">
 
-                <CustomCard name='Circuit Config'  id={props.id}>
+                <CustomCard name={props.type==='features'?'Feature Config':'Circuit Config'}  id={props.id}>
                     {allCircuitsDisplay()}
                 </CustomCard>
 
