@@ -57,7 +57,7 @@ function PumpConfigSelectType(props: Props){
         </ButtonDropdown>
                 </Col>
                 <Col>
-                {typeof props.currentPump !== 'undefined' && <><RIEInput
+                {typeof props.currentPump !== 'undefined' && false && <><RIEInput
                     value={props.currentPump?.name}
                     change={changeName}
                     propName={props.currentPump.id.toString()}
