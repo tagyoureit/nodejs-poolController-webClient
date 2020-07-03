@@ -40,6 +40,29 @@
     display: block;
 }
 
-.halfLineHeight {
-    line-height: 0.5;
+.threeQuarterLineHeight {
+    line-height: 0.75;
+}
+
+.minHeight125{
+    min-height: 125px
+}
+/*  TEST SVG */
+.tankBaseFill{
+    fill:rgb(255, 255, 255);
+    stroke:#231f20;
+   /*  stroke-miterlimit:10; */
+    stroke-width:1;
+}
+.tankFillBlack{
+    fill:#231f20;
+}
+.tankFillRed{
+    fill:rgb(176,40,40);
+}
+.tankFillYellow {
+    fill: yellow
+}
+.tankFillGreen {
+    fill: rgb(42,173,57);
 }

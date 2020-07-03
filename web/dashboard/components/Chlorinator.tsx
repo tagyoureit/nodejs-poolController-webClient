@@ -95,10 +95,11 @@ function Chlorinator(props: Props) {
         }
     } 
 
-    if(data.chlorinators===false) return (<div />);
+    
     const closeBtn=<button className="close" onClick={toggle}>&times;</button>;
 
-    return (<div className="tab-pane active" id={props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
+    return (<>{typeof data.chlorinators !== 'undefined' && typeof currentChlor !== 'undefined' &&<div className="tab-pane active" id={props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
+        
         <CustomCard name='Chlorinator' id={props.id} >
         {data.chlorinators.length===0||typeof currentChlor==='undefined' &&
             <>No chlorinator connected to system.
@@ -136,7 +137,7 @@ function Chlorinator(props: Props) {
                     </Row>
                     <Row>
                         <Col xs="6">Status</Col>
-                        <Col xs="6">{currentChlor.status.desc}</Col>
+                        <Col xs="6">{currentChlor?.status.desc}</Col>
                     </Row>
                 </ListGroupItem>
             </ListGroup>
@@ -154,7 +155,7 @@ function Chlorinator(props: Props) {
             </ModalFooter>
         </Modal>
     </div>
-    )
+}</>)
 
 
 }

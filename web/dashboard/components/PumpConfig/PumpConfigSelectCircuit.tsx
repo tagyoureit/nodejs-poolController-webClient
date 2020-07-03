@@ -3,52 +3,76 @@ import '../../css/dropdownselect';
 import React, { useEffect, useState } from 'react';
 import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 
-import { getItemById, IConfigCircuit, IConfigPumpCircuit } from '../PoolController';
+import { getItemById, IConfigCircuit, IConfigPumpCircuit, IConfigPump } from '../PoolController';
+import { ConfigOptionsPump } from './PumpConfigModalPopup';
+var extend = require("extend");
 
 interface Props
 {
-    pumpId: number
-    availableCircuits: IConfigCircuit[];
-    currentPumpCircuit: IConfigPumpCircuit
-    disabled: boolean
-    onChange: (pumpCircuit: number, obj: any)=>void
-    onDelete: (pumpCircuit: number)=>void
+    currentPumpId: number
+    // availableCircuits: IConfigCircuit[];
+    currentPumpCircuitId: number
+    // disabled: boolean
+    // onChange: (pumpCircuit: number, obj: any)=>void
+    // onDelete: (pumpCircuit: number)=>void
+    options: ConfigOptionsPump
+    setPump: (currentPumpId: number, data:any) => void
 }
 
 function PumpConfigSelectCircuit(props: Props){
+    const notUsed = props.options.circuitNames.find(c=>c.name === 'notused');
     const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-
+    const currentPump = () =>{
+        return props.options.pumps.find(p => p.id === props.currentPumpId); 
+    }
+    const currentCircuit = () =>{
+        let circ = currentPump()?.circuits.find(circ => circ.id === props.currentPumpCircuitId);
+        if (typeof circ === 'undefined') return {id: props.currentPumpCircuitId, circuit: 255}
+        else return circ;
+    }
     const handleClick = ( event: any ) =>
     {
-        console.log( `changing  circuitSlot=${ props.currentPumpCircuit.id } type to circuit ${ event.target.value } (${ getItemById(props.availableCircuits, parseInt(event.target.value, 10)) .name })` )
-        let removeIDs = props.availableCircuits.filter(el=>{
-            return el.name.toLowerCase()==='not used' || el.name.toLowerCase()==='delete' || el.name.toLowerCase()==="remove" || el.name.toLowerCase() === 'none'
-        }).map(el=>el.id)
-        if (removeIDs.includes(parseInt(event.currentTarget.value, 10))){
-            props.onDelete(props.currentPumpCircuit.id)
+        console.log( `changing  circuitSlot=${ currentCircuit().id } type to circuit ${ event.target.value } (${ getItemById(props.options.circuits, parseInt(event.target.value, 10)) .name })` )
+        let data:IConfigPump[] = extend(true, [], props.options.pumps);
+        let pump = data.find(p=>p.id === props.currentPumpId)
+        let idx = pump.circuits.findIndex(circ => circ.id === props.currentPumpCircuitId);
+        if (idx >= 0) {
+            pump.circuits[idx].circuit = parseInt(event.target.value,10);
         }
         else
-        props.onChange(props.currentPumpCircuit.id, {circuit: parseInt( event.target.value, 10 )})
+        {
+            pump.circuits.push({id: props.currentPumpCircuitId, circuit: parseInt(event.target.value,10), units: undefined})
+        }    
+        props.setPump(props.currentPumpId, data);
     }
 
     const circuitSelectors = () =>
     {
         let dropdownChildren: React.ReactFragment[] = [];
-         props.availableCircuits.forEach(circ => {
-            let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.pumpId}pumpcirc${ props.currentPumpCircuit.id }circ${ circ.id }CircuitSelect`}
+         props.options.circuits.forEach(circ => {
+            if (circ.name === notUsed.desc || circ.equipmentType === 'virtual' && circ.assignableToPumpCircuit === false || circ.equipmentType === 'lightGroup' as any) return;
+            let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.currentPumpId}pumpcirc${ currentCircuit().id }circ${ circ.id }CircuitSelect`}
                 value={circ.id}
                 onClick={handleClick} 
-                disabled={typeof circ.type === 'undefined' && circ.id !== 255}
             >{circ.name}</DropdownItem> )
+
             dropdownChildren.push( entry );
         }); 
+        // let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.currentPumpId}pumpcirc${ currentCircuit().id }circ${ circ.id }CircuitSelect`}
+        //         value={circ.id}
+        //         onClick={handleClick} 
+        //         disabled={typeof circ.type === 'undefined' && circ.id !== notUsed.val}
+        //     >{circ.name}</DropdownItem> )
+            
+        //     dropdownChildren.push( entry );
         return dropdownChildren;
     }
     const label = () => {
-        if (props.currentPumpCircuit.circuit === 0) return 'Not Used'
-        return getItemById(props.availableCircuits, props.currentPumpCircuit.circuit).name;
+        if (currentCircuit()?.circuit === 0 || currentCircuit().circuit === notUsed.val) return notUsed.desc
+        return props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name;
     }
-        return (
+    
+    return (
         <>
         <ButtonDropdown 
         direction="right"
@@ -59,8 +83,7 @@ function PumpConfigSelectCircuit(props: Props){
         className='fullWidth'
         >
             <DropdownToggle 
-            disabled={props.disabled}
-            // color={props.currentPumpCircuit.circuit.isOn?'success':'secondary'}
+            disabled={props.options.pumps.find(p => p.id === props.currentPumpId).type === 0}
             caret >
                 {label()}
             </DropdownToggle>

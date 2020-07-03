@@ -1,46 +1,69 @@
 import {Row, Col, Button, ButtonGroup, Nav, NavItem, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavLink, ButtonDropdown} from "reactstrap";
 //import {comms} from "../Comms";
 import React, {useEffect, useState} from "react";
-import {IStatePumpCircuit, IDetail, getItemByAttr, IConfigPumpCircuit, getItemByVal} from "../PoolController";
-
+import {IStatePumpCircuit, IDetail, getItemByAttr, IConfigPumpCircuit, getItemByVal, IConfigPump} from "../PoolController";
+import { ConfigOptionsPump } from "./PumpConfigModalPopup";
+var extend = require("extend");
 interface Props {
-    disabled: boolean
-    pumpUnits: IDetail[];
-    currentPumpCircuit: IConfigPumpCircuit;
-    onChange: (pumpCircuit: number, obj: any)=>void
-    pumpType: string
+    // disabled: boolean
+    // pumpUnits: IDetail[];
+    currentPumpCircuitId: number;
+    // onChange: (pumpCircuit: number, obj: any)=>void
+    // pumpType: string
+    currentPumpId: number;
+    // pumpType: string
+    // pumpUnits: IDetail[]
+    // disabled: boolean
+    options: ConfigOptionsPump
+    setPump: (currentPumpId: number, data:any) => void
 }
 interface State {
     dropdownOpen: boolean;
 }
 
 function PumpConfigSelectUnits(props:Props) {
-/*     constructor(props: Props) {
-        super(props);
-        toggle=toggle.bind(this);
-        handleClick=handleClick.bind(this);
-        state={dropdownOpen: false};
-    } */
-
+    const notUsed = props.options.circuitNames.find(c=>c.name === 'notused');
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    useEffect(() => {
-        let unit=getItemByVal(props.pumpUnits, props.currentPumpCircuit.units);
-
-    }, [JSON.stringify(props.currentPumpCircuit)])
 
     const handleClick = (event: any) => {
-        console.log(`changing circuitSlot ${props.currentPumpCircuit} type to ${event.target.value}`);
-        //comms.setPumpCircuit(props.currentPump, props.currentPump, {units: event.target.value});
-        props.onChange(props.currentPumpCircuit.id, {units: parseInt(event.target.value,10)})
+        console.log(`changing circuitSlot ${props.currentPumpCircuitId} type to ${event.target.value}`);
+        let data:IConfigPump[] = extend(true, [], props.options.pumps);
+        let circ = data.find(p=>p.id === props.currentPumpId).circuits.find(circ => circ.id === props.currentPumpCircuitId)
+        circ.units = parseInt(event.target.value,10) as 0 | 1;
+        props.setPump(props.currentPumpId, data);
+    }
+
+    const currentPump = () =>{
+        return props.options.pumps.find(p => p.id === props.currentPumpId); 
+    }
+    const currentCircuit = () =>{
+        let circ = currentPump().circuits.find(circ => circ.id === props.currentPumpCircuitId);
+        if (typeof circ === 'undefined') {
+            if (currentPump().minFlow ) 
+            
+            return {id: props.currentPumpCircuitId, circuit: 255, flow: 30, units: props.options.pumpUnits.find(u => u.name === 'gpm').val}
+            else return {id: props.currentPumpCircuitId, circuit: 255, speed: 1000, units: props.options.pumpUnits.find(u => u.name === 'rpm').val}
+        }
+        else return circ;
+    }
+    const units = () => {
+        let units = props.options.pumpUnits.find(unit => unit.val === currentCircuit()?.units);
+        if (typeof units === 'undefined'){
+            if (currentPump().maxFlow > 0) return props.options.pumpUnits.find(unit => unit.name === 'gpm');
+            if (currentPump().maxSpeed > 0) return props.options.pumpUnits.find(unit => unit.name === 'rpm');
+        }
+        return units
     }
 
     const toggle= () => {
             setDropdownOpen(!dropdownOpen);
     }
   
-        return (
+        return !(currentCircuit().circuit === 255) && !(props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name === notUsed.desc) ? (
             <div>
-            {props.pumpType==='vsf'?
+
+            {props.options.pumpTypes.find(type => type.val === props.options.pumps.find(p => p.id === props.currentPumpId).type).name==='vsf'?
+            (typeof currentCircuit() !== 'undefined' && 
             <ButtonDropdown
                 size="sm"
                 className="mb-1 mt-1"
@@ -48,22 +71,22 @@ function PumpConfigSelectUnits(props:Props) {
                 toggle={toggle}
             >
                 <DropdownToggle 
-                disabled={props.disabled}
+                disabled={props.options.pumps.find(p => p.id === props.currentPumpId).type === 0}
                 caret>
-                    {`${props.currentPumpCircuit.speed||props.currentPumpCircuit.flow} ${getItemByVal(props.pumpUnits, props.currentPumpCircuit.units).desc}`}
+                    {`${currentCircuit()?.speed||currentCircuit()?.flow} ${units().desc}`}
                 </DropdownToggle>
                 <DropdownMenu>
                     <DropdownItem value="0" onClick={handleClick}>
-                        {props.pumpUnits[0].desc}
+                        {props.options.pumpUnits[0].desc}
                     </DropdownItem>
                     <DropdownItem value="1" onClick={handleClick}>
-                        {props.pumpUnits[1].desc}
+                        {props.options.pumpUnits[1].desc}
                     </DropdownItem>
                 </DropdownMenu>
-            </ButtonDropdown>
-            :props.currentPumpCircuit.circuit>0?`${props.currentPumpCircuit.speed||props.currentPumpCircuit.flow} ${getItemByVal(props.pumpUnits, props.currentPumpCircuit.units).desc}`:''}
+            </ButtonDropdown>)
+            : `${currentCircuit().speed||currentCircuit().flow}  ${units().desc}`}
             </div>
-        );
+        ) : <></>;
     
 }
 

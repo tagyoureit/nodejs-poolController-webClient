@@ -1,17 +1,18 @@
 import '../../css/rangeslider.css';
 import 'react-rangeslider/lib/index.css';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Slider from 'react-rangeslider';
 
-import { IConfigPumpCircuit, IDetail, IConfigPump, getItemByVal } from '../PoolController';
+import { ConfigOptionsPump } from './PumpConfigModalPopup';
+import { IConfigPump } from '../PoolController';
 
+var extend = require("extend");
 interface Props {
-    disabled: boolean
-    currentPumpCircuit: IConfigPumpCircuit
-    currentPump: IConfigPump;
-    pumpUnits: IDetail[];
-    onChange: (pumpCircuit: number, obj: any) => void
+    currentPumpId: number;
+    currentPumpCircuitId: number;
+    options: ConfigOptionsPump;
+    setPump: (currentPumpId: number, data:any) => void;
 }
 
 interface State {
@@ -20,81 +21,80 @@ interface State {
 }
 
 function PumpConfigSelectSpeedSlider(props: Props) {
-    /*     constructor(props: Props) {
-            super(props)
-            console.log(props.currentPumpCircuit)
-            state={
-                desiredRate: props.currentPumpCircuit.speed||props.currentPumpCircuit.flow||0,
-                isGPM: props.currentPumpCircuit.units.desc==='GPM'
-            }
-            onChangeSpeed=onChangeSpeed.bind(this)
-        } */
-    const [isGPM, setIsGPM]=useState(false);
     const [desiredRate, setDesiredRate]=useState(0);
-    const [_min, setMin] = useState(450);
-    const [_max, setMax] = useState(3450);
-    useEffect(() => {
-        let unit=getItemByVal(props.pumpUnits, props.currentPumpCircuit.units);
-        if (unit.name === 'gpm'){
-            setIsGPM(true);
-            setDesiredRate(props.currentPumpCircuit.flow);
-            setMin(props.currentPump.minFlow);
-            setMax(props.currentPump.maxFlow);
+   
+    const currentPump = () =>{
+        return props.options.pumps.find(p => p.id === props.currentPumpId); 
+    }
+    const notUsed = props.options.circuitNames.find(c=>c.name === 'notused');
+    const currentCircuit = () =>{
+        let circ = currentPump().circuits.find(circ => circ.id === props.currentPumpCircuitId);
+        if (typeof circ === 'undefined') {
+            if (currentPump().minFlow ) 
+            
+            return {id: props.currentPumpCircuitId, circuit: 255, flow: 30, units: props.options.pumpUnits.find(u => u.name === 'gpm').val}
+            else return {id: props.currentPumpCircuitId, circuit: 255, speed: 1000, units: props.options.pumpUnits.find(u => u.name === 'rpm').val}
+        }
+        else return circ;
+    }
+
+    const units = () => {
+        let u =  props.options.pumpUnits.find(unit => unit.val === currentCircuit().units)
+        return u;
+    }
+
+     useEffect(() => {
+        
+        if (units().name === 'gpm'){
+            let flow = currentCircuit().flow;
+            setDesiredRate(flow);
         }
         else {
-            setIsGPM(false);
-            setDesiredRate(props.currentPumpCircuit.speed);
-            setMin(props.currentPump.minSpeed);
-            setMax(props.currentPump.maxSpeed);
+            let speed = currentCircuit().speed;
+            setDesiredRate(speed);
         }
-    }, [JSON.stringify(props.currentPumpCircuit)])
-    /* 
-        componentDidUpdate(prevProps: Props, prevState: State) {
-            if (JSON.stringify(prevProps.currentPumpCircuit)!==JSON.stringify(props.currentPumpCircuit) )
-                setState({
-                    desiredRate: props.currentPumpCircuit.speed||props.currentPumpCircuit.flow||0,
-                    isGPM: props.currentPumpCircuit.units.desc==='GPM'
-                })
-        } */
+    }, [JSON.stringify(props.options), props.currentPumpCircuitId, props.currentPumpId]) 
+     
 
     const onChangeSpeed=(_speed: number) => {
         setDesiredRate(_speed);
     }
 
     const onChangeComplete=() => {
-        console.log(`changing currentSpeed=${ props.currentPumpCircuit.flow||props.currentPumpCircuit.speed } ${ isGPM? 'GPM':'RPM' } currentPumpCircuit=${ props.currentPumpCircuit.id } to speed ${ desiredRate }`)
-
-        // comms.setPumpCircuit( props.currentPump, props.currentPumpCircuitid, {rate: state.desiredRate} )
-        props.onChange(props.currentPumpCircuit.id, { rate: desiredRate })
+        console.log(`changing currentSpeed=${ currentCircuit().flow||currentCircuit().speed } ${ units().name } currentPumpCircuit=${ currentCircuit().id } to speed ${ desiredRate }`)
+        let data:IConfigPump[] = extend(true, [], props.options.pumps);
+        let circ = data.find(p=>p.id === props.currentPumpId).circuits.find(circ => circ.id === props.currentPumpCircuitId)
+        if (units().name === 'gpm'){
+            circ.flow = desiredRate;
+        }
+        else {
+            circ.speed = desiredRate;
+        }
+        props.setPump(props.currentPumpId, data);
     }
 
     const customLabels=() => {
-        if(props.currentPumpCircuit.id!==8) return {};
-        if(isGPM) {
-            return { 15: "15", 130: "130" }
+        if(currentCircuit().id!==8) return {};
+        if(units().name === 'gpm') {
+            return { [currentPump().minFlow]: currentPump().minFlow.toString(), [currentPump().maxFlow]: currentPump().maxFlow.toString() }
         }
         else {
-            return { 450: "450", 3450: "3450" };
+            return { [currentPump().minSpeed]: currentPump().minSpeed.toString(), [currentPump().maxSpeed]: currentPump().maxSpeed.toString() };
         }
     }
 
-    if(props.currentPumpCircuit.id>0)
-        return (
-
+    return !(currentCircuit().circuit === 255) && !(props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name === notUsed.desc) ?
             <Slider
-                disabled={props.disabled}
                 value={desiredRate}
                 onChange={onChangeSpeed}
                 onChangeComplete={onChangeComplete}
-                min={_min}
-                max={_max}
-                step={isGPM? 1:10}
+                min={units().name === 'gpm' ? currentPump().minFlow : currentPump().minSpeed}
+                max={units().name === 'gpm' ? currentPump().maxFlow : currentPump().maxSpeed}
+                step={units().name === 'gpm' ? currentPump().flowStepSize : currentPump().speedStepSize}
                 labels={customLabels()}
             />
-
-        )
-    else return (< div />)
-
+            : < div />
+            
 }
 
 export default PumpConfigSelectSpeedSlider;

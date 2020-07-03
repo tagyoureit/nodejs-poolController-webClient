@@ -61,7 +61,7 @@ function Light(props: Props) {
 
     return (<>
         {!doneLoading&&<>Loading...</>}
-        {doneLoading&&!isError&&
+        {doneLoading&&!isError&&typeof data.light !== 'undefined' && 
             <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
 
                 <CustomCard name='Lights' id={props.id} edit={() => setModalOpen(!modalOpen)}>

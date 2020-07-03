@@ -1,0 +1,4 @@
+{
+    /* https://github.com/parcel-bundler/parcel/issues/1523 */
+    "minifySvg": false
+}

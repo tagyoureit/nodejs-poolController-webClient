@@ -36,7 +36,9 @@
     "rimraf": "^3.0.2",
     "socket.io": "^2.3.0",
     "socketio-wildcard": "^2.0.0",
-    "tsc-watch": "^4.2.8"
+    "tsc-watch": "^4.2.8",
+    "update": "^0.7.4",
+    "upgrade": "^1.1.0"
   },
   "devDependencies": {
     "@attently/riek": "^2.0.1",

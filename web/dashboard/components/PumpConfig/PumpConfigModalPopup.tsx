@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { Nav, NavItem, NavLink } from 'reactstrap';
-
+import axios from 'axios';
 import CustomCard from '../CustomCard';
 import useDataApi from '../DataFetchAPI';
 import ErrorBoundary from '../ErrorBoundary';
@@ -15,6 +15,7 @@ import {
     PoolContext,
 } from '../PoolController';
 import PumpConfigContainer from './PumpConfigContainer';
+import { useAPI } from '../Comms';
 
 interface Props {
     id: string;
@@ -56,7 +57,8 @@ const initialState: ConfigOptionsPump={
 
 function PumpConfigModalPopup(props: Props) {
     let [currentPumpId, setCurrentPumpId]=useState(1);
-    let [currentPump, setCurrentPump]=useState();
+    // let [currentPump, setCurrentPump]=useState();
+    const execute=useAPI();
 
     const { controllerType, poolURL, emitter }: {controllerType: string, poolURL: string, emitter:EventEmitter}=useContext(PoolContext);
     let arr=[];
@@ -66,7 +68,7 @@ function PumpConfigModalPopup(props: Props) {
     const [pumpType, setPumpType]=useState<IConfigPumpType>();
 
     /* eslint-disable react-hooks/exhaustive-deps */
-    useEffect(() => {
+/*     useEffect(() => {
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
             console.log(`LOADING PUMPEXT EMITTER; ${controllerType}`);
     
@@ -84,22 +86,32 @@ function PumpConfigModalPopup(props: Props) {
             emitter.removeListener('pumpExt', fnPumpExt);
         };
         }
-    }, [poolURL,emitter]);
+    }, [poolURL,emitter]); */
 
-    // react useEffect doesn't do deep compare; hence the JSON.stringify(data)
-    useEffect(() => {
-        if(doneLoading) {
-
-            // set current pump here; pass to children
-            let pump=getItemById(data.options.pumps, currentPumpId);
-            setCurrentPump(pump);
-            let _pumpType=getItemById(data.options.pumpTypes, pump.type);
-            setPumpType(_pumpType);
+    const changePumpType=async (pumpType: number) => {
+        await axios({
+            method: 'put',
+            url: `${ poolURL }/config/pump/${ currentPumpId }/type`,
+            data: { pumpType }
+        })
+    }
+    const setPump = async(currentPumpId: number, data: any) => {
+        let pump = data.find(p => p.id === currentPumpId);
+        let res = await execute('setPump', pump );
+        if (typeof res.stack === 'undefined'){
+            let idx = data.findIndex(d => d.id === res.id);
+            data[idx] = res;
+            doUpdate({updateType: 'REPLACE', data, dataName: ['options', 'pumps']});
         }
-    }, [currentPumpId, doneLoading])
-    /* eslint-enable react-hooks/exhaustive-deps */
+        else {
+            console.log(`ERROR!`)
+            console.log(res);
+            
+        }
+    }
 
     const navTabs=() => {
+        try {
         if(doneLoading) {
 
             return data.options.pumps.map((pump, idx) => {
@@ -115,6 +127,11 @@ function PumpConfigModalPopup(props: Props) {
                 </NavItem>);
             });
         }
+    }
+    catch (err){
+        console.log(err);
+        return <>Error</>
+    }
     };
 
     return !doneLoading? <>Loading...</>:(
@@ -129,8 +146,9 @@ function PumpConfigModalPopup(props: Props) {
                 <ErrorBoundary>
                     <PumpConfigContainer
                         currentPumpId={currentPumpId}
-                        currentPump={currentPump}
+                        // currentPump={currentPump}
                         options={data.options}
+                        setPump={setPump}
                     />
                 </ErrorBoundary>
             </CustomCard>

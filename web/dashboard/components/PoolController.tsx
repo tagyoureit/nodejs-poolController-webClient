@@ -285,6 +285,7 @@ export interface IConfigCircuit {
     macro?: boolean;
     isActive?: boolean;
     equipmentType?: 'circuit'|'feature'|'virtual'|'circuitGroup'
+    assignableToPumpCircuit?: boolean
 }
 export interface IConfigFeature {
     id: number;
@@ -297,6 +298,7 @@ export interface IConfigFeature {
 export interface IConfigPump {
     id: number;
     type: number;
+    name: string;
     primingSpeed?: number;
     primingTime?: number;
     minSpeed?: number;
@@ -304,10 +306,10 @@ export interface IConfigPump {
     minFlow?: number;
     maxFlow?: number;
     speedStepSize?: number;
+    flowStepSize?: number;
     isActive: boolean;
     isVirtual?: boolean;
     circuits: IConfigPumpCircuit[];
-    name: string;
 }
 export interface IConfigPumpType {
     val: number,

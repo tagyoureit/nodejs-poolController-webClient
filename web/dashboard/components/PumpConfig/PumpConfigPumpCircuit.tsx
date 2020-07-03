@@ -10,67 +10,49 @@ import { getItemById, IStatePump, IStatePumpCircuit, IDetail, IConfigCircuit, IC
 import PumpConfigSelectUnits from './PumpConfigSelectUnits';
 import PumpConfigSelectCircuit from "./PumpConfigSelectCircuit";
 import PumpConfigSelectSpeedSlider from "./PumpConfigSelectSpeedSlider";
+import { ConfigOptionsPump } from './PumpConfigModalPopup';
 interface Props
 {
-    availableCircuits: IConfigCircuit[];
-    currentPumpCircuit: IConfigPumpCircuit
-    currentPump: IConfigPump;
-    pumpType: string
-    pumpUnits: IDetail[]
-    disabled: boolean
-    onChange: (pumpCircuit: number, obj: any)=>void
-    onDelete: (pumpCircuit: number)=>void
-}
-interface State
-{
-
+    currentPumpCircuitId: number
+    currentPumpId: number;
+    options: ConfigOptionsPump
+    setPump: (currentPumpId: number, data:any) => void
 }
 
-class PumpConfigPumpCircuit extends React.Component<Props, State> {
+function PumpConfigPumpCircuit(props:Props) {
 
-    constructor( props: Props )
-    {
-        super( props )
-    }
-   
-    render ()
-    {
         return (
             <div>
                 <Row >
                     <Col className="col-4" style={{margin:'auto'}}>
                         Circuit{" "}
                         <PumpConfigSelectCircuit
-                            pumpId={this.props.currentPump.id}
-                            availableCircuits={this.props.availableCircuits}
-                            currentPumpCircuit = {this.props.currentPumpCircuit}
-                            onChange={this.props.onChange}
-                            onDelete={this.props.onDelete}
-                            disabled={this.props.disabled}
+                            currentPumpId={props.currentPumpId}
+                            currentPumpCircuitId = {props.currentPumpCircuitId}
+                            setPump={props.setPump}
+                            options={props.options}
                         />
                     </Col>
                     <Col className="col">
                         <PumpConfigSelectSpeedSlider
-                            currentPumpCircuit={this.props.currentPumpCircuit}
-                            pumpUnits={this.props.pumpUnits}
-                            currentPump={this.props.currentPump}
-                            onChange={this.props.onChange}
-                            disabled={this.props.disabled}
+                            currentPumpId={props.currentPumpId}
+                            currentPumpCircuitId={props.currentPumpCircuitId}
+                            options={props.options}
+                            setPump={props.setPump}
                         />
                     </Col>
                     <Col className="col-3" style={{margin:'auto'}}>
                   <PumpConfigSelectUnits
-                        currentPumpCircuit={this.props.currentPumpCircuit}
-                        pumpUnits={this.props.pumpUnits}
-                        onChange={this.props.onChange}
-                        pumpType={this.props.pumpType}
-                        disabled={this.props.disabled}
+                        currentPumpId={props.currentPumpId}
+                        currentPumpCircuitId={props.currentPumpCircuitId}
+                        options={props.options}
+                        setPump={props.setPump}
                         />  
                         </Col>
                         </Row>
             </div>
         )
-    }
+    
 }
 
 export default PumpConfigPumpCircuit;

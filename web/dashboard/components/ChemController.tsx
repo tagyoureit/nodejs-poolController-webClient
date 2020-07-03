@@ -83,55 +83,68 @@ function ChemControllers(props: any) {
                                 <ListGroup >
                                     <ListGroupItem>
                                         <Container>
-                                                <Row>
-                                                    <Col xs='6' lg='1' className='center'>
-                                                        <div className='topAbs10Percent centerText halfLineHeight'>
-                                                        Water Balance <br />
+                                                <Row className='minHeight125'>
+                                                    <Col xs='12' sm='4' className='centerText p-0 m-0'>
+                                                        {/* <div className='topAbs10Percent centerText threeQuarterLineHeight'> */}
+                                                        Water Balance <br/>
                                                         <h1 style={{ color: Math.abs(chemController.saturationIndex) > .3 ? 'rgb(176,40,40)' : 'rgb(42,173,57' }}>
                                                             {typeof chemController.saturationIndex === 'undefined' ? 'n/a' : chemController.saturationIndex}
                                                         </h1>
-                                                        </div>
-                                                        <div style={{position: 'absolute', bottom: '0'}} className='centerText'>
+                                                        {/* </div> */}
+                                                        <p />
+                                                        {/* <div style={{position: 'absolute', bottom: '0', lineHeight:'1'}} className='centerText'> */}
                                                         Alk: {chemController.alkalinity} <br />
                                                         CH:  {chemController.calciumHardness} <br />
                                                         CYA: {chemController.cyanuricAcid}
-                                                        </div>
+                                                       {/*  </div> */}
                                                     </Col>
                                                 
-                                                    <Col xs='3' lg='1' className='d-flex p-1 m-auto'>
-                                                        <div className='center p-0'>
-                                                        <svg width="100%" height="150" id='centerSVG'  style={{margin:'auto'}}>
-                                                            <rect width="25" height="25" y='0' fill={'rgb(42,173,57'} fillOpacity={chemController.acidTankLevel >= 6 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='25' fill='rgb(42,173,57' fillOpacity={chemController.acidTankLevel >= 5 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='50' fill='rgb(42,173,57' fillOpacity={chemController.acidTankLevel >= 4 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='75' fill={chemController.acidTankLevel >= 3 ? 'rgb(42,173,57' : 'yellow'} fillOpacity={chemController.acidTankLevel >= 3 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='100' fill={chemController.acidTankLevel >= 3 ? 'rgb(42,173,57' : 'yellow'} fillOpacity={chemController.acidTankLevel >= 2 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='125' fill={chemController.acidTankLevel >= 3 ? 'rgb(42,173,57' : chemController.acidTankLevel > 1 ? 'yellow' : 'rgb(176,40,40)'} fillOpacity={chemController.acidTankLevel >= 1 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
+                                                    <Col style={{maxHeight:'125px'}} xs='6' sm='4'  className='d-flex p-0 m-0'>
+                                                        <div className='center p-0' style={{width:'100%', height:'auto'}}>
+                                                        <svg height="100%" id="Layer_1" data-name="Layer 1" 
+                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116.58 192.89">
+                                                            showWebviewLoader={false}
+                                                            <path id='fill-1' className={`tankBaseFill ${chemController.acidTankLevel >= 3 ? 'tankFillGreen' : chemController.acidTankLevel > 1 ? 'tankFillYellow' : chemController.acidTankLevel === 1 ? 'tankFillRed': ''}`} d="M345.35,356.79v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-2' className={`tankBaseFill ${chemController.acidTankLevel >= 3 ? 'tankFillGreen' : chemController.acidTankLevel > 1 ? 'tankFillYellow' : ''}`} d="M345.35,333.36v13.57s-19.19,25.69,52.56,29.86c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-3' className={`tankBaseFill ${chemController.acidTankLevel >= 3 ? 'tankFillGreen' : ''}`} d="M345.35,309.93V323.5s-19.19,25.69,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-4' className={`tankBaseFill ${chemController.acidTankLevel >= 4 ? 'tankFillGreen' : ''}`} d="M345.45,288.63V302.2S326.26,327.89,398,332.06c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-5' className={`tankBaseFill ${chemController.acidTankLevel >= 5 ? 'tankFillGreen' : ''}`} d="M345.45,265.21v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-6' className={`tankBaseFill ${chemController.acidTankLevel >= 6 ? 'tankFillGreen' : ''}`} d="M345.45,241.78v13.57S326.26,281,398,285.21c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+
+                                                            <ellipse className={`tankBaseFill ${chemController.acidTankLevel >= 6 ? 'tankFillGreen' : ''}`} cx="58.29" cy="28.09" rx="56.49" ry="26.29"/>
+                                                            <ellipse className="tankBaseFill tankFillBlack" cx="24.2" cy="28.09" rx="8.79" ry="5.29"/>
                                                         </svg>
                                                         </div>
                                                         <div className='center centerText'>
+                                                            {chemController.acidTankLevel / 6}%
+                                                            <br />
                                                             Acid Tank Level
                                                 </div>
                                                     </Col>
-                                                    <Col xs='3' lg='1' className='d-flex p-1'>
-                                                        <div className='center p-0'>
-                                                        <svg width="100%" height="150" id='centerSVG' style={{margin:'auto'}}>
-                                                            <rect width="25" height="25" y='0' fill={'rgb(42,173,57'} fillOpacity={chemController.orpTankLevel >= 6 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='25' fill='rgb(42,173,57' fillOpacity={chemController.orpTankLevel >= 5 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='50' fill='rgb(42,173,57' fillOpacity={chemController.orpTankLevel >= 4 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='75' fill={chemController.orpTankLevel >= 3 ? 'rgb(42,173,57' : 'yellow'} fillOpacity={chemController.orpTankLevel >= 3 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='100' fill={chemController.orpTankLevel >= 3 ? 'rgb(42,173,57' : 'yellow'} fillOpacity={chemController.orpTankLevel >= 2 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
-                                                            <rect width="25" height="25" y='125' fill={chemController.orpTankLevel >= 3 ? 'rgb(42,173,57' : chemController.orpTankLevel > 1 ? 'yellow' : 'rgb(176,40,40)'} fillOpacity={chemController.orpTankLevel >= 1 ? 1 : 0} strokeWidth='3' stroke='rgb(0,0,0)' />
+                                                    <Col xs='6' sm='4' style={{maxHeight:'125px'}} className='d-flex p-0 m-0'>
+                                                        <div className='center p-0' style={{width:'100%', height:'auto'}}>
+                                                        <svg height="100%" id="Layer_1" data-name="Layer 1" 
+                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116.58 192.89">
+                                                            <path id='fill-1' className={`tankBaseFill ${chemController.orpTankLevel >= 3 ? 'tankFillGreen' : chemController.orpTankLevel > 1 ? 'tankFillYellow' : chemController.orpTankLevel === 1 ? 'tankFillRed': ''}`} d="M345.35,356.79v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-2' className={`tankBaseFill ${chemController.orpTankLevel >= 3 ? 'tankFillGreen' : chemController.orpTankLevel > 1 ? 'tankFillYellow' : ''}`} d="M345.35,333.36v13.57s-19.19,25.69,52.56,29.86c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-3' className={`tankBaseFill ${chemController.orpTankLevel >= 3 ? 'tankFillGreen' : ''}`} d="M345.35,309.93V323.5s-19.19,25.69,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-4' className={`tankBaseFill ${chemController.orpTankLevel >= 4 ? 'tankFillGreen' : ''}`} d="M345.45,288.63V302.2S326.26,327.89,398,332.06c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-5' className={`tankBaseFill ${chemController.orpTankLevel >= 5 ? 'tankFillGreen' : ''}`} d="M345.45,265.21v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
+                                                            <path id='fill-6' className={`tankBaseFill ${chemController.orpTankLevel >= 6 ? 'tankFillGreen' : ''}`} d="M345.45,241.78v13.57S326.26,281,398,285.21c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+
+                                                            <ellipse className={`tankBaseFill ${chemController.orpTankLevel >= 6 ? 'tankFillGreen' : ''}`} cx="58.29" cy="28.09" rx="56.49" ry="26.29"/>
+                                                            <ellipse className="tankBaseFill tankFillBlack" cx="24.2" cy="28.09" rx="8.79" ry="5.29"/>
                                                         </svg>
+
                                                         </div>
                                                         <div className='center centerText'>
                                                             ORP Tank Level
                                                         </div>
                                                     </Col>
-                                                </Row>
+                                              {/*   </Row>
                                           
-                                            <Row style={{height:'100px'}}>
-
+                                            <Row  */}
+                                                <Col xs='12' style={{height:'100px'}}>
                                                 <div style={{
                                                     position: 'relative',
                                                     height: '35px',
@@ -183,8 +196,11 @@ function ChemControllers(props: any) {
                                                 <div style={{position: 'relative', top: '-120px', fontSize: 'x-large'}}>
                                                     pH
                                                 </div>
-                                            </Row>
-                                            <Row style={{height:'100px'}}>
+
+                                                </Col>
+<Col xs='12'>
+                                            {/* </Row>
+                                            <Row style={{height:'100px'}}> */}
 
                                                 <div style={{
                                                     position: 'relative',
@@ -237,8 +253,8 @@ function ChemControllers(props: any) {
                                                 <div style={{position: 'relative', top: '-120px', fontSize: 'x-large'}}>
                                                     ORP
                                                 </div>
+                                            </Col>
                                             </Row>
-
                                         </Container>
                                     </ListGroupItem>
 
@@ -248,7 +264,10 @@ function ChemControllers(props: any) {
 
                         })}
 
+                        
+
                     </CustomCard>
+
 
 
                     <Modal isOpen={modalOpen} toggle={() => { setModalOpen(!modalOpen); }} size='xl' scrollable={true}>

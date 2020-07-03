@@ -194,6 +194,10 @@ export const useAPI=() => {
             case 'setChlor':
                 opts.url=`${ poolURL }/state/chlorinator/setChlor`
                 break;
+            // PUMPS
+            case 'setPump':
+                opts.url=`${ poolURL }/config/pump`
+                break;
             // APP OPTIONS
             case 'setAppLoggerOptions':
                 opts.url=`${ poolURL }/app/logger/setOptions`
