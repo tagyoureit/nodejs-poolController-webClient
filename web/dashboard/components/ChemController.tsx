@@ -116,7 +116,7 @@ function ChemControllers(props: any) {
                                                         </svg>
                                                         </div>
                                                         <div className='center centerText'>
-                                                            {chemController.acidTankLevel / 6}%
+                                                            {chemController.acidTankLevel}/6
                                                             <br />
                                                             Acid Tank Level
                                                 </div>
@@ -138,7 +138,8 @@ function ChemControllers(props: any) {
 
                                                         </div>
                                                         <div className='center centerText'>
-                                                            ORP Tank Level
+                                                        {chemController.orpTankLevel}/6
+                                                            <br />ORP Tank Level
                                                         </div>
                                                     </Col>
                                               {/*   </Row>
