@@ -29,6 +29,7 @@ import Light from './Light/Light';
 import { useInterval } from '../utilities/UseInterval'
 import ChemController from './ChemController'
 import Replay from './utilities/Replay'
+import SocketTester from './utilities/SocketTester';
 var extend=require("extend");
 export interface IPoolSystem {
     loadingMessage: string;
@@ -676,6 +677,9 @@ function PoolController() {
                          <Replay
                             id="Replay"
                          />
+                         <SocketTester
+                            id="Socket Tester"
+                        />
                         <div className='debugArea'>
 
                             Debug: <Button style={{ margin: '0px 0px 3px 0px', padding: 0, border: 0 }} color='link' onClick={() => setDebug(!debug)}>{debug? 'on':'off'}</Button>. <a href='https://github.com/tagyoureit/nodejs-poolController-webClient/issues/new'>Report an issue</a> or ask a question on the <a href='https://gitter.im/nodejs-poolController/Lobby'>forums</a>.
