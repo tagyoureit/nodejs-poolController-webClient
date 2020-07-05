@@ -31,6 +31,7 @@
     "react-horizontal-stacked-bar-chart": "^8.15.2",
     "react-infinite-calendar": "^2.3.1",
     "react-rangeslider": "^2.2.0",
+    "react-switch": "^5.0.1",
     "react-timekeeper": "^2.1.1",
     "reactstrap": "^8.4.1",
     "rimraf": "^3.0.2",

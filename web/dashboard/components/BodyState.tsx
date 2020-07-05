@@ -77,7 +77,7 @@ function BodyState(props: Props) {
 
             </Col>
         </Row>
-            {props.options.heatModes.length > 1 && <><Row>
+            {props?.options?.heatModes?.length > 1 && <><Row>
                 <Col>Temp</Col>
                 <Col >
                     {currentBody().temp}

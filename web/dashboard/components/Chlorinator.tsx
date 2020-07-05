@@ -123,11 +123,11 @@ function Chlorinator(props: Props) {
                     </Row>)}
                     <Row>
                         <Col xs="6">Salt</Col>
-                        <Col xs="6">{currentChlor.saltLevel} ppm</Col>
+                        <Col xs="6">{currentChlor?.saltLevel} ppm</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Current Output</Col>
-                        <Col xs="6">{currentChlor.currentOutput} %</Col>
+                        <Col xs="6">{currentChlor?.currentOutput} %</Col>
                     </Row>
                     <Row>
                         <Col xs="6">{currentChlor.body&&currentChlor.body.desc} Setpoint
@@ -137,7 +137,7 @@ function Chlorinator(props: Props) {
                     </Row>
                     <Row>
                         <Col xs="6">Status</Col>
-                        <Col xs="6">{currentChlor?.status.desc}</Col>
+                        <Col xs="6">{currentChlor?.status?.desc}</Col>
                     </Row>
                 </ListGroupItem>
             </ListGroup>

@@ -216,11 +216,9 @@ function Replay(props) {
     const handleReplayButton=() => {
         if(replayButtonText==='Replay') {
             if(numPackets>0) {
-
                 setreplayButtonColor('success')
                 setreplayButtonText('Replaying...');
-                replayTimer.current=setInterval(replayFile, 225);
-
+                replayTimer.current=setInterval(replayFile, 50);
             }
             else {
                 console.log('No packets to send yet')
@@ -247,35 +245,15 @@ function Replay(props) {
             else setincludePacketTypes(event.target.value)
         }
     }
-
-    /*
-    
-    export function sendPacket ( arrToBeSent: number[][] )
-    {
-        socket.emit( 'sendPacket', arrToBeSent )
-    }
-    
-    export function receivePacket ( arrToBeSent: number[][] )
-    {
-    
-        socket.emit( 'receivePacket', JSON.stringify( arrToBeSent ) )
-    }
-    
-    export function receivePacketRaw ( packets: number[][] )
-    {
-        socket.emit( 'receivePacketRaw', packets )
-    }
-    */
-
-
-
     const replayFile=() => {
         if(lineToSend.current<numPackets) {
             if (version === 5){
                 if(includePacketTypes===packets[lineToSend.current].direction||includePacketTypes==='both') {
                     if(replayDirection==='toApp') {
-                        socket.emit('replayPackets', [packets[lineToSend.current].packet])
-                        console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
+                        if (typeof packets[lineToSend.current]?.type !== 'undefined' && packets[lineToSend.current]?.type !== 'url'){
+                            socket.emit('replayPackets', [packets[lineToSend.current].packet])
+                            console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
+                        }
                     }
                     else {
                         socket.emit('sendPackets', [packets[lineToSend.current].packet]); 

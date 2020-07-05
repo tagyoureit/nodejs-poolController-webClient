@@ -301,6 +301,8 @@ export interface IConfigCircuit {
     freeze?: boolean;
     macro?: boolean;
     isActive?: boolean;
+    showInCircuits?: boolean;
+    showInFeatures?: boolean;
     equipmentType?: 'circuit'|'feature'|'virtual'|'circuitGroup'
     assignableToPumpCircuit?: boolean
 }
@@ -672,10 +674,10 @@ function PoolController() {
                         <Features
                             id="Features"
                         />
-                           <Light
-                            id="Lights"
+                        <Light
+                        id="Lights"
                         />
-                        <Circuits
+                        <Features
                             id="Circuit Groups"
                         />
                         <Circuits

@@ -37,15 +37,9 @@ function Circuits(props: Props) {
             switch(props.id) {
                 case "Circuits":
                     arr.push({ url: `${ poolURL }/state/circuits`, dataName: 'circuits' });
-                    // url=`${ url }/circuits`;
-                    break;
-                case "Circuit Groups":
-                    arr.push({ url: `${ poolURL }/state/circuitGroups`, dataName: 'circuits' });
-                    // url=`${ url }/circuitGroups`;
                     break;
                 case "Virtual Circuits":
                     arr.push({ url: `${ poolURL }/state/virtualCircuits`, dataName: 'circuits' });
-                    // url=`${ url }/virtualCircuits`;
                     break;
             }
             arr.push({ url: `${ poolURL }/config/equipment`, dataName: 'equipment' });
@@ -65,11 +59,6 @@ function Circuits(props: Props) {
                 emitter.on('circuit', fn);
                 return () => {
                     emitter.removeListener('circuit', fn);
-                };
-            case "Circuit Groups":
-                emitter.on('circuitGroup', fn);
-                return () => {
-                    emitter.removeListener('circuitGroup', fn);
                 };
             case "Virtual Circuits":
                 emitter.on('virtualCircuit', fn);
@@ -95,13 +84,11 @@ function Circuits(props: Props) {
     const circuit=() => {
         if(!data.circuits.length) return (<div />);
         return data.circuits&&data.circuits.length>0&&data.circuits.map(circuit => {
-            return (
-                <ListGroupItem key={circuit.id+'circuitlistgroupkey'}>
-                    <div className='d-flex justify-content-between'>
+            return (          
+                 <ListGroupItem key={`circGroupList-${circuit.id}`} className='d-flex justify-content-between'>
                         {circuit.name}
-                        <Button color={circuit.isOn? 'success':'primary'} key={circuit.id+'circuit'} onClick={handleClick} value={circuit.id} >{circuit.isOn? 'On':'Off'}
+                        <Button color={circuit.isOn? 'success':'primary'} key={circuit.id+'circuit'} onClick={handleClick} value={circuit.id} >{circuit.isOn? 'On':'Off' }
                         </Button>
-                    </div>
                 </ListGroupItem>
             );
         });
@@ -112,7 +99,7 @@ function Circuits(props: Props) {
     return (
         <div className={className} id={props.id} role="tabpanel" aria-labelledby="circuit-tab">
             <CustomCard name={props.id} id={props.id} edit={props.id==='Circuits'? toggleModal:undefined}>
-                <ListGroup flush >
+                <ListGroup flush>
                     {circuit()}
                 </ListGroup>
             </CustomCard>
