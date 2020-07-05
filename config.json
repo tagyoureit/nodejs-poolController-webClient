@@ -13,7 +13,8 @@
   },
   "options": {
     "hidePanels": [
-      "Replay"
+      "Replay",
+      "Socket Tester"
     ],
     "debug": false
   }

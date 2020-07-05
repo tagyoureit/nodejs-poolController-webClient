@@ -11,10 +11,11 @@ const record=require('../images/record.gif');
 interface Props {
     id: string,
     counter: number,
-    data: any;
+    state: any;
     isLoading: boolean
     doneLoading: boolean
     controllerName: string
+    config: any
 }
 
 const initialState: any={
@@ -46,12 +47,12 @@ function SysInfo(props: Props) {
         // open and close the modal
         setModalOpen(!modalOpen);
     }
-    const dateParse = (date: any) => {
-        var s = date.split(/[^0-9]/);
-        return new Date(s[0], s[1] - 1, s[2], s[3], s[4], s[5]);
+    const dateParse = (date: any = new Date().toString()) => {
+            var s = date.split(/[^0-9]/);
+            return new Date(s[0], s[1] - 1, s[2], s[3], s[4], s[5]);
     }
     const closeBtn=<button className="close" onClick={toggleModal}>&times;</button>;
-    return typeof props.data!=='string'&&typeof props.data!=='undefined'&&!props.isLoading&&props.doneLoading?
+    return typeof props.state!=='string'&&typeof props.state!=='undefined'?
         (
             <div className="tab-pane active" id="system" role="tabpanel" aria-labelledby="system-tab">
                 <CustomCard name='System Information' id={props.id} edit={toggleModal}>
@@ -70,29 +71,32 @@ function SysInfo(props: Props) {
                     <Row>
                         <Col xs="6">Date/Time </Col>
                         <Col>
-                            <DateTime origDateTime={dateParse(props.data.time)} />
+                            <DateTime 
+                            origDateTime={dateParse(props?.state?.time)} 
+                            config={props.config}
+                            />
                         </Col>
                     </Row>
 
                     <Row>
                         <Col xs="6">Status</Col>
-                        <Col xs="6"><StatusIndicator status={props.data.status} counter={props.counter}></StatusIndicator></Col>
+                        <Col xs="6"><StatusIndicator status={props?.state?.status} counter={props.counter}></StatusIndicator></Col>
                     </Row>
                     <Row>
                         <Col xs="6">Mode</Col>
-                        <Col xs="6">{props.data.mode.desc}</Col>
+                        <Col xs="6">{props?.state?.mode?.desc}</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Freeze</Col>
-                        <Col xs="6">{props.data.freeze? "Active":"Off"}</Col>
+                        <Col xs="6">{props?.state?.freeze? "Active":"Off"}</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Air Temp</Col>
-                        <Col xs="6">{typeof props.data.temps==='undefined'? '':props.data.temps.air}</Col>
+                        <Col xs="6">{typeof props?.state?.temps==='undefined'? '':props?.state?.temps?.air}</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Solar Temp</Col>
-                        <Col xs="6">{typeof props.data.temps==='undefined'? '':props.data.temps.solar}</Col>
+                        <Col xs="6">{typeof props?.state?.temps==='undefined'? '':props?.state?.temps?.solar}</Col>
                     </Row>
 
                 </CustomCard>

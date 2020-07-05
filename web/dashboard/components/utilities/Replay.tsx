@@ -9,24 +9,7 @@ import {
 } from 'reactstrap';
 import ReactDataGrid, { GridRowsUpdatedEvent, RowUpdateEvent, SelectionParams } from 'react-data-grid';
 import CustomCard from '../CustomCard'
-/* interface State {
-    [k: string]: any
-    replayFile?: any
-    packets: IPackets[];
-    numPackets: number
-    columns: {[key: string]: any}
-    selectedIndexes: number[]
-    replayTimer?: NodeJS.Timeout
-    runTo: number; // 
-    lineToSend: number // which line/packet will be sent next
-    linesSent: number // counter for sent packets
-    replayButtonColor: string
-    replayButtonText: string
-    replayDirection: 'toApp'|'toBus'
-    directionDropDownOpen: boolean
-    includePacketTypeDropDownOpen: boolean
-    includePacketTypes: DirectionType|'both'
-} */
+
 
 type PacketType='packet'|'socket'|'api'
 type DirectionType='inbound'|'outbound'
@@ -141,23 +124,27 @@ function Replay(props) {
             })
 
             // check if old or new format
-            if(Array.isArray(allLines[0].pkt[0])) {
-                setversion(6);
-                setincludePacketTypes('in');
-                setColumns([{ key: `counter`, name: `#`, width: 80 },
-                { key: 'proto', name: 'Proto', width: 75 },
-                { key: `dir`, name: `Direction`, width: 90 },
-                { key: 'ts', name: 'H:M:S.s', width: 110, formatter: dateFormatter },
-                { key: 'pkt', name: 'Packet', formatter: ({ value }: { value: number[] }): React.ReactElement => {
-                    try {
-                        return <>{JSON.stringify(value.slice(2))}</>
-                    }
-                    catch (err){
-                        return <>{value}</>
-                    }
-            
-                } }
+            for (let i = 0; i< allLines.length; i++){
+                if (typeof allLines[i].pkt === 'undefined') continue;
+                if(Array.isArray(allLines[i].pkt[0])) {
+                    setversion(6);
+                    setincludePacketTypes('in');
+                    setColumns([{ key: `counter`, name: `#`, width: 80 },
+                    { key: 'proto', name: 'Proto', width: 75 },
+                    { key: `dir`, name: `Direction`, width: 90 },
+                    { key: 'ts', name: 'H:M:S.s', width: 110, formatter: dateFormatter },
+                    { key: 'pkt', name: 'Packet', formatter: ({ value }: { value: number[] }): React.ReactElement => {
+                        try {
+                            return <>{JSON.stringify(value.slice(2))}</>
+                        }
+                        catch (err){
+                            return <>{value}</>
+                        }
+                        
+                    } }
                 ])
+             }
+             break;
             }
             setPackets(allLines);
             setNumPackets(Object.keys(allLines).length);

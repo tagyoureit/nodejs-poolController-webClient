@@ -15,7 +15,7 @@ import {
     UncontrolledButtonDropdown,
 } from 'reactstrap';
 
-import BodyState from './BodyState';
+import BodiesState from './BodiesState';
 import Chlorinator from './Chlorinator';
 import Circuits from './Circuits';
 import useDataApi from './DataFetchAPI';
@@ -183,12 +183,12 @@ export interface IStatePump {
     circuits: IStatePumpCircuit[];
 }
 export interface IStateTemp {
-    air: number;
+    air?: number;
     bodies: IStateTempBodyDetail[];
-    solar: number;
+    solar?: number;
     units: IDetail;
     waterSensor1: number;
-    waterSensor2: number;
+    waterSensor2?: number;
 }
 export interface IStateTempBodyDetail {
     circuit: number;
@@ -232,6 +232,22 @@ export interface IConfigBody {
     isActive: boolean;
     heatMode: number;
     setPoint: number;
+}
+export interface ConfigOptionsHeaters{
+    maxHeaters: number;
+    heaters: IConfigHeater[];
+    heaterTypes: IDetail[];
+    heatModes: IDetail[];
+}
+export interface IConfigHeater{
+    id: number;
+    isActive: boolean;
+    type: number;
+    name: string;
+    body: number;
+    coolingEnabled: boolean;
+    startTempDelta: number;
+    stopTempDelta: number
 }
 export interface IConfigSchedule {
     id: number;
@@ -640,10 +656,11 @@ function PoolController() {
                             id="System"
                             isLoading={isLoading}
                             doneLoading={doneLoading}
-                            data={data.state}
+                            state={data.state}
                             controllerName={data.state.equipment.model}
+                            config={data.config}
                         />
-                        <BodyState
+                        <BodiesState
                             id="Bodies"
                         />
                         <Pump

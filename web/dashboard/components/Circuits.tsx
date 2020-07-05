@@ -72,9 +72,9 @@ function Circuits(props: Props) {
                     emitter.removeListener('circuitGroup', fn);
                 };
             case "Virtual Circuits":
-                emitter.on('circuitGroup', fn);
+                emitter.on('virtualCircuit', fn);
                 return () => {
-                    emitter.removeListener('circuitGroup', fn);
+                    emitter.removeListener('virtualCircuit', fn);
                 };
         }
     }

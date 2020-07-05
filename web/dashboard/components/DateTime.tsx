@@ -10,11 +10,12 @@ import React, {useEffect, useState} from 'react';
 interface Props
 {
   origDateTime: Date;
+  config: any;
 }
 function DateTime(props:Props) {
     let [modal, setModal] = useState(false);
     let [dateTime, setDateTime] = useState()
-    let [newDateTime, setNewDateTime] = useState(new Date());
+    let [newDateTime, setNewDateTime] = useState(props.origDateTime || new Date());
     const [disabled, setDisabled] = useState(false)
     let execute = useAPI();
     const pad= (n) =>{
@@ -91,10 +92,10 @@ function DateTime(props:Props) {
   
     return props.origDateTime && (
       <div>
-        <Button color="primary" onClick={toggle}>
+        {props?.config?.pool?.options?.clockSource !== 'manual' ? <Button color="primary" onClick={toggle}>
           {/* Update this to use 12/24 hour option if available */}
           {dt}
-        </Button>
+        </Button>: dt}
         <Modal isOpen={modal} toggle={toggle} size='xl' >
           <ModalHeader toggle={toggle} close={closeBtn}>Adjust time and date</ModalHeader>
           <ModalBody>
