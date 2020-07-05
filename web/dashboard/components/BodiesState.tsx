@@ -57,7 +57,7 @@ function BodiesState(props: Props) {
     return doneLoading&&!isError&&(
         <div className='tab-pane active' id={props.id} role="tabpanel" aria-labelledby={props.id+'-tab'} >
             <CustomCard name={(data&&data.temps.length===1? 'Body':'Bodies')} id={props.id} >
-                {doneLoading && data.temps.bodies.map(body => {
+                {doneLoading && data?.temps?.bodies?.map(body => {
                     return <BodyState
                             key={`body-${body.id}`}
                             currentBodyId={body.id}
