@@ -36,13 +36,14 @@ function Features(props: Props) {
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate] = useDataApi([], initialState);
     const execute = useAPI();
     useEffect(() => {
+        var _data = data;
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
-            const fn = function (data) {
+            const fn =  (incoming)=> {
                 console.log(`received feature emit`)
-                if (typeof data.features.find(f => f.id === data.id) === 'undefined') {
-                    console.log(`Feature trying to update ${data.id} but we don't have it yet.`)
-                }
-                else doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data });
+
+                
+                    doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data: incoming });
+                
             };
             let arr = [];
             arr.push({ url: `${poolURL}/extended/features`, dataName: 'features' });
