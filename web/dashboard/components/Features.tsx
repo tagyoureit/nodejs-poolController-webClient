@@ -85,7 +85,7 @@ function Features(props: Props) {
     }
     const features = () => {
         try {
-            if (!data.features || !data.equipment) { return <>No Features</> };
+            if (!data.features || !data.equipment|| typeof data?.equipment?.equipmentIds?.circuitGroups?.start === 'undefined') { return <>No Features</> };
             return data.features.map(feature => {
 
                 let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;
