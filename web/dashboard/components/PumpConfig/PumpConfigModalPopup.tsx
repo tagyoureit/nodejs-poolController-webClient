@@ -95,13 +95,13 @@ function PumpConfigModalPopup(props: Props) {
             data: { pumpType }
         })
     }
-    const setPump = async(currentPumpId: number, data: any) => {
-        let pump = data.find(p => p.id === currentPumpId);
+    const setPump = async(currentPumpId: number, incomingData: any) => {
+        let pump = incomingData.find(p => p.id === currentPumpId);
         let res = await execute('setPump', pump );
         if (typeof res.stack === 'undefined'){
-            let idx = data.findIndex(d => d.id === res.id);
-            data[idx] = res;
-            doUpdate({updateType: 'REPLACE', data, dataName: ['options', 'pumps']});
+            let idx = incomingData.findIndex(d => d.id === res.id);
+            incomingData[idx] = res;
+            doUpdate({updateType: 'REPLACE', data: incomingData, dataName: ['options', 'pumps']});
         }
         else {
             console.log(`ERROR!`)
@@ -113,16 +113,14 @@ function PumpConfigModalPopup(props: Props) {
     const navTabs=() => {
         try {
         if(doneLoading) {
-
             return data.options.pumps.map((pump, idx) => {
-                const desc=pump.name
                 return (<NavItem key={`navPumpConfigKey${ pump.id }`}>
                     <NavLink href="#" target={pump.id.toString()} onClick={() => setCurrentPumpId(pump.id)} active={currentPumpId===
                         pump.id? true:false}
                         className={currentPumpId===
                             pump.id? 'btn-primary':'btn-secondary'}
                     >
-                        {pump.id}: {desc}
+                        {pump.id}: {pump.name || 'No pump'}
                     </NavLink>
                 </NavItem>);
             });

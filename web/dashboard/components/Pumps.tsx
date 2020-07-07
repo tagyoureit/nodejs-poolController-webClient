@@ -59,8 +59,8 @@ function Pump(props: Props) {
             <CustomCard name='Pumps' key='title' id={props.id} edit={() => setModalOpen(!modalOpen)}>
                 <CardGroup className="">
                     <ErrorBoundary>
-                        {data.pumps&&data.pumps.length===0&&'Pool app did not find any pumps responding to status requests.'}
-                        {data.pumps&&data.pumps.length>0&&data.pumps.map((pump) => {
+                        {data.pumps&&data.pumps.length===0&&'Pool app still searching or did not find any pumps responding to status requests.'}
+                        {data.pumps&&data.pumps.length>0&& typeof data?.pumps[0]?.status?.desc !== 'undefined' && data.pumps.map((pump) => {
                             try {
 
                                 return (

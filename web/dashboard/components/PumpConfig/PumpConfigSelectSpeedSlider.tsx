@@ -1,11 +1,11 @@
 import '../../css/rangeslider.css';
 import 'react-rangeslider/lib/index.css';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useContext } from 'react';
 import Slider from 'react-rangeslider';
 
 import { ConfigOptionsPump } from './PumpConfigModalPopup';
-import { IConfigPump } from '../PoolController';
+import { IConfigPump, PoolContext, IConfig, IConfigCircuit } from '../PoolController';
 
 var extend = require("extend");
 interface Props {
@@ -22,25 +22,41 @@ interface State {
 
 function PumpConfigSelectSpeedSlider(props: Props) {
     const [desiredRate, setDesiredRate]=useState(0);
-   
+    const { controllerType} = useContext(PoolContext);
     const currentPump = () =>{
         return props.options.pumps.find(p => p.id === props.currentPumpId); 
     }
-    const notUsed = props.options.circuitNames.find(c=>c.name === 'notused');
+        const notUsed = () => {
+        if (controllerType.toLowerCase().includes('touch')){
+            return props.options.circuitNames.find(c=>c.name === 'notused');
+        }
+        else {
+            return {name: 'notused', val: 255, desc:'NOT USED'}
+        }
+    }  
     const currentCircuit = () =>{
         let circ = currentPump().circuits.find(circ => circ.id === props.currentPumpCircuitId);
-        if (typeof circ === 'undefined') {
-            if (currentPump().minFlow ) 
-            
-            return {id: props.currentPumpCircuitId, circuit: 255, flow: 30, units: props.options.pumpUnits.find(u => u.name === 'gpm').val}
-            else return {id: props.currentPumpCircuitId, circuit: 255, speed: 1000, units: props.options.pumpUnits.find(u => u.name === 'rpm').val}
-        }
-        else return circ;
+        if (typeof circ === 'undefined') circ = {id: props.currentPumpCircuitId, circuit: 255, units: undefined}
+            if (currentPump().minFlow ) {
+                if (typeof circ.flow === 'undefined') circ.flow = 30;
+                if (typeof circ.units === 'undefined') circ.units = props.options.pumpUnits.find(u => u.name === 'gpm').val as 0|1
+            }
+            else {
+                if (typeof circ.speed === 'undefined') circ.speed = 1000;
+                if (typeof circ.units === 'undefined') circ.units = props.options.pumpUnits.find(u => u.name === 'rpm').val as 0|1
+            }
+            // return {id: props.currentPumpCircuitId, circuit: 255, flow: 30, units: props.options.pumpUnits.find(u => u.name === 'gpm').val}
+            // else return {id: props.currentPumpCircuitId, circuit: 255, speed: 1000, units: props.options.pumpUnits.find(u => u.name === 'rpm').val}
+        return circ;
     }
 
     const units = () => {
-        let u =  props.options.pumpUnits.find(unit => unit.val === currentCircuit().units)
-        return u;
+        let units = props.options.pumpUnits.find(unit => unit.val === currentCircuit()?.units);
+        if (typeof units === 'undefined'){
+            if (currentPump().maxFlow > 0) return props.options.pumpUnits.find(unit => unit.name === 'gpm');
+            if (currentPump().maxSpeed > 0) return props.options.pumpUnits.find(unit => unit.name === 'rpm');
+        }
+        return units
     }
 
      useEffect(() => {
@@ -83,7 +99,7 @@ function PumpConfigSelectSpeedSlider(props: Props) {
         }
     }
 
-    return !(currentCircuit().circuit === 255) && !(props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name === notUsed.desc) ?
+    return !(currentCircuit().circuit === 255) && !(props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name === notUsed().desc) ?
             <Slider
                 value={desiredRate}
                 onChange={onChangeSpeed}

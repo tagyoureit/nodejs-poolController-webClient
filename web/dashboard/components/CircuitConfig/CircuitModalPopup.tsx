@@ -9,6 +9,7 @@ import useDataApi from '../DataFetchAPI';
 import { ControllerType, getItemById, getItemByVal, IDetail, IStateCircuit, PoolContext, IConfigCircuit } from '../PoolController';
 import { useAPI } from '../Comms';
 import Switch from 'react-switch';
+import { AxiosAdapter, AxiosPromise, AxiosResponse } from 'axios';
 
 const editIcon = require('../../images/edit.png');
 const deleteIcon = require('../../images/delete.svg');
@@ -107,16 +108,17 @@ function CircuitModalPopup(props: Props) {
         let circId = parseInt(event.target.getAttribute('data-circuit'));
         let circFunc = JSON.parse(event.target.value);
         console.log(circFunc);
-        if (circFunc.desc === 'Not Used') {
+        if (circFunc.desc.toLowerCase() === 'not used') {
             await execute('deleteCircuit', { id: circId });
         }
         else {
             console.log(`{ id: circId, type: circFunc.val:  ${circId}  ${circFunc.val}   ${circFunc.val || 0}`)
+            let res: AxiosResponse;
             if (props.type === 'features') {
-                await execute('setFeature', { id: circId, type: circFunc.val });
+                res = await execute('setFeature', { id: circId, type: circFunc.val });
             }
             else {
-                await execute('setCircuit', { id: circId, type: circFunc.val });
+                res = await execute('setCircuit', { id: circId, type: circFunc.val });
             }
         }
         update();
@@ -188,7 +190,7 @@ function CircuitModalPopup(props: Props) {
         console.log(data);
         const id = parseInt(Object.keys(data)[0], 10);
         const name = Object.values(data)[0];
-        await execute('setCircuit', { id, name });
+        let res = await execute('setCircuit', { id, name });
         addDisabledList(id);
         update();
         props.setNeedsReload(true);
@@ -326,7 +328,7 @@ function CircuitModalPopup(props: Props) {
 
                             <Switch
                                 onChange={(data) => { changeFreeze(circ.id, data) }}
-                                checked={circ.freeze}
+                                checked={circ.freeze || false} // TODO: remove from virtual controller
                                 disabled={disabledList.includes(circ.id)}
                                 aria-label="Freeze toggle"
                             />

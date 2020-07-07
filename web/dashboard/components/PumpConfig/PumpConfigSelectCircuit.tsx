@@ -1,10 +1,11 @@
 import '../../css/dropdownselect';
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 
-import { getItemById, IConfigCircuit, IConfigPumpCircuit, IConfigPump } from '../PoolController';
+import { getItemById, IConfigPump, PoolContext } from '../PoolController';
 import { ConfigOptionsPump } from './PumpConfigModalPopup';
+
 var extend = require("extend");
 
 interface Props
@@ -20,7 +21,15 @@ interface Props
 }
 
 function PumpConfigSelectCircuit(props: Props){
-    const notUsed = props.options.circuitNames.find(c=>c.name === 'notused');
+    const { controllerType }=useContext(PoolContext);
+    const notUsed = () => {
+        if (controllerType.toLowerCase().includes('touch')){
+            return props.options.circuitNames.find(c=>c.name === 'notused');
+        }
+        else {
+            return {name: 'notused', val: 255, desc:'NOT USED'}
+        }
+    }    
     const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
     const currentPump = () =>{
         return props.options.pumps.find(p => p.id === props.currentPumpId); 
@@ -50,7 +59,7 @@ function PumpConfigSelectCircuit(props: Props){
     {
         let dropdownChildren: React.ReactFragment[] = [];
          props.options.circuits.forEach(circ => {
-            if (circ.name === notUsed.desc || circ.equipmentType === 'virtual' && circ.assignableToPumpCircuit === false || circ.equipmentType === 'lightGroup' as any) return;
+            if (circ.name === notUsed().desc || circ.equipmentType === 'virtual' && circ.assignableToPumpCircuit === false || circ.equipmentType === 'lightGroup' as any) return;
             let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.currentPumpId}pumpcirc${ currentCircuit().id }circ${ circ.id }CircuitSelect`}
                 value={circ.id}
                 onClick={handleClick} 
@@ -61,14 +70,14 @@ function PumpConfigSelectCircuit(props: Props){
         // let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.currentPumpId}pumpcirc${ currentCircuit().id }circ${ circ.id }CircuitSelect`}
         //         value={circ.id}
         //         onClick={handleClick} 
-        //         disabled={typeof circ.type === 'undefined' && circ.id !== notUsed.val}
+        //         disabled={typeof circ.type === 'undefined' && circ.id !== notUsed().val}
         //     >{circ.name}</DropdownItem> )
             
         //     dropdownChildren.push( entry );
         return dropdownChildren;
     }
     const label = () => {
-        if (currentCircuit()?.circuit === 0 || currentCircuit().circuit === notUsed.val) return notUsed.desc
+        if (currentCircuit()?.circuit === 0 || currentCircuit()?.circuit === notUsed().val) return notUsed().desc
         return props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name;
     }
     

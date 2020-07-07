@@ -38,12 +38,12 @@ function Features(props: Props) {
     useEffect(() => {
         var _data = data;
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
-            const fn =  (incoming)=> {
+            const fn = (incoming) => {
                 console.log(`received feature emit`)
 
-                
-                    doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data: incoming });
-                
+
+                doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data: incoming });
+
             };
             let arr = [];
             arr.push({ url: `${poolURL}/extended/features`, dataName: 'features' });
@@ -84,8 +84,9 @@ function Features(props: Props) {
         execute('toggleCircuit', { id: circ });
     }
     const features = () => {
-        if (!data.features || !data.equipment) { return <>No Features</> };
-        return data.features.map(feature => {
+        try {
+            if (!data.features || !data.equipment) { return <>No Features</> };
+            return data.features.map(feature => {
 
                 let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;
                 let group = getItemById(data.circuitGroups, feature.id + offset);
@@ -110,7 +111,7 @@ function Features(props: Props) {
                         </div>
                     </ListGroupItem>)
                 }
-                else if (props.id === 'Features'  && feature.showInFeatures)
+                else if (props.id === 'Features' && feature.showInFeatures)
                     return (<ListGroupItem key={feature.id + 'featurelistgroupkey'}>
                         <div className='d-flex justify-content-between'>
                             {feature.name}
@@ -119,8 +120,13 @@ function Features(props: Props) {
                         </div>
                     </ListGroupItem>
                     )
-        })
+            })
+        }
+        catch (err) {
+            console.log(`Error parsing features`);
+            console.log(err);
 
+        }
     }
 
     const toggleModal = () => {

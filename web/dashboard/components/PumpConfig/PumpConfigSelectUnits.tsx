@@ -1,8 +1,10 @@
-import {Row, Col, Button, ButtonGroup, Nav, NavItem, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavLink, ButtonDropdown} from "reactstrap";
+import React, { useContext, useEffect, useState } from 'react';
+import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
+
+import { IConfigPump, PoolContext } from '../PoolController';
+import { ConfigOptionsPump } from './PumpConfigModalPopup';
+
 //import {comms} from "../Comms";
-import React, {useEffect, useState} from "react";
-import {IStatePumpCircuit, IDetail, getItemByAttr, IConfigPumpCircuit, getItemByVal, IConfigPump} from "../PoolController";
-import { ConfigOptionsPump } from "./PumpConfigModalPopup";
 var extend = require("extend");
 interface Props {
     // disabled: boolean
@@ -22,7 +24,16 @@ interface State {
 }
 
 function PumpConfigSelectUnits(props:Props) {
-    const notUsed = props.options.circuitNames.find(c=>c.name === 'notused');
+    const { controllerType} = useContext(PoolContext);
+
+        const notUsed = () => {
+        if (controllerType.toLowerCase().includes('touch')){
+            return props.options.circuitNames.find(c=>c.name === 'notused');
+        }
+        else {
+            return {name: 'notused', val: 255, desc:'NOT USED'}
+        }
+    }  
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const handleClick = (event: any) => {
@@ -38,13 +49,18 @@ function PumpConfigSelectUnits(props:Props) {
     }
     const currentCircuit = () =>{
         let circ = currentPump().circuits.find(circ => circ.id === props.currentPumpCircuitId);
-        if (typeof circ === 'undefined') {
-            if (currentPump().minFlow ) 
-            
-            return {id: props.currentPumpCircuitId, circuit: 255, flow: 30, units: props.options.pumpUnits.find(u => u.name === 'gpm').val}
-            else return {id: props.currentPumpCircuitId, circuit: 255, speed: 1000, units: props.options.pumpUnits.find(u => u.name === 'rpm').val}
-        }
-        else return circ;
+        if (typeof circ === 'undefined') circ = {id: props.currentPumpCircuitId, circuit: 255, units: undefined}
+            if (currentPump().minFlow ) {
+                if (typeof circ.flow === 'undefined') circ.flow = 30;
+                if (typeof circ.units === 'undefined') circ.units = props.options.pumpUnits.find(u => u.name === 'gpm').val as 0|1
+            }
+            else {
+                if (typeof circ.speed === 'undefined') circ.speed = 1000;
+                if (typeof circ.units === 'undefined') circ.units = props.options.pumpUnits.find(u => u.name === 'rpm').val as 0|1
+            }
+            // return {id: props.currentPumpCircuitId, circuit: 255, flow: 30, units: props.options.pumpUnits.find(u => u.name === 'gpm').val}
+            // else return {id: props.currentPumpCircuitId, circuit: 255, speed: 1000, units: props.options.pumpUnits.find(u => u.name === 'rpm').val}
+        return circ;
     }
     const units = () => {
         let units = props.options.pumpUnits.find(unit => unit.val === currentCircuit()?.units);
@@ -59,7 +75,7 @@ function PumpConfigSelectUnits(props:Props) {
             setDropdownOpen(!dropdownOpen);
     }
   
-        return !(currentCircuit().circuit === 255) && !(props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name === notUsed.desc) ? (
+        return !(currentCircuit().circuit === 255) && !(props.options.circuits.find(c => c.id === currentCircuit().circuit)?.name === notUsed().desc) ? (
             <div>
 
             {props.options.pumpTypes.find(type => type.val === props.options.pumps.find(p => p.id === props.currentPumpId).type).name==='vsf'?

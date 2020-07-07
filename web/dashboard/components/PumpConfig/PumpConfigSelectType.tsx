@@ -68,7 +68,7 @@ function PumpConfigSelectType(props: Props) {
                 <Col>
 
                     <RIEInput
-                        value={props.options.pumps.find(p => p.id === props.currentPumpId)?.name || 'not found'}
+                        value={props.options.pumps.find(p => p.id === props.currentPumpId)?.name || 'No pump'}
                         change={changeName}
                         propName={props.options.pumps.find(p => p.id === props.currentPumpId).id.toString()}
                         className={"editable"}

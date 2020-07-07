@@ -77,14 +77,14 @@ function BodyState(props: Props) {
 
             </Col>
         </Row>
-            {props?.options?.heatModes?.length > 1 && <><Row>
+        {typeof currentBody().temp !== 'undefined' && <Row>
                 <Col>Temp</Col>
                 <Col >
                     {currentBody().temp}
                     {!currentBody().isOn && ` (Last)`}
                 </Col>
-            </Row>
-            <Row>
+            </Row>}
+            {props?.options?.heatModes?.length > 1 && <> <Row>
                 <Col>
 
                     <Slider
