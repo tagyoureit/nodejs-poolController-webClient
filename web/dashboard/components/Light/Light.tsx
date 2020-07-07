@@ -7,21 +7,26 @@ import React, { useContext, useEffect, useState } from 'react';
 // import { setLightMode } from '../Comms';
 import LightEdit from './LightEdit';
 import useDataApi from '../DataFetchAPI';
-import { PoolContext, IConfigOptionsLightGroups } from '../PoolController';
+import { PoolContext, IConfigOptionsLightGroups, IConfigLightGroup } from '../PoolController';
 import { useAPI } from '../Comms';
 import axios from 'axios';
 interface Props {
     id: string;
 }
 
-const initialState: IConfigOptionsLightGroups={
-    maxLightGroups: 1,
-    equipmentNames: [],
-    themes: [],
-    colors: [],
-    circuits: [],
-    lightGroups: [],
-    functions: []
+const initialState: {options: IConfigOptionsLightGroups, lightGroups: IConfigLightGroup[]}=
+
+{
+    options:{
+        maxLightGroups: 1,
+        equipmentNames: [],
+        themes: [],
+        colors: [],
+        circuits: [],
+        lightGroups: [],
+        functions: []
+    },
+    lightGroups: []
 };
 
 function Light(props: Props) {
@@ -37,13 +42,10 @@ function Light(props: Props) {
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
     useEffect(() => {
         if(typeof poolURL!=='undefined'&&typeof emitter!=='undefined') {
-            let arr=[];
-            arr.push({ url: `${ poolURL }/config/options/lightGroups`, dataName: 'options' });
-            arr.push({ url: `${ poolURL }/state/lightGroups`, dataName: 'lightGroups' });
-            doFetch(arr);
-
+            reloadData();
             const fn=function(data) {
                 console.log(`received lightGroup emit`);
+                reloadData();
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'lightGroups', data });
             };
             emitter.on('lightGroup', fn);
@@ -59,13 +61,22 @@ function Light(props: Props) {
         }
     }, [poolURL, doFetch, emitter]);
 
+    const reloadData = () => {
+        if (data.options.themes.length === 0){
+            let arr = [];
+            arr.push({ url: `${ poolURL }/config/options/lightGroups`, dataName: 'options' });
+            arr.push({ url: `${ poolURL }/state/lightGroups`, dataName: 'lightGroups' });
+            doFetch(arr);
+        }
+    }
+
     return (<>
-        {!doneLoading&&<>Loading...</>}
-        {doneLoading&&!isError&&typeof data.lightGroups !== 'undefined' && 
+
             <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
 
                 <CustomCard name='Lights' id={props.id} edit={() => setModalOpen(!modalOpen)}>
-                    {data.lightGroups.map(lightGroup => {
+                    {doneLoading&&!isError&& typeof data.lightGroups !== 'undefined' && data.lightGroups.length > 0 && 
+                    data.lightGroups.map(lightGroup => {
                         return (<div key={`lightGroup${ lightGroup.id }`}>
 
                             {lightGroup?.type?.desc}&nbsp;
@@ -82,7 +93,7 @@ function Light(props: Props) {
                         </DropdownToggle>
                                 <DropdownMenu>
 
-                                    {data.options.themes.filter(theme => theme.type==='intellibrite'
+                                    {data?.options?.themes.filter(theme => theme.type==='intellibrite'
                                         &&!['colorsync', 'colorswim', 'colorset', 'on', 'off'].includes(theme.name)
                                     ).map(theme => {
                                         return <DropdownItem onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`}>{theme.desc}</DropdownItem>;
@@ -118,10 +129,9 @@ function Light(props: Props) {
                         </div>);
                     })
                     }
+                
 
                 </CustomCard>
-
-
                 <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} size='xl' scrollable={true}>
                     <ModalHeader toggle={() => setModalOpen(!modalOpen)} close={closeBtn}>Adjust Light Groups</ModalHeader>
                     <ModalBody>
@@ -132,7 +142,7 @@ function Light(props: Props) {
                     </ModalFooter>
                 </Modal>
             </div>
-        }
+        
     </>
     );
 };

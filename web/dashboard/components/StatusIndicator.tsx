@@ -13,12 +13,12 @@ interface Props {
 }
 
 
-
+const noStatus = {desc: 'No connection', name: 'No Connection', percent: 0, val: 255}
 
 function StatusIndicator(props: Props) {
     const [seconds, setSeconds] = useState(0);
     const [tooltipOpen, setTooltipOpen] = useState(false);
-    const [status, setStatus] = useState<any>({desc: '', name: '', percent: 0, val: 0})
+    const [status, setStatus] = useState<any>(noStatus)
     const [counter, setCounter] = useState(0);
 
     useInterval(()=>{
@@ -27,8 +27,13 @@ function StatusIndicator(props: Props) {
 
     useEffect(()=>{
         if (JSON.stringify(status)!==JSON.stringify(props.status)){
-            setStatus(props.status);
-            setSeconds(0);
+            if (typeof props.status === 'undefined'){
+                setStatus(noStatus);
+            }
+            else {
+                setStatus(props.status);
+                setSeconds(0);
+            }
         }
     },[props.status, status])
 

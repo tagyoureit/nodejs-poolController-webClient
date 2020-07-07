@@ -157,7 +157,6 @@ class Schedule extends React.Component<Props, any> {
         );
       });
     } 
-    else schedules = 'No schedules yet';
 
     return (
       <div

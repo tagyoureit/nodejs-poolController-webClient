@@ -270,12 +270,12 @@ function Replay(props) {
             else {
                 if(includePacketTypes===packets[lineToSend.current].dir||includePacketTypes==='both' && packets[lineToSend.current].proto!=='api') {
                     if(replayDirection==='toApp') {
-                        socket.emit('replayPackets', [packets[lineToSend.current].packet])
+                        socket.emit('replayPackets', [packets[lineToSend.current].pkt])
                         // execute('receivePacketRaw', [packets[lineToSend.current].pkt]);
                         console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
                     }
                     else {
-                        socket.emit('sendPackets', [packets[lineToSend.current].packet]); 
+                        socket.emit('sendPackets', [packets[lineToSend.current].pkt]); 
                         // execute('replayPackets', [packets[lineToSend.current].pkt]);
                         console.log(`sending for RS485 bus ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
                         
@@ -283,7 +283,7 @@ function Replay(props) {
                     console.log(`lineTosend: ${lineToSend.current}`)
                     lineToSend.current = lineToSend.current + 1;
                     console.log(`lineTosend after: ${lineToSend}`)
-                    setselectedIndexes(indxs => indxs.concat(lineToSend))
+                    setselectedIndexes(indxs => indxs.concat(lineToSend.current))
                 }
                 else {
                     lineToSend.current = lineToSend.current + 1;

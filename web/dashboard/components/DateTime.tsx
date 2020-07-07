@@ -14,7 +14,7 @@ interface Props
 }
 function DateTime(props:Props) {
     let [modal, setModal] = useState(false);
-    let [dateTime, setDateTime] = useState()
+    let [dateTime, setDateTime] = useState(new Date())
     let [newDateTime, setNewDateTime] = useState(props.origDateTime || new Date());
     const [disabled, setDisabled] = useState(false)
     let execute = useAPI();
@@ -92,7 +92,7 @@ function DateTime(props:Props) {
   
     return props.origDateTime && (
       <div>
-        {props?.config?.pool?.options?.clockSource !== 'manual' ? <Button color="primary" onClick={toggle}>
+        {props?.config?.pool?.options?.clockSource !== 'server' ? <Button color="primary" onClick={toggle}>
           {/* Update this to use 12/24 hour option if available */}
           {dt}
         </Button>: dt}

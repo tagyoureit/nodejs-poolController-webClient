@@ -478,7 +478,7 @@ const initialState: any={
             model: 'No connection'
         },
         schedules: [],
-        status: { val: -1, percent: 0 }
+        status: {desc: 'No connection', name: 'No Connection', percent: 0, val: 255}
     },
     doneLoading: false
 };

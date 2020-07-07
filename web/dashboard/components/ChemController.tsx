@@ -71,7 +71,6 @@ function ChemControllers(props: any) {
     let className = "circuit-pane active";
     return (
         <>
-            {/* {!doneLoading.current&&<>Loading...</>} */}
             {doneLoading.current && !isError.current &&
                 <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
 

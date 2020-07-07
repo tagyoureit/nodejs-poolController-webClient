@@ -15,7 +15,7 @@ import {
 import CircuitModalPopup from './CircuitConfig/CircuitModalPopup';
 import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
-import { ControllerType, getItemById, IStateCircuit, PoolContext } from './PoolController';
+import { ControllerType, getItemById, IStateCircuit, PoolContext, IStateCircuitGroup, IConfigEquipment } from './PoolController';
 import { useAPI } from './Comms';
 import ErrorBoundary from './ErrorBoundary';
 const play = require("../images/play-icon.svg");
@@ -26,7 +26,39 @@ interface Props {
 }
 
 
-const initialState: { features: IStateCircuit[]; } = { features: [] };
+const initialState: { 
+    features: IStateCircuit[];
+    circuitGroups: IStateCircuitGroup[];
+    equipment: IConfigEquipment;
+
+} = { 
+    features: [],
+    circuitGroups: [],
+    equipment: {
+       model: '',
+       shared: false,
+       maxCircuits: 4,
+       maxFeatures: 4,
+       maxIntelliBrites: 2,
+       maxBodies: 1,
+       maxSchedules: 10,
+       maxChlorinators: 1,
+       equipmentIds: {
+           circuits: {
+               start: 1,
+               end: 2
+           },
+           features: {
+               start: 4,
+               end: 5
+           },
+           circuitGroups: {
+               start: 192,
+               end:193
+           }
+       } 
+    }
+};
 
 function Features(props: Props) {
     const [popoverOpen, setPopoverOpen] = useState<boolean[]>([false]);
@@ -38,11 +70,14 @@ function Features(props: Props) {
     useEffect(() => {
         var _data = data;
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
-            const fn = (incoming) => {
+            const fnFeature = (incoming) => {
                 console.log(`received feature emit`)
-
-
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data: incoming });
+
+            };
+            const fnCG = (incoming) => {
+                console.log(`received feature emit`)
+                doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'circuitGroups', data: incoming });
 
             };
             let arr = [];
@@ -54,14 +89,14 @@ function Features(props: Props) {
 
             switch (props.id) {
                 case "Features":
-                    emitter.on('feature', fn);
+                    emitter.on('feature', fnFeature);
                     return () => {
-                        emitter.removeListener('feature', fn);
+                        emitter.removeListener('feature', fnFeature);
                     };
                 case "Circuit Groups":
-                    emitter.on('circuitGroup', fn);
+                    emitter.on('circuitGroup', fnCG);
                     return () => {
-                        emitter.removeListener('circuitGroup', fn);
+                        emitter.removeListener('circuitGroup', fnCG);
                     };
             }
         }
@@ -85,7 +120,7 @@ function Features(props: Props) {
     }
     const features = () => {
         try {
-            if (!data.features || !data.equipment|| typeof data?.equipment?.equipmentIds?.circuitGroups?.start === 'undefined') { return <>No Features</> };
+            if (!data.features || !data.equipment) { return <>No Features</> };
             return data.features.map(feature => {
 
                 let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;
@@ -142,12 +177,13 @@ function Features(props: Props) {
     let className = "circuit-pane active";
     return (
         <>
-            {!doneLoading ? (<div />) :
                 <div className="feature-pane active" id={props.id} role="tabpanel" aria-labelledby="feature-tab">
                     <CustomCard name={props.id} id={props.id} edit={props.id === 'Features' ? toggleModal : undefined}>
+            {doneLoading &&
                         <ListGroup flush >
                             {features()}
                         </ListGroup>
+            }
                     </CustomCard>
                     {props.id === 'Features' && <Modal isOpen={modalOpen} toggle={toggleModal} size='xl' scrollable={true}>
                         <ModalHeader toggle={toggleModal} close={closeBtn}>Configure Features</ModalHeader>
@@ -168,7 +204,7 @@ function Features(props: Props) {
                     </Modal>}
 
                 </div>
-            }
+            
         </>
     );
 }
