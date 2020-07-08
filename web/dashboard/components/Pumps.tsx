@@ -66,13 +66,13 @@ function Pump(props: Props) {
                                 return (
                                     <Card key={'pump'+pump.id+'card'}>
                                         <CardBody className='p-0' key={'pump'+pump.id+'cardbody'}>
-                                            <CardTitle className='card-header'>  {pump.id}: {pump.name || pump.type.desc}</CardTitle>
+                                            <CardTitle className='card-header'>  {pump.id}: {pump.name || pump.type?.desc}</CardTitle>
                                             <CardText className='text-right mr-3 pt-0'>
                                                 Watts: {pump.watts}
                                                 <br />
                                                 RPM: {pump.rpm}
                                                 <br />
-                                                Status: {pump.status.desc}
+                                                Status: {pump.status?.desc || `Unknown`}
                                                 <br />
                                             </CardText>
                                         </CardBody>

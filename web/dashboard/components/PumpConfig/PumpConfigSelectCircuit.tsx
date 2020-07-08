@@ -59,7 +59,9 @@ function PumpConfigSelectCircuit(props: Props){
     {
         let dropdownChildren: React.ReactFragment[] = [];
          props.options.circuits.forEach(circ => {
-            if (circ.name === notUsed().desc || circ.equipmentType === 'virtual' && circ.assignableToPumpCircuit === false || circ.equipmentType === 'lightGroup' as any) return;
+            if (circ.equipmentType === 'virtual' && circ.assignableToPumpCircuit === false) return;
+            if (circ.equipmentType === 'lightGroup' as any) return;
+            if (circ.name === notUsed().desc && (circ.equipmentType === 'circuit' || circ.equipmentType === 'feature')) return;
             let entry:React.ReactFragment = ( <DropdownItem key={`pump${props.currentPumpId}pumpcirc${ currentCircuit().id }circ${ circ.id }CircuitSelect`}
                 value={circ.id}
                 onClick={handleClick} 

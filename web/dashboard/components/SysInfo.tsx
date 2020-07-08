@@ -29,7 +29,7 @@ const initialState: any={
 function SysInfo(props: Props) {
     const [modalOpen, setModalOpen]=useState(false);
     const { controllerType, emitter, poolURL }=useContext(PoolContext);
-    const [isRecording, setIsRecording]=useState();
+    const [isRecording, setIsRecording]=useState(false);
     useEffect(() => {
         const fetch=async () => {
             let arr=[]
@@ -90,24 +90,24 @@ function SysInfo(props: Props) {
 
                     <Row>
                         <Col xs="6">Status</Col>
-                        <Col xs="6"><StatusIndicator status={props?.state?.status} counter={props.counter}></StatusIndicator></Col>
+                        <Col xs="6"><StatusIndicator status={props?.state?.status } counter={props.counter}></StatusIndicator></Col>
                     </Row>
                     <Row>
                         <Col xs="6">Mode</Col>
                         <Col xs="6">{props?.state?.mode?.desc}</Col>
                     </Row>
-                    <Row>
+                    {typeof props?.state?.freeze !== 'undefined' && <Row>
                         <Col xs="6">Freeze</Col>
                         <Col xs="6">{props?.state?.freeze? "Active":"Off"}</Col>
-                    </Row>
-                    <Row>
+                    </Row>}
+                    {typeof props.state.temps?.air!=='undefined' && <Row>
                         <Col xs="6">Air Temp</Col>
-                        <Col xs="6">{typeof props?.state?.temps==='undefined'? '':props?.state?.temps?.air}</Col>
-                    </Row>
-                    <Row>
+                        <Col xs="6">{props?.state?.temps?.air}</Col>
+                    </Row>}
+                    {typeof props.state.temps?.solar!=='undefined' && <Row>
                         <Col xs="6">Solar Temp</Col>
-                        <Col xs="6">{typeof props?.state?.temps==='undefined'? '':props?.state?.temps?.solar}</Col>
-                    </Row>
+                        <Col xs="6">{props?.state?.temps?.solar}</Col>
+                    </Row>}
 
                 </CustomCard>
                 <Modal isOpen={modalOpen} toggle={toggleModal} size='xl' scrollable={true}>
