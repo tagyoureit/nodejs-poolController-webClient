@@ -57,15 +57,7 @@ function CircuitModalPopup(props: Props) {
         if (typeof poolURL !== 'undefined') update();
     }, [poolURL])
 
-    /*     let arr=[];
-        props.type==='circuits'?
-            arr.push({ url: `${ poolURL }/config/options/circuits`, dataName: 'circuits' }):
-            arr.push({ url: `${ poolURL }/config/options/features`, dataName: 'circuits' });
-        const [changes, setChanges] = useState([]) */
-
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate] = useDataApi(undefined, initialState);
-
-
     const [disabledList, setDisabledList] = useState<number[]>([]);
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
@@ -182,7 +174,7 @@ function CircuitModalPopup(props: Props) {
     const handleShowInFeaturesChange = async (id: number, data: boolean) => {
         console.log(data);
         addDisabledList(id);
-        let res = await execute('setCircuit', { id, [props.id === 'featureConfig' ? 'showInFeatures' : 'showInCircuits']: data });
+        let res = await execute('setCircuit', { id, 'showInFeatures': data });
         update();
         props.setNeedsReload(true);
     };
@@ -312,13 +304,12 @@ function CircuitModalPopup(props: Props) {
                              {circ.name !== 'Not Used' && !disabledList.includes(circ.id) ? <img src={deleteIcon} width='15px' height='15px' data-circuit={circ.id} onClick={handleDelete} /> : ''}
                         </Col>
                         <Col md='2' xs='6' className='p-0'>
-
-                            {props.id === 'featureConfig' && <Switch
+                            <Switch
                                 onChange={(data) => { handleShowInFeaturesChange(circ.id, data) }}
-                                checked={props.id === 'featureConfig' ? circ.showInFeatures : circ.showInCircuits}
+                                checked={circ.showInFeatures}
                                 disabled={disabledList.includes(circ.id)}
                                 aria-label="Show in features toggle"
-                            />}
+                            />
                         </Col>
 
                         <Col md='3' xs='6' className='p-0'>

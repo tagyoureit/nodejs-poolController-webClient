@@ -49,8 +49,8 @@ const initialState: {
                end: 2
            },
            features: {
-               start: 4,
-               end: 5
+               start: 11,
+               end: 20
            },
            circuitGroups: {
                start: 192,
@@ -67,6 +67,18 @@ function Features(props: Props) {
     const { reload, poolURL, controllerType, emitter } = useContext(PoolContext);
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate] = useDataApi([], initialState);
     const execute = useAPI();
+    const reloadData = () => {
+        let arr = [];
+        arr.push({ url: `${poolURL}/extended/features`, dataName: 'features' });
+        arr.push({ url: `${poolURL}/config/equipment`, dataName: 'equipment' });
+        arr.push({ url: `${poolURL}/state/circuitGroups`, dataName: 'circuitGroups' });
+        doFetch(arr);
+    }
+    useEffect(() => {
+        if (controllerType !== ControllerType.none){
+            reloadData();
+        }
+    }, [controllerType]);
     useEffect(() => {
         var _data = data;
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
@@ -80,12 +92,7 @@ function Features(props: Props) {
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'circuitGroups', data: incoming });
 
             };
-            let arr = [];
-            arr.push({ url: `${poolURL}/extended/features`, dataName: 'features' });
-            // arr.push({ url: `${ poolURL }/state/features`, dataName: 'sfeatures' });
-            arr.push({ url: `${poolURL}/config/equipment`, dataName: 'equipment' });
-            arr.push({ url: `${poolURL}/state/circuitGroups`, dataName: 'circuitGroups' });
-            doFetch(arr);
+            reloadData();
 
             switch (props.id) {
                 case "Features":
@@ -120,9 +127,8 @@ function Features(props: Props) {
     }
     const features = () => {
         try {
-            if (!data.features || !data.equipment) { return <>No Features</> };
+            if (!data.features || !data.equipment || typeof data.equipment?.equipmentIds === 'undefined') { return <></> };
             return data.features.map(feature => {
-
                 let offset = data.equipment.equipmentIds.circuitGroups.start - data.equipment.equipmentIds.features.start;
                 let group = getItemById(data.circuitGroups, feature.id + offset);
                 if (typeof group !== 'undefined' && typeof group.id !== 'undefined' && controllerType === ControllerType.intellitouch) {

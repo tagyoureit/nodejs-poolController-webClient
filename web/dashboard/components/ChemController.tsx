@@ -71,11 +71,11 @@ function ChemControllers(props: any) {
     let className = "circuit-pane active";
     return (
         <>
-            {doneLoading.current && !isError.current &&
+            
                 <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
 
                     <CustomCard name='Chem Controllers' id={props.id} edit={() => setModalOpen(!modalOpen)}>
-                        {typeof data.current.chemControllers === 'undefined' || data.current?.chemControllers?.length === 0 ? 'No Chem Controllers' : data.current.chemControllers.map((chemController) => {
+                        {doneLoading.current && !isError.current && typeof data.current.chemControllers === 'undefined' || data.current?.chemControllers?.length > 0 && data.current.chemControllers.map((chemController) => {
 
                             return <div key={`chemController-${chemController.id}`}>
                                 {chemController.name}
@@ -283,7 +283,7 @@ function ChemControllers(props: any) {
                         </ModalFooter>
                     </Modal>
                 </div>
-            }
+            
         </>
     );
 }

@@ -5,7 +5,7 @@ import CustomCard from './CustomCard'
 import 'react-rangeslider/lib/index.css'
 import ChlorinatorCustomSlider from './ChlorinatorCustomSlider'
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext, PoolURLContext } from './PoolController';
+import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext, PoolURLContext, ControllerType } from './PoolController';
 import { useAPI } from './Comms';
 import useDataApi from './DataFetchAPI';
 import axios from 'axios';
@@ -16,7 +16,7 @@ interface Props {
 
 const initialState: { chlorinators: IConfigChlorinator[]&IStateChlorinator[] }={ chlorinators: [] }
 function Chlorinator(props: Props) {
-    const {poolURL, emitter} = useContext(PoolContext)
+    const {poolURL, emitter, controllerType} = useContext(PoolContext)
     const {poolURL : pu} = useContext(PoolURLContext);
     const [modal, setModal]=useState(false);
     const [currentChlorID, setCurrentChlorID]=useState(1);
@@ -43,12 +43,12 @@ function Chlorinator(props: Props) {
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
     const [chlorSearchMessage, setChlorSearchMessage] = useState(`Search for chlorinator.`);
     useEffect(()=>{
-        if (typeof poolURL !== 'undefined'){
+        if (typeof poolURL !== 'undefined' && controllerType !== ControllerType.none){
             let arr=[];
             arr.push({ url: `${ poolURL }/extended/chlorinators`, dataName: 'chlorinators' });
             doFetch(arr);
         }
-    },[poolURL, doFetch])
+    },[poolURL, doFetch, controllerType])
 
 
     /* eslint-disable react-hooks/exhaustive-deps */
@@ -98,16 +98,16 @@ function Chlorinator(props: Props) {
     
     const closeBtn=<button className="close" onClick={toggle}>&times;</button>;
 
-    return (<>{typeof data.chlorinators !== 'undefined' && typeof currentChlor !== 'undefined' &&<div className="tab-pane active" id={props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
+    return (<div className="tab-pane active" id={props.id} role="tabpanel" aria-labelledby="chlorinator-tab">
         
         <CustomCard name='Chlorinator' id={props.id} >
-        {data.chlorinators.length===0||typeof currentChlor==='undefined' &&
+        {data.chlorinators.length===0 && controllerType !== ControllerType.none &&
             <>No chlorinator connected to system.
             <br />
            {chlorSearchMessage === `Searching...` ? chlorSearchMessage:<Button color='link' onClick={addVirtualChlor}>{chlorSearchMessage}</Button>}
             </>
         }
-            {isLoading || !doneLoading|| typeof currentChlor === 'undefined' ? <>Loading...</>:
+            {isLoading || !doneLoading|| typeof currentChlor === 'undefined' ? <></>:
                 <ListGroup key={currentChlor.id+'chlorlistgroup'}>
                 <ListGroupItem >
                     <Row>
@@ -155,7 +155,7 @@ function Chlorinator(props: Props) {
             </ModalFooter>
         </Modal>
     </div>
-}</>)
+)
 
 
 }
