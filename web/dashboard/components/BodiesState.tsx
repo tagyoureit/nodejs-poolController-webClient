@@ -22,12 +22,15 @@ const initialState={
 }
 function BodiesState(props: Props) {
     const {poolURL, emitter} = useContext(PoolContext);
-    useEffect(()=>{
-        if (typeof poolURL !== 'undefined'){
-            let arr=[];
+    const reloadBodyData = () => {
+        let arr=[];
             arr.push({ url: `${ poolURL }/state/temps`, dataName: 'temps' });
             arr.push({ url: `${ poolURL }/config/options/heaters`, dataName: 'options' });
             doFetch(arr);
+    }
+    useEffect(()=>{
+        if (typeof poolURL !== 'undefined'){
+            reloadBodyData();
         }
     },[poolURL])
 
@@ -36,12 +39,14 @@ function BodiesState(props: Props) {
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
         if (typeof poolURL!== 'undefined' && typeof emitter !== 'undefined'){
-        const fnTemps=function(data) { 
+        const fnTemps=function(obj) { 
             console.log(`incoming socket temps`)
-            doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'temps', data }); };
-        const fnBody=function(data) { 
+            checkInitData()
+            doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'temps', data: obj }); };
+        const fnBody=function(obj) { 
             console.log(`incoming socket body`)
-            doUpdate({ updateType: 'MERGE_ARRAY', dataName: ['temps', 'bodies'], data }); };
+            checkInitData();
+            doUpdate({ updateType: 'MERGE_ARRAY', dataName: ['temps', 'bodies'], data: obj }); };
         emitter.on('temps', fnTemps);
         emitter.on('body', fnBody);
         return () => {
@@ -52,6 +57,12 @@ function BodiesState(props: Props) {
     }, [poolURL, emitter]);
     /* eslint-enable react-hooks/exhaustive-deps */
 
+    // need to reload 
+    const checkInitData = () =>{
+        if (data.temps?.bodies[0]?.heatmode?.val > 0 && data.options?.heatmodes?.length === 0){
+            reloadBodyData();
+        }
+    }
     
 
     return doneLoading&&!isError&&(

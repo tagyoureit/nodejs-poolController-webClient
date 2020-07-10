@@ -65,7 +65,7 @@ function BodyState(props: Props) {
         </ButtonGroup>
     }
 
-    return (
+    return ( 
         <ListGroupItem key={currentBody().id + 'BodyKey'}> <Row>
             <Col>{currentBody().name}
             </Col>
@@ -84,7 +84,7 @@ function BodyState(props: Props) {
                     {!currentBody().isOn && ` (Last)`}
                 </Col>
             </Row>}
-            {props?.options?.heatModes?.length > 1 && <> <Row>
+            {props?.options?.heatModes?.length >= 1 && <> <Row>
                 <Col>
 
                     <Slider

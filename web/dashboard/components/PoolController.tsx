@@ -522,7 +522,7 @@ function PoolController() {
             const fnController=function(_data) {
                 console.log(`received controller emit`)
                 setCounter(p => p+1);
-                if (data.state.status.percent !== 100 && _data.status.percent === 100) reloadFn();
+                if (data.state.status.percent !== 100 && data.state.status.val !== 255 && _data.status.percent === 100) reloadFn();
                 doUpdate({ updateType: 'MERGE_OBJECT', data: _data, dataName: 'state' });
             };
             if (typeof emitterRef.current !== 'undefined'){
