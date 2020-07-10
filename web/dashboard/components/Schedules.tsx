@@ -129,7 +129,7 @@ class Schedule extends React.Component<Props, any> {
               key={sched.circuit.id + "col"}
               className={`${active ? "text-primary font-weight-bold" : ""} pr-0 pr-md-0`}
             >
-              {sched.circuit.name} (#{sched.id})
+              {typeof sched.circuit.name === 'undefined' ? 'Unknown name': sched.circuit.name}
             </Col>
             <Col
               xs={2}

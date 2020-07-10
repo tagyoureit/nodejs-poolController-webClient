@@ -54,15 +54,19 @@ function Pump(props: Props) {
 
 
     
-    return doneLoading&&!isLoading&&(
+    return (
         <div className="tab-pane active" id="pump" role="tabpanel" aria-labelledby="pump-tab">
             <CustomCard name='Pumps' key='title' id={props.id} edit={() => setModalOpen(!modalOpen)}>
                 <CardGroup className="">
                     <ErrorBoundary>
-                        {data.pumps&&data.pumps.length===0&&'Pool app still searching or did not find any pumps responding to status requests.'}
-                        {data.pumps&&data.pumps.length>0&& typeof data?.pumps[0]?.status?.desc !== 'undefined' && data.pumps.map((pump) => {
-                            try {
+                        {doneLoading && data.pumps&&data.pumps.length===0 && 'Pool app still searching or did not find any pumps responding to status requests.'}
 
+                        {data.pumps.length > 0 && data.pumps.reduce((accumulator, currentValue) =>  accumulator && currentValue.type.name === 'none', true) 
+                        && `Please configure up to ${data.pumps.length} pumps`} 
+                    
+                        {data.pumps&&data.pumps.length>0 ? data.pumps.map((pump) => {
+                            try {
+                                if (pump.type.name === 'none') return;
                                 return (
                                     <Card key={'pump'+pump.id+'card'}>
                                         <CardBody className='p-0' key={'pump'+pump.id+'cardbody'}>
@@ -87,7 +91,10 @@ function Pump(props: Props) {
                                     {JSON.stringify(err)}
                                 </Card>)
                             }
-                        })}
+                        }) 
+                    : <>Something ain't right</>
+                    }
+                    
                     </ErrorBoundary>
                 </CardGroup>
             </CustomCard>

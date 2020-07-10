@@ -69,7 +69,7 @@ function Replay(props) {
     let replayTimer: any=useRef()
 
     const onRowsSelected=(rows: SelectionParams<any>[]) => {
-        console.log(`pressed row ${ rows[0].rowIdx }`)
+        // console.log(`pressed row ${ rows[0].rowIdx }`)
         setrunTo(rows[0].rowIdx);
         runToThisLine(rows[0].rowIdx)
     };
@@ -89,7 +89,7 @@ function Replay(props) {
         if(files.length>0) {
             let _file=files[0]
             // store file for reloading during reset
-            console.log('reloading')
+            console.log('reloading replay')
 
             setloadedFile([_file])
             setrunTo(0)
@@ -179,8 +179,8 @@ function Replay(props) {
             clearTimeout(replayTimer.current)
         }
         let packetPackage: number[][]=[]
-        console.log(`lineToSend: ${ lineToSend.current }  runTo:  ${ runTo }`)
-        console.log(`sending ${ runTo-lineToSend.current+1 } lines`);
+        // console.log(`lineToSend: ${ lineToSend.current }  runTo:  ${ runTo }`)
+        // console.log(`sending ${ runTo-lineToSend.current+1 } lines`);
 
         let _lineToSend=lineToSend.current
         let _linesSentArr: number[]=[]
@@ -207,7 +207,7 @@ function Replay(props) {
             }
         }
         replayDirection==='toApp'? socket.emit('replayPackets', packetPackage):socket.emit('sendPacket', packetPackage);
-        console.log(`sent up to #${ _lineToSend-1 }.  total packets ${ packetPackage.length } `)
+        // console.log(`sent up to #${ _lineToSend-1 }.  total packets ${ packetPackage.length } `)
         setselectedIndexes(indxs => indxs.concat(_linesSentArr));
         lineToSend.current = _lineToSend;
 
@@ -252,12 +252,12 @@ function Replay(props) {
                     if(replayDirection==='toApp') {
                         if (typeof packets[lineToSend.current]?.type !== 'undefined' && packets[lineToSend.current]?.type !== 'url'){
                             socket.emit('replayPackets', [packets[lineToSend.current].packet])
-                            console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
+                            // console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
                         }
                     }
                     else {
                         socket.emit('sendPackets', [packets[lineToSend.current].packet]); 
-                        console.log(`sending for RS485 bus ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
+                        // console.log(`sending for RS485 bus ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
                         
                     }
                     lineToSend.current = lineToSend.current + 1;
@@ -272,17 +272,15 @@ function Replay(props) {
                     if(replayDirection==='toApp') {
                         socket.emit('replayPackets', [packets[lineToSend.current].pkt])
                         // execute('receivePacketRaw', [packets[lineToSend.current].pkt]);
-                        console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
+                        // console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
                     }
                     else {
                         socket.emit('sendPackets', [packets[lineToSend.current].pkt]); 
                         // execute('replayPackets', [packets[lineToSend.current].pkt]);
-                        console.log(`sending for RS485 bus ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
+                        // console.log(`sending for RS485 bus ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
                         
                     }
-                    console.log(`lineTosend: ${lineToSend.current}`)
                     lineToSend.current = lineToSend.current + 1;
-                    console.log(`lineTosend after: ${lineToSend}`)
                     setselectedIndexes(indxs => indxs.concat(lineToSend.current))
                 }
                 else {
