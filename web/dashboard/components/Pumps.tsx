@@ -61,7 +61,7 @@ function Pump(props: Props) {
                     <ErrorBoundary>
                         {doneLoading && data.pumps&&data.pumps.length===0 && 'Pool app still searching or did not find any pumps responding to status requests.'}
 
-                        {data.pumps.length > 0 && data.pumps.reduce((accumulator, currentValue) =>  accumulator && currentValue.type.name === 'none', true) 
+                        {data.pumps.length > 0 && data.pumps.reduce((accumulator, currentValue) =>  accumulator && currentValue?.type?.name === 'none', true) 
                         && `Please configure up to ${data.pumps.length} pumps`} 
                     
                         {data.pumps&&data.pumps.length>0 ? data.pumps.map((pump) => {

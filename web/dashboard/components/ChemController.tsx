@@ -7,7 +7,13 @@ import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
 import { IExtendedChemController, PoolContext } from './PoolController';
 
-
+const tank0 = require('../images/Tank-0.png');
+const tank1 = require('../images/Tank-1.png');
+const tank2 = require('../images/Tank-2.png');
+const tank3 = require('../images/Tank-3.png');
+const tank4 = require('../images/Tank-4.png');
+const tank5 = require('../images/Tank-5.png');
+const tank6 = require('../images/Tank-6.png');
 
 const initialState: { chemControllers: IExtendedChemController[]; } = { chemControllers: [] };
 
@@ -17,34 +23,27 @@ function ChemControllers(props: any) {
     const [dropdownOpen, setdropdown] = useState();
     const [needsReload, setNeedsReload] = useState(false);
     const { reload, poolURL, controllerType, emitter } = useContext(PoolContext);
-    const [returnedData, doFetch, doUpdate] = useDataApi([], initialState);
-    // let { data, isLoading, isError, doneLoading } = returnedData as {data:IExtendedChemController[], isLoading: boolean, isError: boolean, doneLoading: boolean};
-    const data = useRef(initialState);
-    const isLoading = useRef(true)
-    const isError = useRef(false)
-    const doneLoading = useRef(false)
-    const execute = useAPI();
-    useEffect(() => {
-
-        data.current = returnedData.data;
-        isLoading.current = returnedData.isLoading;
-        isError.current = returnedData.isError;
-        doneLoading.current = returnedData.doneLoading;
-
-    }, [JSON.stringify(returnedData)]);
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate] = useDataApi([], initialState);
 
     const refreshChem = () => {
         let arr = [];
         arr.push({ url: `${poolURL}/extended/chemControllers`, dataName: 'chemControllers' });
         doFetch(arr);
-    }
+   }
 
     useEffect(() => {
+
+        console.log(`typeof poolURL !== 'undefined' && typeof emitter !== 'undefined': ${typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'}`);
+        console.log(`typeof emitter !== 'undefined': ${typeof emitter !== 'undefined'}`);
+        console.log(`typeof poolURL !== 'undefined': ${typeof emitter !== 'undefined'}`);
+        
+
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
+            console.log(`typeof check passed!`);
+            
             refreshChem();
             const fn = function (data) {
                 console.log(`received chemController emit`);
-                // if (data.type.val === 0) return;
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'chemControllers', data });
             };
             emitter.on('chemController', fn);
@@ -64,87 +63,85 @@ function ChemControllers(props: any) {
         setModalOpen(!modalOpen);
     };
 
+    const displayTank = (level: number) => {
+        switch (level) {
+            case 1:
+                return <img src={tank1} style={{height:'100%',maxWidth:'100%'}}    />
+            case 2:
+                return <img src={tank2} style={{height:'100%',maxWidth:'100%'}} />
+            case 3:
+                return <img src={tank3} style={{height:'100%',maxWidth:'100%'}} />
+            case 4:
+                return <img src={tank4} style={{height:'100%',maxWidth:'100%'}} />
+            case 5:
+                return <img src={tank5} style={{height:'100%',maxWidth:'100%'}} />
+            case 6:
+                return <img src={tank6} style={{height:'100%',maxWidth:'100%'}} />
+            case 0:
+            case 7:
+                return <img src={tank0} style={{height:'100%',maxWidth:'100%'}} />
+        }
+    }
+
     const value_limit = (val, min, max) => {
         return val < min ? min : (val > max ? max : val);
     }
     const closeBtn = <button className="close" onClick={() => { toggleModal(); }}>&times;</button>;
-    let className = "circuit-pane active";
     return (
         <>
-            
-                <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
 
-                    <CustomCard name='Chem Controllers' id={props.id} edit={() => setModalOpen(!modalOpen)}>
-                        {doneLoading.current && !isError.current && typeof data.current.chemControllers === 'undefined' || data.current?.chemControllers?.length > 0 && data.current.chemControllers.map((chemController) => {
+            <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
 
-                            return <div key={`chemController-${chemController.id}`}>
-                                {chemController.name}
-                                <ListGroup >
-                                    <ListGroupItem>
-                                        <Container>
-                                                <Row className='minHeight125'>
-                                                    <Col xs='12' sm='4' className='centerText p-0 m-0'>
-                                                        {/* <div className='topAbs10Percent centerText threeQuarterLineHeight'> */}
-                                                        Water Balance <br/>
-                                                        <h1 style={{ color: Math.abs(chemController.saturationIndex) > .3 ? 'rgb(176,40,40)' : 'rgb(42,173,57' }}>
-                                                            {typeof chemController.saturationIndex === 'undefined' ? 'n/a' : chemController.saturationIndex}
-                                                        </h1>
-                                                        {/* </div> */}
-                                                        <p />
-                                                        {/* <div style={{position: 'absolute', bottom: '0', lineHeight:'1'}} className='centerText'> */}
+                <CustomCard name='Chem Controllers' id={props.id} edit={() => setModalOpen(!modalOpen)}>
+                    {doneLoading && !isError && typeof data.chemControllers === 'undefined' || data?.chemControllers?.length > 0 && data.chemControllers.map((chemController) => {
+
+                        return <div key={`chemController-${chemController.id}`}>
+                            {chemController.name}
+                            <ListGroup >
+                                <ListGroupItem>
+                                    <Container>
+                                        <Row className='minHeight125'>
+                                            <Col xs='12' sm='4' className='centerText p-0 m-0'>
+                                                {/* <div className='topAbs10Percent centerText threeQuarterLineHeight'> */}
+                                                        Water Balance <br />
+                                                <h1 style={{ color: Math.abs(chemController.saturationIndex) > .3 ? 'rgb(176,40,40)' : 'rgb(42,173,57' }}>
+                                                    {typeof chemController.saturationIndex === 'undefined' ? 'n/a' : chemController.saturationIndex}
+                                                </h1>
+                                                {/* </div> */}
+                                                <p />
+                                                {/* <div style={{position: 'absolute', bottom: '0', lineHeight:'1'}} className='centerText'> */}
+                                                        Status 1: {chemController.status1.desc} <br />
+                                                        Status 2: {chemController.status2.desc} <br />
+                                                        Water Flow: {chemController.waterFlow.desc} <br />
                                                         Alk: {chemController.alkalinity} <br />
                                                         CH:  {chemController.calciumHardness} <br />
                                                         CYA: {chemController.cyanuricAcid}
-                                                       {/*  </div> */}
-                                                    </Col>
-                                                
-                                                    <Col style={{maxHeight:'125px'}} xs='6' sm='4'  className='d-flex p-0 m-0'>
-                                                        <div className='center p-0' style={{width:'100%', height:'auto'}}>
-                                                        <svg height="100%" id="Layer_1" data-name="Layer 1" 
-                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116.58 192.89">
-                                                            showWebviewLoader={false}
-                                                            <path id='fill-1' className={`tankBaseFill ${chemController.acidTankLevel >= 3 ? 'tankFillGreen' : chemController.acidTankLevel > 1 ? 'tankFillYellow' : chemController.acidTankLevel === 1 ? 'tankFillRed': ''}`} d="M345.35,356.79v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-2' className={`tankBaseFill ${chemController.acidTankLevel >= 3 ? 'tankFillGreen' : chemController.acidTankLevel > 1 ? 'tankFillYellow' : ''}`} d="M345.35,333.36v13.57s-19.19,25.69,52.56,29.86c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-3' className={`tankBaseFill ${chemController.acidTankLevel >= 3 ? 'tankFillGreen' : ''}`} d="M345.35,309.93V323.5s-19.19,25.69,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-4' className={`tankBaseFill ${chemController.acidTankLevel >= 4 ? 'tankFillGreen' : ''}`} d="M345.45,288.63V302.2S326.26,327.89,398,332.06c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-5' className={`tankBaseFill ${chemController.acidTankLevel >= 5 ? 'tankFillGreen' : ''}`} d="M345.45,265.21v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-6' className={`tankBaseFill ${chemController.acidTankLevel >= 6 ? 'tankFillGreen' : ''}`} d="M345.45,241.78v13.57S326.26,281,398,285.21c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+                                                {/*  </div> */}
+                                            </Col>
 
-                                                            <ellipse className={`tankBaseFill ${chemController.acidTankLevel >= 6 ? 'tankFillGreen' : ''}`} cx="58.29" cy="28.09" rx="56.49" ry="26.29"/>
-                                                            <ellipse className="tankBaseFill tankFillBlack" cx="24.2" cy="28.09" rx="8.79" ry="5.29"/>
-                                                        </svg>
-                                                        </div>
-                                                        <div className='center centerText'>
-                                                            {chemController.acidTankLevel}/6
+                                            <Col style={{ maxHeight: '125px' }} xs='6' sm='4' className='d-flex p-0 m-0'>
+                                                <div className='center p-0' style={{ width: '100%', height: 'auto' }}>
+                                                    {displayTank(chemController.acidTankLevel)}
+                                                </div>
+                                                <div className='center centerText'>
+                                                    {chemController.acidTankLevel}/6
                                                             <br />
                                                             Acid Tank Level
                                                 </div>
-                                                    </Col>
-                                                    <Col xs='6' sm='4' style={{maxHeight:'125px'}} className='d-flex p-0 m-0'>
-                                                        <div className='center p-0' style={{width:'100%', height:'auto'}}>
-                                                        <svg height="100%" id="Layer_1" data-name="Layer 1" 
-                                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116.58 192.89">
-                                                            <path id='fill-1' className={`tankBaseFill ${chemController.orpTankLevel >= 3 ? 'tankFillGreen' : chemController.orpTankLevel > 1 ? 'tankFillYellow' : chemController.orpTankLevel === 1 ? 'tankFillRed': ''}`} d="M345.35,356.79v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-2' className={`tankBaseFill ${chemController.orpTankLevel >= 3 ? 'tankFillGreen' : chemController.orpTankLevel > 1 ? 'tankFillYellow' : ''}`} d="M345.35,333.36v13.57s-19.19,25.69,52.56,29.86c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-3' className={`tankBaseFill ${chemController.orpTankLevel >= 3 ? 'tankFillGreen' : ''}`} d="M345.35,309.93V323.5s-19.19,25.69,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-4' className={`tankBaseFill ${chemController.orpTankLevel >= 4 ? 'tankFillGreen' : ''}`} d="M345.45,288.63V302.2S326.26,327.89,398,332.06c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-5' className={`tankBaseFill ${chemController.orpTankLevel >= 5 ? 'tankFillGreen' : ''}`} d="M345.45,265.21v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
-                                                            <path id='fill-6' className={`tankBaseFill ${chemController.orpTankLevel >= 6 ? 'tankFillGreen' : ''}`} d="M345.45,241.78v13.57S326.26,281,398,285.21c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
-
-                                                            <ellipse className={`tankBaseFill ${chemController.orpTankLevel >= 6 ? 'tankFillGreen' : ''}`} cx="58.29" cy="28.09" rx="56.49" ry="26.29"/>
-                                                            <ellipse className="tankBaseFill tankFillBlack" cx="24.2" cy="28.09" rx="8.79" ry="5.29"/>
-                                                        </svg>
-
-                                                        </div>
-                                                        <div className='center centerText'>
-                                                        {chemController.orpTankLevel}/6
+                                            </Col>
+                                            <Col xs='6' sm='4' style={{ maxHeight: '125px' }} className='d-flex p-0 m-0'>
+                                                <div className='center p-0' style={{ width: '100%', height: 'auto' }}>
+                                                    {displayTank(chemController.orpTankLevel)}
+                                                </div>
+                                                <div className='center centerText'>
+                                                    {chemController.orpTankLevel}/6
                                                             <br />ORP Tank Level
                                                         </div>
-                                                    </Col>
-                                              {/*   </Row>
-                                          
+                                            </Col>
+                                            {/*   </Row>
+
                                             <Row  */}
-                                                <Col xs='12' style={{height:'100px'}}>
+                                            <Col xs='12' style={{ height: '100px' }}>
                                                 <div style={{
                                                     position: 'relative',
                                                     height: '35px',
@@ -166,7 +163,7 @@ function ChemControllers(props: any) {
                                                     marginLeft: '-17px', // width of 1/2 of circle
                                                     zIndex: 2
                                                 }}>
-                                                    <svg height="34" width="34"> 
+                                                    <svg height="34" width="34">
                                                         <circle cx="17" cy="17" r="8" stroke="black" strokeWidth="1" fillOpacity='0' />
                                                         <circle cx="17" cy="17" r="5" stroke="black" strokeWidth="1" fillOpacity='0' />
                                                         <circle cx="17" cy="17" r="2" stroke="black" strokeWidth="1" fill='black' />
@@ -193,13 +190,13 @@ function ChemControllers(props: any) {
                                                         ]}
                                                     />
                                                 </div>
-                                                <div style={{position: 'relative', top: '-120px', fontSize: 'x-large'}}>
+                                                <div style={{ position: 'relative', top: '-120px', fontSize: 'x-large' }}>
                                                     pH
                                                 </div>
 
-                                                </Col>
-<Col xs='12'>
-                                            {/* </Row>
+                                            </Col>
+                                            <Col xs='12'>
+                                                {/* </Row>
                                             <Row style={{height:'100px'}}> */}
 
                                                 <div style={{
@@ -250,40 +247,40 @@ function ChemControllers(props: any) {
                                                         ]}
                                                     />
                                                 </div>
-                                                <div style={{position: 'relative', top: '-120px', fontSize: 'x-large'}}>
+                                                <div style={{ position: 'relative', top: '-120px', fontSize: 'x-large' }}>
                                                     ORP
                                                 </div>
                                             </Col>
-                                            </Row>
-                                        </Container>
-                                    </ListGroupItem>
+                                        </Row>
+                                    </Container>
+                                </ListGroupItem>
 
-                                    <br />
-                                </ListGroup>
-                            </div>
+                                <br />
+                            </ListGroup>
+                        </div>
 
-                        })}
-
-                        
-
-                    </CustomCard>
+                    })}
 
 
 
-                    <Modal isOpen={modalOpen} toggle={() => { setModalOpen(!modalOpen); }} size='xl' scrollable={true}>
-                        <ModalHeader toggle={() => { setModalOpen(!modalOpen); }} close={closeBtn}>Adjust Chem Controller</ModalHeader>
-                        <ModalBody>
-                            <ChemControllerEdit
-                                // chemControllers={data.current.chemControllers} 
-                                doUpdate={doUpdate}
-                            />
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button onClick={() => { setModalOpen(!modalOpen); }}>Close</Button>
-                        </ModalFooter>
-                    </Modal>
-                </div>
-            
+                </CustomCard>
+
+
+
+                <Modal isOpen={modalOpen} toggle={() => { setModalOpen(!modalOpen); }} size='xl' scrollable={true}>
+                    <ModalHeader toggle={() => { setModalOpen(!modalOpen); }} close={closeBtn}>Adjust Chem Controller</ModalHeader>
+                    <ModalBody>
+                        <ChemControllerEdit
+                            // chemControllers={data.chemControllers}
+                            doUpdate={doUpdate}
+                        />
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button onClick={() => { setModalOpen(!modalOpen); }}>Close</Button>
+                    </ModalFooter>
+                </Modal>
+            </div>
+
         </>
     );
 }

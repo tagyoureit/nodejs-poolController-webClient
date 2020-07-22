@@ -11,67 +11,60 @@ import ReactDataGrid, { GridRowsUpdatedEvent, RowUpdateEvent, SelectionParams } 
 import CustomCard from '../CustomCard'
 
 
-type PacketType='packet'|'socket'|'api'
-type DirectionType='inbound'|'outbound'
-type ShortDirectionType='in'|'out'
+type PacketType = 'packet' | 'socket' | 'api'
+// type DirectionType='in'|'out'
+type ShortDirectionType = 'in' | 'out'
 interface IPackets {
+    id: number
     counter: number
     type: PacketType
-    direction?: DirectionType
-    dir?: ShortDirectionType
-    level: string
-    timestamp: string
-    packet?: number[]
+    dir: ShortDirectionType
+    ts: Date
     pkt?: number[][]
+    path?: string;
 }
 
 function Replay(props) {
-    const dateFormatter=(({ value }: { value: string }): React.ReactElement => {
-        let date=new Date(value)
-        return <>{`${ date.toTimeString() }`}</>
+    const dateFormatter = (({ value }: { value: Date }): React.ReactElement => {
+        return <>{`${value.toTimeString()}`}</>
     })
-
-
-    const [numPackets, setNumPackets]=useState(0);
-    const [columns, setColumns]=useState<ReactDataGrid.Column<any>[]>(
+    const [numPackets, setNumPackets] = useState(0);
+    const [columns, setColumns] = useState<ReactDataGrid.Column<any>[]>(
         [
-            { key: `counter`, name: `#`, width: 80 },
-            { key: 'proto', name: 'Protocol', width: 75 },
-            { key: `direction`, name: `Direction`, width: 90 },
-            { key: 'timestamp', name: 'H:M:S.s', width: 110, formatter: dateFormatter },
-            { key: 'packet', name: 'Packet', formatter: ({ value }: { value: number[] }): React.ReactElement => {
-                try {
-                    if (version === 5) return <>{value.join(',')}</>
-                    else return <>{value.slice(2,4)}</>
-                }
-                catch (err){
-                    return <>{value}</>
-                }
-        
-            } }
-        ]);
-    const [packets, setPackets]=useState([]);
-    const [selectedIndexes, setselectedIndexes]=useState([]);
-    const [runTo, setrunTo]=useState(0);
-    // const [lineToSend, setlineToSend]=useState(0);
-    const lineToSend = useRef(0)
-    const [lineSent, setlinesSent]=useState(0);
-    const [replayButtonColor, setreplayButtonColor]=useState('primary');
-    const [replayButtonText, setreplayButtonText]=useState('Replay');
-    const [replayDirection, setreplayDirection]=useState('toApp');
-    const [directionDropDownOpen, setdirectionDropDownOpen]=useState(false);
-    const [includePacketTypeDropDownOpen, setincludePacketTypeDropDownOpen]=useState(false);
-    const [includePacketTypes, setincludePacketTypes]=useState('inbound');
-    const [loadedFile, setloadedFile]=useState<any>();
-    const execute=useAPI();
-    const { socket }: { socket: SocketIOClient.Socket }=useContext(PoolContext);
-    const [version, setversion]=useState(5);
-    let replayTimer: any=useRef()
+            { key: `counter`, name: `Cnt`, width: 40 },
+            { key: `id`, name: `id`, width: 40 },
+            { key: 'type', name: 'Type', width: 75 },
+            { key: `dir`, name: `Dir`, width: 40 },
+            { key: 'ts', name: 'TS', width: 110, formatter: dateFormatter },
+            {
+                key: 'pkt', name: 'Packet', formatter: ({ value }: { value: number[][] }): React.ReactElement => {
+                    try {
 
-    const onRowsSelected=(rows: SelectionParams<any>[]) => {
-        // console.log(`pressed row ${ rows[0].rowIdx }`)
-        setrunTo(rows[0].rowIdx);
-        runToThisLine(rows[0].rowIdx)
+                        return <>{value.slice(2, 4).toString()}</>
+                    }
+                    catch (err) {
+                        return <>{value.toString()}</>
+                    }
+                }
+            }
+        ]);
+    const [packets, setPackets] = useState<IPackets[]>([]);
+    const [selectedIndexes, setselectedIndexes] = useState([]);
+    const lineToSend = useRef(0)
+    const [lineSent, setlinesSent] = useState(0);
+    const [replayButtonColor, setreplayButtonColor] = useState('primary');
+    const [replayButtonText, setreplayButtonText] = useState('Replay');
+    const [replayDirection, setreplayDirection] = useState('toApp');
+    const [directionDropDownOpen, setdirectionDropDownOpen] = useState(false);
+    const [includePacketTypeDropDownOpen, setincludePacketTypeDropDownOpen] = useState(false);
+    const [includePacketTypes, setincludePacketTypes] = useState('in');
+    const [loadedFile, setloadedFile] = useState<any>();
+    const { socket }: { socket: SocketIOClient.Socket } = useContext(PoolContext);
+    let replayTimer: any = useRef()
+    let replayspeed = useRef(25)
+
+    const onRowsSelected = (rows: SelectionParams<any>[]) => {
+        runToThisLine(rows[0].row.counter);
     };
 
     /**
@@ -80,219 +73,144 @@ function Replay(props) {
      * by reset in which case we load the file from replayFile
      * @param event file that will be uploaded
      */
-    const handleFile=(event?: any) => {
-        const reader=new FileReader()
+    const handleFile = (event?: any) => {
+        const reader = new FileReader()
 
-        let files=event===undefined? loadedFile:event.currentTarget.files;
+        let files = event === undefined ? loadedFile : event.currentTarget.files;
         // check to make sure reset button wasn't clicked before loading a file
 
-        if(files.length>0) {
-            let _file=files[0]
+        if (files.length > 0) {
+            let _file = files[0]
             // store file for reloading during reset
             console.log('reloading replay')
-
-            setloadedFile([_file])
-            setrunTo(0)
+            setloadedFile([_file]);
             setlinesSent(0)  // counter for sent packets
             lineToSend.current = 0  // which line/packet will be sent next
             setselectedIndexes([])
             reader.readAsText(_file)
         }
 
-        reader.onload=(event: any) => {
-            const file: any=event.target.result;
-            let rawLines: string[]=file.split(/\r\n|\n/);
-            let allLines: IPackets[]=[];
-
-            // Reading line by line
-            rawLines.forEach((_line) => {
-                if(_line.length>10) {
-                    try {
-                        allLines.push(JSON.parse(_line))
+        reader.onload = (event: any) => {
+            const file: any = event.target.result;
+            let rawLines: string[] = file.split(/\r\n|\n/);
+            let allLines: IPackets[] = [];
+            let totalPackets: number = 1;
+            for (let i = 0; i < rawLines.length; i++, totalPackets++) {
+                try {
+                    let parsedLine = JSON.parse(rawLines[i]);
+                    let entry: IPackets = {
+                        counter: i,
+                        id: parsedLine.id || i + 1,
+                        pkt: [],
+                        dir: 'out',
+                        type: 'packet',
+                        ts: new Date()
+                    };
+                    if (new Date(parsedLine.ts).toString() !== 'Invalid Date') entry.ts = new Date(parsedLine.ts);
+                    if (new Date(parsedLine.timestamp).toString() !== 'Invalid Date') entry.ts = new Date(parsedLine.timestamp);
+                    if (typeof parsedLine.url !== 'undefined' || typeof parsedLine.path !== 'undefined') {
+                        // api
+                        entry.type = 'api';
+                        entry.path = parsedLine.path || parsedLine.url;
                     }
-                    catch(err) {
-                        console.log(`trouble reading line: ${ _line } - ${ err.message }`)
+                    else {
+                        // packets
+                        entry.type = 'packet';
+                        entry.pkt = parsedLine.pkt || [[], [], parsedLine.packet];
                     }
+                    if (parsedLine?.direction?.includes('in') || parsedLine?.dir?.includes('in')) entry.dir = 'in';
+                    allLines.push(entry);
                 }
-            });
-
-            let totalPackets: number=0;
-            allLines.forEach((line: any) => {
-                Object.assign(line, { counter: totalPackets });
-                totalPackets++
-
-            })
-
-            // check if old or new format
-            for (let i = 0; i< allLines.length; i++){
-                if (typeof allLines[i].pkt === 'undefined') continue;
-                if(Array.isArray(allLines[i].pkt[0])) {
-                    setversion(6);
-                    setincludePacketTypes('in');
-                    setColumns([{ key: `counter`, name: `#`, width: 80 },
-                    { key: 'proto', name: 'Proto', width: 75 },
-                    { key: `dir`, name: `Direction`, width: 90 },
-                    { key: 'ts', name: 'H:M:S.s', width: 110, formatter: dateFormatter },
-                    { key: 'pkt', name: 'Packet', formatter: ({ value }: { value: number[] }): React.ReactElement => {
-                        try {
-                            return <>{JSON.stringify(value.slice(2))}</>
-                        }
-                        catch (err){
-                            return <>{value}</>
-                        }
-                        
-                    } }
-                ])
-             }
-             break;
+                catch (err) {
+                    console.log(`trouble reading line: ${rawLines[i]} - ${err.message}`)
+                }
             }
             setPackets(allLines);
             setNumPackets(Object.keys(allLines).length);
         }
     }
-    const handleReset=() => {
-        setrunTo(0);
+    const handleReset = () => {
         setlinesSent(0);  // counter for sent packets
         lineToSend.current = 0;  // which line/packet will be sent next
         setNumPackets(0);
         setPackets([]);
         setselectedIndexes([]);
-        resetIntervalTimer()
+        resetReplayButton()
         handleFile()
     }
-/*     useEffect(() => {
-        return () => {
-            handleReset();
-        }
-    }, []); */
 
-
-
-    const resetIntervalTimer=() => {
+    const resetReplayButton = () => {
         setreplayButtonColor('primary')
         setreplayButtonText('Replay')
         clearTimeout(replayTimer.current)
     }
 
-    const runToThisLine=(runTo: number) => {
-        if(typeof replayTimer.current!=='undefined') {
+    const runToThisLine = (runTo: number) => {
+        if (typeof replayTimer.current !== 'undefined') {
             clearTimeout(replayTimer.current)
         }
-        let packetPackage: number[][]=[]
-        // console.log(`lineToSend: ${ lineToSend.current }  runTo:  ${ runTo }`)
-        // console.log(`sending ${ runTo-lineToSend.current+1 } lines`);
-
-        let _lineToSend=lineToSend.current
-        let _linesSentArr: number[]=[]
-        for(_lineToSend;_lineToSend<=runTo;_lineToSend++) {
-            if(version===5) {
-                if(includePacketTypes===packets[_lineToSend].direction||includePacketTypes==='both') {
-
-                    if(_lineToSend<=numPackets) {
-                        packetPackage.push(packets[_lineToSend].packet)
+        let packetPackage: number[][] = [];
+        let replayedIndxs = [];
+        for (; lineToSend.current <= runTo;) {
+            if (packets[lineToSend.current].type === 'packet') {
+                if (includePacketTypes === packets[lineToSend.current].dir || includePacketTypes === 'both') {
+                    if (lineToSend.current <= numPackets) {
+                        let packetArr = buildPackets(packets[lineToSend.current]);
+                        if (typeof packetArr !== 'undefined') {
+                            packetPackage = packetPackage.concat(packetArr);
+                        }
+                        // set checkbox for selected items
                     }
-                    // set checkbox for selected items
-                    _linesSentArr=_linesSentArr.concat(_lineToSend)
                 }
             }
-            else {
-                if(packets[_lineToSend].proto==='api') continue;
-                if(includePacketTypes===packets[_lineToSend].dir||includePacketTypes==='both') {
-                    if(_lineToSend<=numPackets) {
-                        packetPackage.push(packets[_lineToSend].pkt)
-                    }
-                    // set checkbox for selected items
-                    _linesSentArr=_linesSentArr.concat(_lineToSend)
-                }
-            }
+            replayedIndxs.push(packets[lineToSend.current].counter);
+            lineToSend.current = packets[lineToSend.current].counter + 1;
         }
-        replayDirection==='toApp'? socket.emit('replayPackets', packetPackage):socket.emit('sendPacket', packetPackage);
-        // console.log(`sent up to #${ _lineToSend-1 }.  total packets ${ packetPackage.length } `)
-        setselectedIndexes(indxs => indxs.concat(_linesSentArr));
-        lineToSend.current = _lineToSend;
 
+        setselectedIndexes(indxs => indxs.concat(replayedIndxs));
+        replayDirection === 'toApp' && packetPackage.length > 0 ? socket.emit('replayPackets', packetPackage) : socket.emit('sendPacket', packetPackage);
     }
 
-    const handleReplayButton=() => {
-        if(replayButtonText==='Replay') {
-            if(numPackets>0) {
+    const buildPackets = (packet: IPackets): number[][] | undefined => {
+        if (includePacketTypes === packet.dir || includePacketTypes === 'both') {
+            return packet.pkt.filter(p => p.length !== 0);
+        }
+        else return undefined
+    }
+
+    const handleReplayButton = () => {
+        if (replayButtonText === 'Replay') {
+            if (numPackets > 0 && lineToSend.current < numPackets) {
                 setreplayButtonColor('success')
                 setreplayButtonText('Replaying...');
-                replayTimer.current=setInterval(replayFile, 50);
+                runToThisLine(lineToSend.current);
+                replayTimer.current = setTimeout(handleReplayButton, replayspeed.current);
             }
-            else {
-                console.log('No packets to send yet')
+            else {  
+                resetReplayButton();
             }
         }
         else {
-            resetIntervalTimer()
+            resetReplayButton()
         }
     }
-    const handleIncludeDirectionChange=(event) => {
+    const handleIncludeDirectionChange = (event) => {
         setreplayDirection(event.target.value);
     }
-    const toggleIncludePacketTypes=() => {
+    const toggleIncludePacketTypes = () => {
         setincludePacketTypeDropDownOpen(dd => !dd);
     }
-    const toggleDirectionDropDown=() => {
+    const toggleDirectionDropDown = () => {
         setdirectionDropDownOpen(dir => !dir);
     }
-    const handleIncludePacketTypes=(event) => {
-        if (version === 5) setincludePacketTypes(event.target.value);
-        else {
-            if (event.target.value === 'inbound') setincludePacketTypes('in')
-            else if (event.target.value === 'outbound') setincludePacketTypes('out')
-            else setincludePacketTypes(event.target.value)
-        }
+    const handleIncludePacketTypes = (event) => {
+        if (event.target.value === 'in') setincludePacketTypes('in')
+        else if (event.target.value === 'out') setincludePacketTypes('out')
+        else setincludePacketTypes(event.target.value)
     }
-    const replayFile=() => {
-        if(lineToSend.current<numPackets) {
-            if (version === 5){
-                if(includePacketTypes===packets[lineToSend.current].direction||includePacketTypes==='both') {
-                    if(replayDirection==='toApp') {
-                        if (typeof packets[lineToSend.current]?.type !== 'undefined' && packets[lineToSend.current]?.type !== 'url'){
-                            socket.emit('replayPackets', [packets[lineToSend.current].packet])
-                            // console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
-                        }
-                    }
-                    else {
-                        socket.emit('sendPackets', [packets[lineToSend.current].packet]); 
-                        // console.log(`sending for RS485 bus ${ lineToSend.current }: ${ packets[lineToSend.current].packet.toString() }`)
-                        
-                    }
-                    lineToSend.current = lineToSend.current + 1;
-                    setselectedIndexes(indxs => indxs.concat(lineToSend.current))
-                }
-                else {
-                    lineToSend.current = lineToSend.current + 1;
-                }
-            }
-            else {
-                if(includePacketTypes===packets[lineToSend.current].dir||includePacketTypes==='both' && packets[lineToSend.current].proto!=='api') {
-                    if(replayDirection==='toApp') {
-                        socket.emit('replayPackets', [packets[lineToSend.current].pkt])
-                        // execute('receivePacketRaw', [packets[lineToSend.current].pkt]);
-                        // console.log(`sending for app ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
-                    }
-                    else {
-                        socket.emit('sendPackets', [packets[lineToSend.current].pkt]); 
-                        // execute('replayPackets', [packets[lineToSend.current].pkt]);
-                        // console.log(`sending for RS485 bus ${ lineToSend.current }: ${ packets[lineToSend.current].pkt.toString() }`)
-                        
-                    }
-                    lineToSend.current = lineToSend.current + 1;
-                    setselectedIndexes(indxs => indxs.concat(lineToSend.current))
-                }
-                else {
-                    lineToSend.current = lineToSend.current + 1;
-                }
-            }
-        }
-        else {
-            setreplayButtonColor('primary')
-            setreplayButtonText('Replay')
-            clearTimeout(replayTimer);
-        }
+    const handleReplaySpeedChange = (event)=> {
+        let ms = parseInt(event.target.value, 10);
+        if (!isNaN(ms)) replayspeed.current = ms;
     }
 
     return (<>
@@ -317,7 +235,7 @@ function Replay(props) {
                 <Col>
                     <InputGroup>
                         <InputGroupAddon addonType="prepend">Replay Packet Count</InputGroupAddon>
-                        <Input value={`${ lineToSend.current } of ${ numPackets }`} readOnly />
+                        <Input value={`${lineToSend.current} of ${numPackets}`} readOnly />
                     </InputGroup>
 
                 </Col>
@@ -330,23 +248,29 @@ function Replay(props) {
             <Row className='mb-2'>
                 <Dropdown isOpen={includePacketTypeDropDownOpen} toggle={toggleIncludePacketTypes} className='mr-1' >
                     <DropdownToggle caret color='primary' >
-                        {includePacketTypes==='both'? 'both ':`Only ${ includePacketTypes }`} packets
+                        {includePacketTypes === 'both' ? 'both ' : `Only ${includePacketTypes}`} packets
                         </DropdownToggle>
                     <DropdownMenu>
-                        <DropdownItem onClick={handleIncludePacketTypes} value='inbound'>Only inbound</DropdownItem>
-                        <DropdownItem onClick={handleIncludePacketTypes} value='outbound'>Only outbound</DropdownItem>
+                        <DropdownItem onClick={handleIncludePacketTypes} value='in'>Only inbound</DropdownItem>
+                        <DropdownItem onClick={handleIncludePacketTypes} value='out'>Only outbound</DropdownItem>
                         <DropdownItem onClick={handleIncludePacketTypes} value='both'>both</DropdownItem>
                     </DropdownMenu>
                 </Dropdown>
                 <Dropdown isOpen={directionDropDownOpen} toggle={toggleDirectionDropDown}>
                     <DropdownToggle caret color='primary' >
-                        Replay to {replayDirection==='toApp'? 'App':'RS485'}
+                        Replay to {replayDirection === 'toApp' ? 'App' : 'RS485'}
                     </DropdownToggle>
                     <DropdownMenu>
                         <DropdownItem onClick={handleIncludeDirectionChange} value='toApp'>App</DropdownItem>
                         <DropdownItem onClick={handleIncludeDirectionChange} value='toBus'>RS485</DropdownItem>
                     </DropdownMenu>
                 </Dropdown>
+                <Col>
+                <label>
+                    Replay Speed (ms)
+                 <Input type='number' onChange={handleReplaySpeedChange} text={replayspeed.current} defaultValue={replayspeed.current}/>
+                </label>
+                </Col>
             </Row>
             <Row>
                 <ReactDataGrid

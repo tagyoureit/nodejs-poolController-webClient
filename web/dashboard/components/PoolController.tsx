@@ -401,7 +401,7 @@ export interface IStateChemController {
     pHLevel: number
     orpLevel: number
     saltLevel: number
-    waterFlow: number
+    waterFlow: IDetail
     acidTankLevel: number
     orpTankLevel: number
     status1: IDetail

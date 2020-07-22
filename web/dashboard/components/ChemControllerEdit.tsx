@@ -110,6 +110,10 @@ function ChemControllerEdit(props: Props) {
     const handleAdd = async () => {
         let res:any = await execute('setChemControllerConfig', {})
         if (typeof res.stack === 'undefined') {
+            if (Object.entries(res).length === 0){
+                console.log(`Chem controller responded with ${JSON.stringify(res)}.  Skipping add.`);
+                return;
+            }
             let copy = extend(true, [], data.options.controllers);
             copy.push(res);
             // setLocalChemData(copy)
@@ -142,7 +146,7 @@ function ChemControllerEdit(props: Props) {
                     doUpdate({updateType: 'REPLACE', data: copy, dataName: ['options', 'controllers']});
                     return;
                 }
-                props.doUpdate({ updateType: 'REPLACE_ARRAY', data: res, dataName: 'chemControllers' });
+                props.doUpdate({ updateType: 'MERGE_ARRAY', data: res, dataName: 'chemControllers' });
                 doUpdate({ updateType: 'REPLACE_ARRAY', data: res, dataName: ['options','controllers'] })
             }
             else {

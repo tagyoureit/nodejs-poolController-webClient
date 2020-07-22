@@ -66,6 +66,7 @@ typings/
 obj/
 bin/
 .vs/
+.vscode/
 # end
 
 

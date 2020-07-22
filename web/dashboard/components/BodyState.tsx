@@ -102,8 +102,7 @@ function BodyState(props: Props) {
             </Row>
                 <Row>
                     <Col>
-                        Heater Mode
-                                <div className='d-flex justify-content-center'>
+                        <div className='d-flex justify-content-center'>
                             {heaterButtons()}
                         </div>
                     </Col>

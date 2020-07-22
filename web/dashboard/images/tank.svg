@@ -1,0 +1,14 @@
+<svg height="100%" id="Layer_1" data-name="Layer 1" 
+xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116.58 192.89">
+<link xmlns="http://www.w3.org/2000/xhtml" rel="stylesheet" href="../css/poolController.css" type="text/css"/>
+  
+<path id='fill-1' class="tankFillGreen"  d="M345.35,356.79v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
+<path id='fill-2' class="tankFillGreen"  d="M345.35,333.36v13.57s-19.19,25.69,52.56,29.86c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+<path id='fill-3' className="tankBaseFill" d="M345.35,309.93V323.5s-19.19,25.69,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+<path id='fill-4' className="tankBaseFill tankFillGreen" d="M345.45,288.63V302.2S326.26,327.89,398,332.06c0,0,68.27-.69,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+<path id='fill-5' className="tankBaseFill tankFillGreen" d="M345.45,265.21v13.56s-19.19,25.7,52.56,29.86c0,0,68.27-.69,52.3-29.86l-1.39-13.56Z" transform="translate(-339.63 -209.12)"/>
+<path id='fill-6' className="tankBaseFill tankFillGreen" d="M345.45,241.78v13.57S326.26,281,398,285.21c0,0,68.27-.7,52.3-29.86l-1.39-13.57Z" transform="translate(-339.63 -209.12)"/>
+
+<ellipse className="tankBaseFill tankFillGreen" cx="58.29" cy="28.09" rx="56.49" ry="26.29"/>
+<ellipse className="tankBaseFill tankFillBlack" cx="24.2" cy="28.09" rx="8.79" ry="5.29"/>
+</svg>
