@@ -180,7 +180,7 @@ function ChemControllerEdit(props: Props) {
                         <Row>
                             <Col>
                                 <RIEInput
-                                    value={cC.name}
+                                    value={typeof cC.name !== 'undefined'? cC.name : `Chem Controller ${cC.id}`}
                                     change={changeName}
                                     propName={cC.id.toString()}
                                     className={"editable"}

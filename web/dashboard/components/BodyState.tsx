@@ -10,6 +10,7 @@ import { PoolContext, IStateTemp, ConfigOptionsHeaters, IStateTempBodyDetail, ID
 import { useAPI } from './Comms';
 var extend = require('extend');
 const flame = require('../images/flame.png');
+const snowflake = require('../images/snowflake.png');
 interface Props {
     currentBodyId: number;
     options: ConfigOptionsHeaters;
@@ -43,29 +44,41 @@ function BodyState(props: Props) {
     const high = props.temps.units.name === 'F' ? 104 : 43;
     const labelStr = `{"${low}": "${low}", "${high}": "${high}"}`
     let labels = JSON.parse(labelStr)
-    const showFlame = (mode: IDetail) => {
+    const showHeatStatusIcon = (mode: IDetail) => {
         if (!currentBody().isOn || mode.name === 'off' || mode.name.includes('preferred')) return;
         // solar = heatpump
-        if (currentBody().heatStatus.name === 'solar' && mode.name === 'heatpump' ||
+        switch (mode.name) {
+            case 'solar':
+                if (currentBody().heatStatus.name === 'solar ') return (<img src={flame} />);
+                break;
+            case 'heater':
+                if (currentBody().heatStatus.name === 'heater') return (<img src={flame} />);
+                break;
+            case 'heatpump':
+                if (currentBody().heatStatus.name === 'solar') return (<img src={flame} />);
+                if (currentBody().heatStatus.name === 'cooling') return (<img src={snowflake} />);
+                break;
+        }
+/*         if (currentBody().heatStatus.name === 'solar' && mode.name === 'heatpump' ||
             // solar = solar
             // heater = heater
-            currentBody().heatStatus.name === mode.name) return (<img src={flame} />)
+            currentBody().heatStatus.name === mode.name) return (<img src={flame} />) */
     }
 
     const heaterButtons = () => {
         return <ButtonGroup >
             {props.options.heatModes.map(mode => {
-                return <Button 
-                key={`body-${props.currentBodyId}-heatMode-${mode.val}`}
-                onClick={() => changeHeat(mode.val)} 
-                color={currentBody().heatMode.val === mode.val ? 'success' : 'secondary'}>
-                    {`${mode.desc} `}{showFlame(mode)}
-                    </Button>
+                return <Button
+                    key={`body-${props.currentBodyId}-heatMode-${mode.val}`}
+                    onClick={() => changeHeat(mode.val)}
+                    color={currentBody().heatMode.val === mode.val ? 'success' : 'secondary'}>
+                    {`${mode.desc} `}{showHeatStatusIcon(mode)}
+                </Button>
             })}
         </ButtonGroup>
     }
 
-    return ( 
+    return (
         <ListGroupItem key={currentBody().id + 'BodyKey'}> <Row>
             <Col>{currentBody().name}
             </Col>
@@ -77,7 +90,7 @@ function BodyState(props: Props) {
 
             </Col>
         </Row>
-        {typeof currentBody().temp !== 'undefined' && <Row>
+            {typeof currentBody().temp !== 'undefined' && <Row>
                 <Col>Temp</Col>
                 <Col >
                     {currentBody().temp}

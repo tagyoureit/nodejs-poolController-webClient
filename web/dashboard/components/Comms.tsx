@@ -219,7 +219,9 @@ export const useAPI=() => {
             case 'setChemControllerConfig':
                 opts.url = `${ poolURL }/config/chemController`
                 break;
-            
+            case 'setChemControllerAlarmAndWarning': // sets LOCAL alerts for keeping track of what's been dismissed
+                opts.url = `/chemController`
+                break;
             // LIGHT GROUPS
             case 'setLightGroupTheme':
                 opts.url=`${ poolURL }/state/circuit/setTheme`

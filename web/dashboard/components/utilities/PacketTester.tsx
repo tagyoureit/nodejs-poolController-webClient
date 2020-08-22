@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { comms } from '../Comms';
+// import { comms } from '../Comms';
 import UtilitiesLayout from './UtilitiesLayout';
 import
 {
@@ -7,7 +7,8 @@ import
     Form, FormGroup, Label, FormText
 } from 'reactstrap';
 import ReactDataGrid, { GridRowsUpdatedEvent } from 'react-data-grid';
-
+import { Socket } from "socket.io";
+import io from 'socket.io-client';
 // 165,x,15,16,8,40,0,0,0,0,0,0,0,  0 ,0 ,0 ,0 ,0 ,0 ,2,190
 
 interface State
@@ -29,7 +30,7 @@ class PacketTester extends React.Component<any, State> {
             rowToBeAdded: '',
             columns: [ { key: `b0`, name: `No packets yet.` } ]
         }
-
+        this.socket =io('127.0.0.1:4200');
         this.handleAdd = this.handleAdd.bind( this )
         this.handleSend = this.handleSend.bind( this )
         this.handleReceive = this.handleReceive.bind( this )
@@ -38,7 +39,7 @@ class PacketTester extends React.Component<any, State> {
         this.clearQueue = this.clearQueue.bind( this )
         this.dataRowsToPackets = this.dataRowsToPackets.bind(this)
     }
-
+    socket: SocketIOClient.Socket
     handleTextInput ( event: any )
     {
         this.setState( { rowToBeAdded: event.target.value } )
@@ -49,21 +50,21 @@ class PacketTester extends React.Component<any, State> {
         let packets: number[][] = []
         this.state.rows.forEach( ( el:number[] ) =>
         {
-            //packets.push(Object.values(el))
+            packets.push(Object.values(el))
         } ) 
         return packets;
     }
 
     handleSend ()
     {
-        comms.sendPackets( this.dataRowsToPackets () )
+        this.socket.emit('sendPackets', this.dataRowsToPackets () )
     }
 
     handleReceive ()
     {
         console.log( `this.dataRows:` )
         console.log(this.dataRowsToPackets())
-        comms.receivePacket( this.dataRowsToPackets() )
+        this.socket.emit('replayPackets', this.dataRowsToPackets() )
     }
 
     handleAdd ( event: any )

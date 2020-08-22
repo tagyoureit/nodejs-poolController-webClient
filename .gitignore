@@ -73,3 +73,5 @@ bin/
 # next.js build output
 .next
 dist
+.vscode/launch.json
+.vscode/tasks.json

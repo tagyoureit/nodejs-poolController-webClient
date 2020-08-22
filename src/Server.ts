@@ -127,7 +127,16 @@ async function startBundler() {
         reloadVars();
         res.send(config.setSection('options', options))
     })
-
+    app.get('/chemController', (req, res) => {
+        res.send(config.getSection('chemController'));
+    })
+    app.put('/chemController', (req, res) => {
+        // let cc=config.getSection("chemController") || {"chemController": {}}
+        // if (typeof req.body.alarms !== 'undefined') cc.alarms = req.body.alarms;
+        // if (typeof req.body.warnings !== 'undefined') cc.warnings = req.body.warnings;
+        config.setSection("chemController", req.body);
+        res.send(req.body);
+    })
     app.put('/discovery', (req, res)=>{
         protocol=req.body.override.protocol;
         host=req.body.override.host;

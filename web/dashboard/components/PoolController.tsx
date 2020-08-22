@@ -401,17 +401,19 @@ export interface IStateChemController {
     pHLevel: number
     orpLevel: number
     saltLevel: number
-    waterFlow: IDetail
+    // waterFlow: IDetail
     acidTankLevel: number
     orpTankLevel: number
-    status1: IDetail
-    status2: IDetail
+    // status1: IDetail
+    // status2: IDetail
     phDosingTime: number
     orpDosingTime: number
     saturationIndex: number
     temp: number
     tempUnits: IDetail
     virtualControllerStatus: IDetail
+    alarms: IDetail[]
+    warnings: IDetail[]
 }
 
 export interface IConfigChemController {
