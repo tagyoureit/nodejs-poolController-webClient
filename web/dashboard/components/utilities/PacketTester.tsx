@@ -62,8 +62,6 @@ class PacketTester extends React.Component<any, State> {
 
     handleReceive ()
     {
-        console.log( `this.dataRows:` )
-        console.log(this.dataRowsToPackets())
         this.socket.emit('replayPackets', this.dataRowsToPackets() )
     }
 
@@ -94,21 +92,6 @@ class PacketTester extends React.Component<any, State> {
             } )
         } )
 
-        //_arrObj.forEach( ( el, idx ) =>
-        //{
-        //    console.log( idx )
-        //    console.log( el )
-        //    console.log( Object.keys( _arrObj[ idx ] ).length )
-        //    if ( Object.keys( _arrObj[ idx ] ).length > _columnLength )
-        //    {
-
-        //        // increase col length
-        //        _columnLength = Object.keys( _arrObj[ idx ] ).length
-        //    }
-        //} )
-
-        console.log( `column length: ${ _columnLength }` )
-
 
         let _newColumns = []
         // Rebuild columns each time... This could be optimized.
@@ -117,8 +100,8 @@ class PacketTester extends React.Component<any, State> {
             _newColumns.push( { key: `b${ i }`, name: `b${ i }`, editable: true } )
         }
 
-        console.log( `arr:` )
-        console.log( `${ JSON.stringify( _arrObj, null, 2 ) }` )
+        // console.log( `arr:` )
+        // console.log( `${ JSON.stringify( _arrObj, null, 2 ) }` )
 
         let newAndOldRows = this.state.rows.concat( _arrObj )
         this.setState(

@@ -9,7 +9,7 @@ import {
 } from 'reactstrap';
 import ReactDataGrid, { GridRowsUpdatedEvent, RowUpdateEvent, SelectionParams } from 'react-data-grid';
 import CustomCard from '../CustomCard'
-
+import io from 'socket.io-client';
 
 type PacketType = 'packet' | 'socket' | 'api'
 // type DirectionType='in'|'out'
@@ -28,6 +28,7 @@ function Replay(props) {
     const dateFormatter = (({ value }: { value: Date }): React.ReactElement => {
         return <>{`${value.toTimeString()}`}</>
     })
+    const socket = io();
     const [numPackets, setNumPackets] = useState(0);
     const [columns, setColumns] = useState<ReactDataGrid.Column<any>[]>(
         [
@@ -59,7 +60,7 @@ function Replay(props) {
     const [includePacketTypeDropDownOpen, setincludePacketTypeDropDownOpen] = useState(false);
     const [includePacketTypes, setincludePacketTypes] = useState('in');
     const [loadedFile, setloadedFile] = useState<any>();
-    const { socket }: { socket: SocketIOClient.Socket } = useContext(PoolContext);
+    // const { socket }: { socket: SocketIOClient.Socket } = useContext(PoolContext);
     let replayTimer: any = useRef()
     let replayspeed = useRef(25)
 
@@ -214,7 +215,8 @@ function Replay(props) {
     }
 
     return (<>
-        <CustomCard name={props.id} id={props.id}>
+    <UtilitiesLayout counter={0} >
+     
 
             <h1> Replay Packets</h1>
             <Row>
@@ -290,10 +292,11 @@ function Replay(props) {
                 />
 
             </Row>
-        </CustomCard>
+ 
+        </UtilitiesLayout>
     </>
     );
-
+1
 }
 
 export default Replay;

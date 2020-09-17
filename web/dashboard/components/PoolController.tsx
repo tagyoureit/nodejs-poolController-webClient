@@ -16,20 +16,18 @@ import {
 } from 'reactstrap';
 
 import BodiesState from './BodiesState';
+import ChemController from './ChemController';
 import Chlorinator from './Chlorinator';
 import Circuits from './Circuits';
+import { Discovery, useAPI, useComms } from './Comms';
 import useDataApi from './DataFetchAPI';
 import Features from './Features';
+import Light from './Light/Light';
 import Navbar from './Navbar';
 import Pump from './Pumps';
 import Schedule from './Schedules';
-import { useAPI, Discovery, useComms } from './Comms';
 import SysInfo from './SysInfo';
-import Light from './Light/Light';
-import { useInterval } from '../utilities/UseInterval'
-import ChemController from './ChemController'
-import Replay from './utilities/Replay'
-import SocketTester from './utilities/SocketTester';
+
 var extend=require("extend");
 export interface IPoolSystem {
     loadingMessage: string;
@@ -513,16 +511,17 @@ function PoolController() {
          if (typeof poolURL !== 'undefined'){
             if (typeof emitter !== 'undefined' && typeof emitterRef.current === 'undefined') emitterRef.current = emitter;
             if (typeof socket !== 'undefined' && typeof socketRef.current === 'undefined') socketRef.current = socket;
-            console.log(`SETTING EMITTERS`);
+            // console.log(`SETTING EMITTERS`);
            const fnError=function(data) {
                if(isError) return;
                doUpdate({ updateType: 'FETCH_FAILURE' });
             };
              const fnReconnect=()=> {
                 console.log(`Socket reconnected.`)
+                reloadFn();
             }
             const fnController=function(_data) {
-                console.log(`received controller emit`)
+                // console.log(`received controller emit`)
                 setCounter(p => p+1);
                 if (data.state.status.percent !== 100 && data.state.status.val !== 255 && _data.status.percent === 100) reloadFn();
                 doUpdate({ updateType: 'MERGE_OBJECT', data: _data, dataName: 'state' });
@@ -544,7 +543,7 @@ function PoolController() {
 
 
      useEffect(() => {
-        console.log(`poolURL changed: ${ poolURL }`)
+        // console.log(`poolURL changed: ${ poolURL }`)
         // when pool app gets a new poolURL, fetch data
         if(typeof poolURL!=='undefined') reloadFn();
     }, [poolURL])
@@ -557,7 +556,6 @@ function PoolController() {
 
     const switchSSDP=async (e) => {
         setSwitchDisabled(true);
-        console.log(`switching AWAY from ${ useSSDP }`)
         let data: Discovery;
         if(useSSDP) {
             let cd = extend(true,{},{override, useSSDP},{useSSDP: false})
@@ -583,7 +581,6 @@ function PoolController() {
             useSSDP
         };
         let resData = await setCommsData(cd);
-        console.log(`save override: ${resData}`)
     }
 
      const reloadFn=() => {
@@ -597,8 +594,8 @@ function PoolController() {
     }
 
     useEffect(() => {
-        console.log(`emitter changed!`)
-        console.log(emitter);
+        // console.log(`emitter changed!`)
+        // console.log(emitter);
     }, [emitter]);
 
     let className='';
@@ -620,10 +617,12 @@ function PoolController() {
     };
     return (
         <PoolContext.Provider value={{ visibility, reload: reloadFn, controllerType: data&&data.config&&data.config.controllerType||'none', poolURL, emitter:emitterRef.current, socket: socketRef.current }} >
-        <PoolURLContext.Provider value={{poolURL: poolURL || undefined}}>
+        <PoolURLContext.Provider value={{poolURL: '' || undefined}}>
             <div>
-                <Navbar>
-                    Configure Comms<br />
+                <Navbar
+                    appVersionState = {data.state.appVersionState}
+                >
+                    nodejs-poolController address and port<br />
                     <CustomInput type="switch" id="ssdpSwitch" name="ssdpSwitch" label="Use SSDP" checked={useSSDP} onChange={switchSSDP} disabled={switchDisabled? true:false} />
                     {useSSDP&&typeof poolURL==='undefined'&&'Waiting for SSDP to discover pool url.  Make sure that your SSDP server is enabled in the poolController/config.json file.  If you still have issues (eg your router is blocking uPNP) and need to set the IP manually, set it below.'}
                     {!useSSDP&&
@@ -645,8 +644,9 @@ function PoolController() {
                             </InputGroupAddon>
 
                         </InputGroup>
-                            <Button size='sm' color='link' onClick={saveManualLocation}>Save address</Button> (Current value: {poolURL})
+                            <Button size='sm' color='link' onClick={saveManualLocation}>Save address</Button>
                     </>}
+                    (Current value: {poolURL})
                 </Navbar>
 
                 {errorPresent()}
@@ -694,12 +694,6 @@ function PoolController() {
                         />
                         <ChemController
                             id="Chem Controllers"
-                        />
-                         <Replay
-                            id="Replay"
-                         />
-                         <SocketTester
-                            id="Socket Tester"
                         />
                         <div className='debugArea'>
 

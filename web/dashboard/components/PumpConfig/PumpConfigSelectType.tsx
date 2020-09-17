@@ -21,7 +21,6 @@ function PumpConfigSelectType(props: Props) {
     const [dropdownOpen, setDropDownOpen] = useState<boolean>(false);
 
     const changeName = async (data) => {
-        console.log(JSON.stringify(data))
         let pumps: IConfigPump[] = extend(true, [], props.options.pumps);
         let pump = pumps.find(p => p.id === props.currentPumpId)
         for (const [k, v] of Object.entries(data)) {
@@ -31,7 +30,6 @@ function PumpConfigSelectType(props: Props) {
     }
 
     function handleClick(event: any) {
-        console.log(`changing pump ${props.currentPumpId} type to ${event.target.value}`)
         let arr = extend(true, [], props.options.pumps);
         for (let i = 0; i < arr.length; i++) {
             if (arr[i].id === props.currentPumpId) {

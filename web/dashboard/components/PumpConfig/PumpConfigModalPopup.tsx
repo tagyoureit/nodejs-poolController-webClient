@@ -67,27 +67,6 @@ function PumpConfigModalPopup(props: Props) {
 
     const [pumpType, setPumpType]=useState<IConfigPumpType>();
 
-    /* eslint-disable react-hooks/exhaustive-deps */
-/*     useEffect(() => {
-        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'){
-            console.log(`LOADING PUMPEXT EMITTER; ${controllerType}`);
-    
-        const fnPumpExt=function(data) {
-            doUpdate({ updateType: 'REPLACE_ARRAY', dataName: ['options','pumps'], data }); 
-            let arr=[];
-            arr.push({ url: `${ poolURL }/config/options/pumps`, dataName: 'options' });
-            doFetch(arr);
-        };
-        emitter.on('pumpExt', fnPumpExt);
-
-        return () => {
-            console.log('UNLOADING PUMPEXT EMITTER');
-            
-            emitter.removeListener('pumpExt', fnPumpExt);
-        };
-        }
-    }, [poolURL,emitter]); */
-
     const changePumpType=async (pumpType: number) => {
         await axios({
             method: 'put',

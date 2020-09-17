@@ -47,19 +47,6 @@ function SysInfo(props: Props) {
         // open and close the modal
         setModalOpen(!modalOpen);
     }
-    const toISOLocal = (dt): string {
-        let tzo = dt.getTimezoneOffset();
-        var pad = function (n) {
-            var t = Math.floor(Math.abs(n));
-            return (t < 10 ? '0' : '') + t;
-        };
-        return new Date(dt.getTime() - (tzo * 60000)).toISOString().slice(0, -1) + (tzo > 0 ? '-' : '+') + pad(tzo / 60) + pad(tzo % 60)
-    }
-    const dateParse = (date: any) => {
-            if (new Date(date).toString()=== 'Invalid Date') date = toISOLocal(new Date());
-            var s = date.split(/[^0-9]/);
-            return new Date(s[0], s[1] - 1, s[2], s[3], s[4], s[5]);
-    }
     const closeBtn=<button className="close" onClick={toggleModal}>&times;</button>;
     return typeof props.state!=='string'&&typeof props.state!=='undefined'?
         (
@@ -81,8 +68,7 @@ function SysInfo(props: Props) {
                         <Col xs="6">Date/Time </Col>
                         <Col>
                             <DateTime 
-                            // origDateTime={dateParse(props?.state?.time === "" || typeof props.state.time === 'undefined' ? new Date(): props.state.time} 
-                            origDateTime={dateParse(props?.state?.time)} 
+                            origDateTime={props?.state?.time} 
                             config={props.config}
                             />
                         </Col>

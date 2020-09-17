@@ -1,16 +1,18 @@
-import StatusIndicator from '../StatusIndicator'
 import * as React from 'react';
-
-import
-{
+import {
     Collapse,
-    Navbar,
-    NavbarToggler,
-    NavbarBrand,
-    Nav,
+
+
+
+    Nav, Navbar,
+
+    NavbarBrand, NavbarToggler,
+
+
     NavItem,
     NavLink
 } from 'reactstrap';
+
 
 interface Props
 {
@@ -51,13 +53,13 @@ class UtilitiesNav extends React.Component<Props, any> {
                 <Collapse isOpen={this.state.isOpen} navbar>
                     <Nav className="ml-auto" >
                         <NavItem>
-                            <NavLink onClick={this.toggle} href="/" id='poolController' >nodejs-PoolController</NavLink>
+                            <NavLink onClick={this.toggle} href="/" id='poolController' >Back to Main App</NavLink>
                         </NavItem>
-                        <NavItem>
+{/*                         <NavItem>
                             <NavLink onClick={this.toggle} href="/packetSniffer">
                                 Packet Sniffer
                                 </NavLink>
-                        </NavItem>
+                        </NavItem> */}
                         <NavItem>
                             <NavLink onClick={this.toggle} href="/packetTester">
                                 Packet Tester

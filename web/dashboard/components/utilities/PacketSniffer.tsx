@@ -288,7 +288,7 @@ class PacketSniffer extends React.Component<Props, State> {
 
         return (
             <div className="tab-pane active" id="debug" role="tabpanel" aria-labelledby="debug-tab">
-                <CustomCard name={this.props.id} id={this.props.id} visibility='visible'>
+                <CustomCard name={this.props.id} id={this.props.id}>
                     <div className='mb-5'>
                         <InputGroup>
                             <InputGroupAddon addonType="prepend">

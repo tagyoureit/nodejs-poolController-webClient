@@ -18,7 +18,6 @@ function LightPosition(props: Props) {
     const execute = useAPI();
 
     useEffect(() => {
-        console.log(`props.circ.position: ${props.circ.position} -- targetPosition: ${targetPosition}`  )
         if (typeof props.circ.position==='undefined') return;
         if(targetPosition===props.circ.position) {
              setDisabled(false);
@@ -28,7 +27,6 @@ function LightPosition(props: Props) {
     const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); }
 
     const handleClick=async (event) => {
-        console.log(`lg: ${props.lgId} circId: ${ props.circ.id }, new position:  ${ event.target.value }`)
         setDisabled(true);
         setTargetPosition(parseInt(event.target.value))
         execute('configLightGroup', {id: props.lgId, circuits: [{circuit: props.circ.circuit, position: event.target.value}]})

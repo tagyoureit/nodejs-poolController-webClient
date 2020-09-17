@@ -1,6 +1,5 @@
-import { useState, useEffect, useReducer } from 'react';
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { PoolContext } from './PoolController';
+import axios, { AxiosResponse } from 'axios';
+import { useEffect, useReducer, useState } from 'react';
 var extend = require("extend");
 
 const dataFetchReducer = (state, action) => {
@@ -22,14 +21,16 @@ const dataFetchReducer = (state, action) => {
                 };
             case 'FETCH_SUCCESS':
                 delete state.error;
-                console.log(`returning...`);
-                console.log({
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    data: action.payload,
-                    doneLoading: true
-                });
+                if (debug){
+                    console.log(`returning...`);
+                    console.log({
+                        ...state,
+                        isLoading: false,
+                        isError: false,
+                        data: action.payload,
+                        doneLoading: true
+                    });
+                }
 
                 return {
                     ...state,
@@ -167,11 +168,15 @@ const dataFetchReducer = (state, action) => {
                                 }
                                 // if we replace the array with another array we replace the reference,
                                 // so need to empty out the original and push the new.
-                                let len = d.length;
-                                d.splice(0, len);
-                                for (let i = 0; i < action.data.length; i++) {
-                                    d.push(action.data[i]);
+                                if (Array.isArray(d)) {
+
+                                    let len = d.length;
+                                    d.splice(0, len);
+                                    for (let i = 0; i < action.data.length; i++) {
+                                        d.push(action.data[i]);
+                                    }
                                 }
+                                else d = action.data;
                                 return { ...state };
                             }
                             else if (typeof action.dataName !== 'undefined') state.data[action.dataName] = action.data
@@ -232,12 +237,26 @@ const useDataApi = (initialUrls, initialData) => {
                 let fetchArray = [];
                 let payload = {};
                 urls.forEach(el => {
-                    if (debug) console.log(`fetching: ${el.url}`);
+                    if (debug) {
+                        console.log(`fetching: ${el.url}`);
+                        console.log(`url: ${el.url}`)
+                        if (el.url.startsWith('undefined')) {
+                            console.log(`UNDEFINED URL!  ${el.url}`)
+                        }
+                    }
                     fetchArray.push(axios(el.url));
                 });
                 if (fetchArray.length > 0) {
                     let responseArr: AxiosResponse[] = await axios.all(fetchArray);
                     for (let i = 0; i < responseArr.length; i++) {
+
+
+                        if (typeof responseArr[i].data === 'string' && responseArr[i].data.startsWith('<!DOC')) {
+                            console.log(`<!DOC!`);
+                            throw new Error(`Unable to retrieve data at ${urls[i].url}.`);
+                        }
+
+
                         if (typeof urls[i].dataName === 'undefined') {
                             payload = Object.assign(true, {}, payload, responseArr[i].data);
                         }

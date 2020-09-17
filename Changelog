@@ -1,0 +1,13 @@
+
+# 6.1.0
+1. Bumped version by 5.1 to match core platform
+1. Connection to njsPC is through it's own server for this app.  Prior version would retrieve the ip of the njsPC from the webClient server and then the browser would connect directly to njsPC.  This wasn't ideal for numerous reasons, including proxies and remote connections, so now the app connects through the server included here.
+1. Chem Controllers support
+1. UI for "server" time which keeps OCP (outdoor control panel) sync with host time in cases (*Touch) where it doesn't make it's own internet connection
+1. Version notification for core platform
+1. Many bug fixes
+1. Personal/location information
+
+
+# 1.0.0
+Initial Release - compatible with nodejs-poolController 6.0.0

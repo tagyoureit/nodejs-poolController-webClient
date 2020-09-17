@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
-import { Col, Container, Row, DropdownToggle, UncontrolledButtonDropdown, DropdownItem, DropdownMenu, Button, UncontrolledAlert, Alert } from 'reactstrap';
+import { Col, Container, Row, DropdownToggle, UncontrolledButtonDropdown, DropdownItem, DropdownMenu, Button, UncontrolledAlert, Alert, ButtonGroup } from 'reactstrap';
 import '../css/rangeslider.css';
 import { useAPI } from './Comms';
 import { IExtendedChemController, IDetail, PoolContext } from './PoolController';
@@ -37,7 +37,7 @@ function ChemControllerEdit(props: Props) {
     // const [data.options.controllers, setLocalChemData] = useState(props.chemControllers);
     const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate] = useDataApi([], initialState);
     const { poolURL } = useContext(PoolContext);
-    const [error, seterror] = useState('');
+    const [error, seterror] = useState<React.ReactFragment>('');
     useEffect(() => {
         let arr = [];
         arr.push({ url: `${poolURL}/config/options/chemControllers`, dataName: 'options' });
@@ -48,8 +48,8 @@ function ChemControllerEdit(props: Props) {
     // }, [JSON.stringify(props.chemControllers)]);
     const execute = useAPI();
 
-    const onChange = (type: string, val: number | string, id: number) => {
-        let chemController = extend(true, {}, data.options.controllers.find(c => c.id === id));
+    const onChange = (type: string, val: number | string | boolean, address: number) => {
+        let chemController = extend(true, {}, data.options.controllers.find(c => c.address === address));
         switch (type) {
             case 'ph':
                 chemController.pHSetpoint = val as number;
@@ -78,30 +78,31 @@ function ChemControllerEdit(props: Props) {
         // setLocalChemData(_new)
     }
 
-    const onChangeComplete = (id: number) => {
+    const onChangeComplete = (address: number) => {
         const setdata = async () => {
-            let chemController = data.options.controllers.find(c => c.id === id);;
+            let chemController = data.options.controllers.find(c => c.address === address);;
             let res = await execute('setChemControllerConfig', {
-                "id": chemController.id,
+                "address": chemController.address,
                 "pHSetpoint": chemController.pHSetpoint,
                 "orpSetpoint": chemController.orpSetpoint,
                 "calciumHardness": chemController.calciumHardness,
                 "cyanuricAcid": chemController.cyanuricAcid,
                 "alkalinity": chemController.alkalinity,
-                "name": chemController.name
+                "name": chemController.name,
+                "isVirtual": chemController.isVirtual
             })
             if (typeof res.stack === 'undefined') {
                 props.doUpdate({ updateType: 'MERGE_ARRAY', data: res, dataName: 'chemControllers' });
             }
             else {
                 console.log(`Error: ${JSON.stringify(res)}`);
-                seterror(JSON.stringify(res));
+                setErrorHandler(JSON.stringify(res));
             }
         }
         setdata()
     };
     const changeName = async (data) => {
-        console.log(JSON.stringify(data))
+
         for (const [k, v] of Object.entries(data)) {
             onChange('name', v as string, parseInt(k, 10));
             onChangeComplete(parseInt(k, 10));
@@ -111,7 +112,6 @@ function ChemControllerEdit(props: Props) {
         let res:any = await execute('setChemControllerConfig', {})
         if (typeof res.stack === 'undefined') {
             if (Object.entries(res).length === 0){
-                console.log(`Chem controller responded with ${JSON.stringify(res)}.  Skipping add.`);
                 return;
             }
             let copy = extend(true, [], data.options.controllers);
@@ -122,23 +122,23 @@ function ChemControllerEdit(props: Props) {
         }
         else {
             console.log(`Error: ${JSON.stringify(res)}`);
-            seterror(JSON.stringify(data));
+            setErrorHandler(JSON.stringify(data));
         }
     }
 
     async function handleTypeChange(event: any) {
-        let id = parseInt(event.target.getAttribute('data-chemid'));
+        let address = parseInt(event.target.getAttribute('data-chemaddress'));
         let type = parseInt(event.target.value,10);
         const setdata = async () => {
             // let chemController = data.options.controllers.find(c => c.id === id);;
             let res = await execute('setChemControllerConfig', {
-                id,
+                address,
                 type
             })
             if (typeof res.stack === 'undefined') {
                 if (type === 0) {
                     // delete
-                    let idx = data.options.controllers.findIndex(c => c.id === id)
+                    let idx = data.options.controllers.findIndex(c => c.address === address)
 ;                   let copy = extend(true, [], data.options.controllers)
                     copy.splice(idx, 1);
                     // setLocalChemData(copy);
@@ -151,11 +151,39 @@ function ChemControllerEdit(props: Props) {
             }
             else {
                 console.log(`ERROR: ${JSON.stringify(res)}`);
-                seterror(JSON.stringify(res));
+                setErrorHandler(JSON.stringify(res));
             }
         }
         setdata()
+    }
+    async function handleIntelliChemVirtual(address: number, isVirtual: boolean) {
+        const setdata = async () => {
+            // let chemController = data.options.controllers.find(c => c.id === id);;
+            try {
 
+                let res = await execute('setChemControllerConfig', {
+                    address,
+                    isVirtual
+                })
+                if (typeof res.stack === 'undefined') {
+                    props.doUpdate({ updateType: 'MERGE_ARRAY', data: res, dataName: 'chemControllers' });
+                    doUpdate({ updateType: 'REPLACE_ARRAY', data: res, dataName: ['options','controllers'] })
+                }
+                else {
+                    console.log(`ERROR: ${JSON.stringify(res)}`);
+                    setErrorHandler(JSON.stringify(res));
+                }
+            }
+            catch (err) {
+                console.log(err);
+                if (typeof err.response.data.message !== 'undefined'){
+                    console.log(err.response.data.message)
+                    let msg: React.ReactFragment = (<><b>{err.response.data.message}</b><p>{err.response.data.stack}</p></>)
+                    setErrorHandler(msg);
+                }
+            }
+        }
+        setdata()
     }
     const heightStyle = {
         height: typeof data?.chemControllers?.controllers?.length === 'undefined' ? `385px` : `${310 * data.options.controllers.length || 0 + 75}px`
@@ -166,23 +194,24 @@ function ChemControllerEdit(props: Props) {
     const customCYALabels = { 0: "0", 30: "30", 50: "50", 100: "100" };
     const customALKLabels = { 0: "0", 80: "80", 120: "120", 240: "240" };
     
-    const [visible, setVisible] = useState(true);
+    const [visible, setVisible] = useState(false);
     const onDismiss = () => {setVisible(false); seterror('')};
+    const setErrorHandler = (err) => {seterror(err); setVisible(true);}
  
     return (doneLoading ? <>
         <div>
-        {error !== '' && <Alert color="danger" isOpen={visible} toggle={onDismiss}>
+        <Alert color="danger" isOpen={visible} toggle={onDismiss}>
       {error}
-    </Alert>}
+    </Alert>
             <Container style={heightStyle}>
                 {data.options.controllers.map((cC) => {
-                    return (<Container key={`chemController${cC.id}edit`} className='mb-5'>
+                    return (<Container key={`chemController${cC.address}edit`} className='mb-5'>
                         <Row>
-                            <Col>
+                            <Col sm="auto">
                                 <RIEInput
-                                    value={typeof cC.name !== 'undefined'? cC.name : `Chem Controller ${cC.id}`}
+                                    value={typeof cC.name !== 'undefined'? cC.name : `Chem Controller ${cC.address}`}
                                     change={changeName}
-                                    propName={cC.id.toString()}
+                                    propName={cC.address.toString()}
                                     className={"editable"}
                                     classLoading="loading"
                                     classInvalid="invalid"
@@ -195,24 +224,28 @@ function ChemControllerEdit(props: Props) {
                                     className='mb-1 mt-1'
                                 >
                                     <DropdownToggle caret
-                                    //disabled={circuit.nameId===0||disabledList.includes(circuit.id)}
                                     >   
                                         {data.options.types.find(type => type.val === cC.type).desc}
                                     </DropdownToggle>
                                     <DropdownMenu>
                                         {data.options.types.map(type => {
                                             return <DropdownItem
-                                                key={`cC${cC.id}name${type.val}`}
+                                                key={`cC${cC.address}name${type.val}`}
                                                 value={type.val}
-                                                // className={cf.desc==='Not Used'? 'colorRed':''}
-                                                data-chemid={cC.id}
+                                                data-chemaddress={cC.address}
                                                 onClick={handleTypeChange}
                                             >
                                                 {type.desc}
-                                            </DropdownItem>;
+                                            </DropdownItem>
                                         })}
                                     </DropdownMenu>
                                 </UncontrolledButtonDropdown>
+                                {cC.type === data.options.types.find(type => type.name === 'intellichem').val &&      
+                                <ButtonGroup>
+                                    <Button color="secondary" size="sm" className="mb-1 mt-1" onClick={() => handleIntelliChemVirtual(cC.address, true)} active={cC.isVirtual}>Standalone</Button>
+                                    <Button color="secondary" size="sm" className="mb-1 mt-1" onClick={() => handleIntelliChemVirtual(cC.address, false)} active={!cC.isVirtual}>Connected to OCP</Button>
+
+                                </ButtonGroup> }
                             </Col>
                         </Row>
                         <Row>Set points</Row>
@@ -224,12 +257,12 @@ function ChemControllerEdit(props: Props) {
                                 <Slider
                                     labels={customPHLabels}
                                     value={cC.pHSetpoint}
-                                    onChange={(val) => onChange('ph', val, cC.id)}
-                                    onChangeComplete={() => { onChangeComplete(cC.id) }}
+                                    onChange={(val) => onChange('ph', val, cC.address)}
+                                    onChangeComplete={() => { onChangeComplete(cC.address) }}
                                     min={7.2}
                                     max={7.6}
                                     step={0.1}
-                                    data-chemid={cC.id}
+                                    data-chemaddress={cC.address}
                                 />
                             </Col>
                             <Col xs='1' className='center'>
@@ -244,8 +277,8 @@ function ChemControllerEdit(props: Props) {
                                 <Slider
                                     labels={customORPLabels}
                                     value={cC.orpSetpoint}
-                                    onChange={(val) => onChange('orp', val, cC.id)}
-                                    onChangeComplete={() => { onChangeComplete(cC.id) }}
+                                    onChange={(val) => onChange('orp', val, cC.address)}
+                                    onChangeComplete={() => { onChangeComplete(cC.address) }}
                                     min={500}
                                     max={850}
                                     step={10}
@@ -264,8 +297,8 @@ function ChemControllerEdit(props: Props) {
                                 <Slider
                                     labels={customALKLabels}
                                     value={cC.alkalinity}
-                                    onChange={(val) => onChange('alk', val, cC.id)}
-                                    onChangeComplete={() => { onChangeComplete(cC.id) }}
+                                    onChange={(val) => onChange('alk', val, cC.address)}
+                                    onChangeComplete={() => { onChangeComplete(cC.address) }}
                                     min={0}
                                     max={240}
                                     step={5}
@@ -283,8 +316,8 @@ function ChemControllerEdit(props: Props) {
                                 <Slider
                                     labels={customCHLabels}
                                     value={cC.calciumHardness}
-                                    onChange={(val) => onChange('ch', val, cC.id)}
-                                    onChangeComplete={() => { onChangeComplete(cC.id) }}
+                                    onChange={(val) => onChange('ch', val, cC.address)}
+                                    onChangeComplete={() => { onChangeComplete(cC.address) }}
                                     min={0}
                                     max={1000}
                                     step={10}
@@ -302,8 +335,8 @@ function ChemControllerEdit(props: Props) {
                                 <Slider
                                     labels={customCYALabels}
                                     value={cC.cyanuricAcid}
-                                    onChange={(val) => onChange('cya', val, cC.id)}
-                                    onChangeComplete={() => { onChangeComplete(cC.id) }}
+                                    onChange={(val) => onChange('cya', val, cC.address)}
+                                    onChangeComplete={() => { onChangeComplete(cC.address) }}
                                     min={0}
                                     max={100}
                                     step={5}

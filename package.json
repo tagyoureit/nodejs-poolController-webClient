@@ -1,6 +1,6 @@
 {
   "name": "nodejs-poolcontroller-webclient",
-  "version": "1.0.0",
+  "version": "6.1.0",
   "description": "A web client for the nodejs-poolcontroller app v6.0 and higher",
   "main": "/dist/index.html",
   "scripts": {
@@ -12,7 +12,8 @@
     "build": "tsc && npm run build:parcel",
     "build:parcel": "parcel build --public-url . web/dashboard/index.html --out-dir dist/web",
     "debug:server": "./node_modules/.bin/tsc-watch --onSuccess \"node --inspect ./dist/Server.js\"",
-    "debug:client": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\""
+    "debug:client": "./node_modules/.bin/tsc-watch --onSuccess \"node ./dist/Server.js\"",
+    "watch": "tsc -w"
   },
   "author": "Russell Goldin",
   "license": "AGPL-3.0",

@@ -1,13 +1,10 @@
 import 'react-rangeslider/lib/index.css';
 
 import React, { useContext, useEffect, useState } from 'react';
-import Slider from 'react-rangeslider';
-import { Button, ButtonGroup, Col, ListGroup, ListGroupItem, Row, FormGroup, Form, Label, Input } from 'reactstrap';
+import { Button, Form, FormGroup, Input, Label, ListGroup } from 'reactstrap';
 
 import CustomCard from '../CustomCard';
-import useDataApi from '../DataFetchAPI';
 import { PoolContext } from '../PoolController';
-import { useAPI } from '../Comms';
 
 
 function SocketTester(props) {

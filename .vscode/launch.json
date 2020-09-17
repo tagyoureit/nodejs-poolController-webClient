@@ -5,11 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/src/Server.ts",
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+          },
+        {
             "type": "chrome",
             "request": "attach",
             "name": "Attach to Chrome",
             "port": 9222,
-            "webRoot": "${workspaceFolder}/dist/web/",
+            "webRoot": "${workspaceFolder}/dist/web/"
             // "preLaunchTask": "launch chromium" 
         },
         {
@@ -26,7 +33,7 @@
                 "<node_internals>/**"
             ],
             "timeout": 40000,
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/src"
         }
        
        

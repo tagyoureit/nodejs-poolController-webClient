@@ -121,10 +121,7 @@ function Chlorinator(props: Props) {
                         <Col xs="6">Virtual Controller Status:</Col>
                         <Col xs="6">{currentChlor.virtualControllerStatus.desc}</Col>
                     </Row>)}
-                    <Row>
-                        <Col xs="6">Salt</Col>
-                        <Col xs="6">{currentChlor?.saltLevel} ppm</Col>
-                    </Row>
+
                     <Row>
                         <Col xs="6">Current Output</Col>
                         <Col xs="6">{currentChlor?.currentOutput} %</Col>
@@ -134,6 +131,10 @@ function Chlorinator(props: Props) {
                                 </Col>
                         <Col xs="6">{currentChlor?.body?.val===0? `${ currentChlor.poolSetpoint }%`:`${ currentChlor.poolSetpoint }% / ${ currentChlor.spaSetpoint }%`}
                         </Col>
+                    </Row>
+                    <Row>
+                        <Col xs="6">Salt</Col>
+                        <Col xs="6">{currentChlor?.saltLevel} ppm</Col>
                     </Row>
                     <Row>
                         <Col xs="6">Status</Col>

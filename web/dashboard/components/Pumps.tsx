@@ -37,8 +37,8 @@ function Pump(props: Props) {
     useEffect(() => {
         if(typeof poolURL!=='undefined' && typeof emitter !== 'undefined') {
             const fnPump=function(data) {
-                console.log(`received pump:`)
-                console.log(data)
+                // console.log(`received pump:`)
+                // console.log(data)
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'pumps', data });
             };
             emitter.on('pump', fnPump);
@@ -55,12 +55,11 @@ function Pump(props: Props) {
 
     
     return (
-        <div className="tab-pane active" id="pump" role="tabpanel" aria-labelledby="pump-tab">
+        <div className="tab-pane active" id="Pumps" role="tabpanel" aria-labelledby="Pump-tab">
             <CustomCard name='Pumps' key='title' id={props.id} edit={() => setModalOpen(!modalOpen)}>
                 <CardGroup className="">
                     <ErrorBoundary>
                         {doneLoading && data.pumps&&data.pumps.length===0 && 'Pool app still searching or did not find any pumps responding to status requests.'}
-
                         {data.pumps.length > 0 && data.pumps.reduce((accumulator, currentValue) =>  accumulator && currentValue?.type?.name === 'none', true) 
                         && `Please configure up to ${data.pumps.length} pumps`} 
                     

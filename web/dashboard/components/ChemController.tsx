@@ -37,16 +37,10 @@ function ChemControllers(props: any) {
     }
 
     useEffect(() => {
-
-        console.log(`typeof poolURL !== 'undefined' && typeof emitter !== 'undefined': ${typeof poolURL !== 'undefined' && typeof emitter !== 'undefined'}`);
-        console.log(`typeof emitter !== 'undefined': ${typeof emitter !== 'undefined'}`);
-        console.log(`typeof poolURL !== 'undefined': ${typeof emitter !== 'undefined'}`);
-
-
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
             refreshChem();
             const fn = function (data) {
-                console.log(`received chemController emit`);
+                // console.log(`received chemController emit`);
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'chemControllers', data });
             };
             emitter.on('chemController', fn);
@@ -58,7 +52,6 @@ function ChemControllers(props: any) {
     }, [poolURL, emitter]);
 
     const toggleModal = () => {
-        console.log(`modalOpen (${modalOpen}) && needsReload(${needsReload}): ${modalOpen && needsReload}`);
         if (modalOpen && needsReload) {
             reload();
             setNeedsReload(false);
@@ -85,11 +78,6 @@ function ChemControllers(props: any) {
                 return <img src={tank0} style={{ height: '100%', maxWidth: '100%' }} />
         }
     }
-
-    useEffect(() => {
-        console.log(`CHANGED: JSON.stringify(data?.alarmsAndWarnings)]: ${JSON.stringify(data.alarmsAndWarnings)}`)
-
-    }, [JSON.stringify(data.alarmsAndWarnings)]);
 
     const displayAlarmsAndWarnings = (address: number) => {
         alarmsAndWarnings.current = [];
@@ -180,7 +168,7 @@ function ChemControllers(props: any) {
             ...obj
         })
         if (typeof axiosres.stack === 'undefined') {
-            props.doUpdate({ updateType: 'MERGE_ARRAY', data: axiosres, dataName: 'alarmsAndWarnings' });
+            doUpdate({ updateType: 'MERGE_OBJECT', data: axiosres, dataName: 'alarmsAndWarnings' });
         }
         else {
             console.log(`Error: ${JSON.stringify(axiosres)}`);
@@ -217,9 +205,7 @@ function ChemControllers(props: any) {
     const closeBtn = <button className="close" onClick={() => { toggleModal(); }}>&times;</button>;
     return (
         <>
-
             <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
-
                 <CustomCard name='Chem Controllers' id={props.id} edit={() => setModalOpen(!modalOpen)}>
                     {doneLoading && !isError && typeof data.chemControllers === 'undefined' || data?.chemControllers?.length > 0 && data.chemControllers.map((chemController) => {
 
@@ -240,8 +226,8 @@ function ChemControllers(props: any) {
                                                 {/* </div> */}
                                                 <p />
                                                 {/* <div style={{position: 'absolute', bottom: '0', lineHeight:'1'}} className='centerText'> */}
-                                                        pH Dosing: {chemController?.pHDosingstatus?.desc} <br />
-                                                        orp Dosing: {chemController?.orpDosingstatus?.desc} <br />
+                                                        pH Dosing: {chemController?.pHDosingStatus?.desc} <br />
+                                                        orp Dosing: {chemController?.orpDosingStatus?.desc} <br />
                                                         Alk: {chemController?.alkalinity} <br />
                                                         CH:  {chemController?.calciumHardness} <br />
                                                         CYA: {chemController?.cyanuricAcid}

@@ -87,12 +87,12 @@ function Features(props: Props) {
         var _data = data;
         if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
             const fnFeature = (incoming) => {
-                console.log(`received feature emit`)
+                // console.log(`received feature emit`)
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'features', data: incoming });
 
             };
             const fnCG = (incoming) => {
-                console.log(`received circuitGroup emit`)
+                // console.log(`received circuitGroup emit`)
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'circuitGroups', data: incoming });
 
             };

@@ -77,7 +77,6 @@ function PumpConfigSelectSpeedSlider(props: Props) {
     }
 
     const onChangeComplete=() => {
-        console.log(`changing currentSpeed=${ currentCircuit().flow||currentCircuit().speed } ${ units().name } currentPumpCircuit=${ currentCircuit().id } to speed ${ desiredRate }`)
         let data:IConfigPump[] = extend(true, [], props.options.pumps);
         let circ = data.find(p=>p.id === props.currentPumpId).circuits.find(circ => circ.id === props.currentPumpCircuitId)
         if (units().name === 'gpm'){

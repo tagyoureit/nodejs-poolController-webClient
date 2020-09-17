@@ -39,7 +39,7 @@ function ChlorinatorCustomSlider(props: Props) {
     };
 
     const onChangeComplete=() => {
-        console.log(`setting chlor: id:${ props.chlor.id }, poolSP: ${ poolSetpoint }, spaSP:${ spaSetpoint||0 }, superChlorHrs:${ superChlorHours }`)
+        // console.log(`setting chlor: id:${ props.chlor.id }, poolSP: ${ poolSetpoint }, spaSP:${ spaSetpoint||0 }, superChlorHrs:${ superChlorHours }`)
         execute('setChlor', {id: props.chlor.id, poolSetpoint, spaSetpoint:spaSetpoint||0, superChlorHours:superChlorHours||0});
     };
 

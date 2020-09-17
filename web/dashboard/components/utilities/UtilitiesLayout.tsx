@@ -16,13 +16,13 @@ const NavMenu = () =>
 {
     return ( <Nav className="ml-auto" >
         <NavItem>
-            <NavLink href="/" id='poolController' >nodejs-PoolController</NavLink>
+            <NavLink href="/" id='poolController' >Return to main app</NavLink>
         </NavItem>
-        <NavItem>
+     {/*    <NavItem>
             <NavLink  href="/packetSniffer">
                 Packet Sniffer
         </NavLink>
-        </NavItem>
+        </NavItem> */}
         <NavItem>
             <NavLink href="/packetTester">
                 Packet Tester

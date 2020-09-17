@@ -6,6 +6,7 @@ class Config {
     private _cfg: any;
     constructor() {
         this.cfgPath = path.posix.join(process.cwd(), "/config.json");
+        console.log(`path: ${this.cfgPath}`)
         try {
             this._cfg = fs.existsSync(this.cfgPath)
                 ? JSON.parse(fs.readFileSync(this.cfgPath, "utf8"))
@@ -54,9 +55,7 @@ class Config {
     }
     public init() {
         let baseDir = process.cwd();
-        this.ensurePath(baseDir + '/logs/');
         this.ensurePath(baseDir + '/data/');
-        this.ensurePath(baseDir + '/replay/');
 
         setTimeout(function () { config.update(); }, 100);
     }

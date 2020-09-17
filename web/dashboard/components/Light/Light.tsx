@@ -14,10 +14,10 @@ interface Props {
     id: string;
 }
 
-const initialState: {options: IConfigOptionsLightGroups, lightGroups: IConfigLightGroup[]}=
+const initialState: { options: IConfigOptionsLightGroups, lightGroups: IConfigLightGroup[] } =
 
 {
-    options:{
+    options: {
         maxLightGroups: 1,
         equipmentNames: [],
         themes: [],
@@ -30,31 +30,30 @@ const initialState: {options: IConfigOptionsLightGroups, lightGroups: IConfigLig
 };
 
 function Light(props: Props) {
-    const [dropdownOpen, setDropdownOpen]=useState(false);
-    const [modalOpen, setModalOpen]=useState(false);
-    const execute=useAPI();
-    const toggleDropDown=() => { setDropdownOpen(!dropdownOpen); };
-    const handleClick=async (theme, id) => {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
+    const execute = useAPI();
+    const toggleDropDown = () => { setDropdownOpen(!dropdownOpen); };
+    const handleClick = async (theme, id) => {
         await execute('setLightGroupTheme', { id, theme });
     };
-    const closeBtn=<button className="close" onClick={() => setModalOpen(!modalOpen)}>&times;</button>;
-    const { reload, poolURL, controllerType, emitter }=useContext(PoolContext);
-    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate]=useDataApi(undefined, initialState);
+    const closeBtn = <button className="close" onClick={() => setModalOpen(!modalOpen)}>&times;</button>;
+    const { reload, poolURL, controllerType, emitter } = useContext(PoolContext);
+    const [{ data, isLoading, isError, doneLoading }, doFetch, doUpdate] = useDataApi(undefined, initialState);
     useEffect(() => {
-        if(typeof poolURL!=='undefined'&&typeof emitter!=='undefined') {
+        if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
             reloadData();
-            const fn=function(data) {
-                console.log(`received lightGroup emit`);
+            const fn = function (data) {
                 reloadData();
                 doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'lightGroups', data });
             };
             emitter.on('lightGroup', fn);
-            emitter.on('lightGroupConfig', function(data) {
+            emitter.on('lightGroupConfig', function (data) {
                 doUpdate({ updateType: 'REPLACE_ARRAY', dataName: ['options', 'lightGroups'], data });
             });
             return () => {
                 emitter.removeListener('lightGroup', fn);
-                emitter.removeListener('lightGroupConfig', function(data) {
+                emitter.removeListener('lightGroupConfig', function (data) {
                     doUpdate({ updateType: 'REPLACE_ARRAY', dataName: ['options', 'lightGroups'], data });
                 });
             };
@@ -62,87 +61,87 @@ function Light(props: Props) {
     }, [poolURL, doFetch, emitter]);
 
     const reloadData = () => {
-        if (data.options.themes.length === 0){
+        if (data.options.themes.length === 0) {
             let arr = [];
-            arr.push({ url: `${ poolURL }/config/options/lightGroups`, dataName: 'options' });
-            arr.push({ url: `${ poolURL }/state/lightGroups`, dataName: 'lightGroups' });
+            arr.push({ url: `${poolURL}/config/options/lightGroups`, dataName: 'options' });
+            arr.push({ url: `${poolURL}/state/lightGroups`, dataName: 'lightGroups' });
             doFetch(arr);
         }
     }
 
     return (<>
 
-            <div className="tab-pane active" id="light" role="tabpanel" aria-labelledby="light-tab">
+        <div className="tab-pane active" id="Lights" role="tabpanel" aria-labelledby="Lights-tab">
 
-                <CustomCard name='Lights' id={props.id} edit={() => setModalOpen(!modalOpen)}>
-                    {doneLoading&&!isError&& typeof data.lightGroups !== 'undefined' && data.lightGroups.length > 0 && 
+            <CustomCard name='Lights' id={props.id} edit={() => setModalOpen(!modalOpen)}>
+                {doneLoading && !isError && typeof data.lightGroups !== 'undefined' && data.lightGroups.length > 0 &&
                     data.lightGroups.map(lightGroup => {
-                        return (<div key={`lightGroup${ lightGroup.id }`}>
+                        return (<div key={`lightGroup${lightGroup.id}`}>
 
                             {lightGroup?.type?.desc}&nbsp;
                             <ListGroup>
                                 <ListGroupItem>
 
-                            {lightGroup.action.val? `: Please wait... ${ lightGroup.action.desc }`:<><ButtonDropdown
-                                isOpen={dropdownOpen}
-                                toggle={toggleDropDown}
-                                disabled={lightGroup.action.val!==0}
-                            >
-                                <DropdownToggle caret>
-                                    Light Modes
+                                    {lightGroup.action.val ? `: Please wait... ${lightGroup.action.desc}` : <><ButtonDropdown
+                                        isOpen={dropdownOpen}
+                                        toggle={toggleDropDown}
+                                        disabled={lightGroup.action.val !== 0}
+                                    >
+                                        <DropdownToggle caret>
+                                            Light Modes
                         </DropdownToggle>
-                                <DropdownMenu>
+                                        <DropdownMenu>
 
-                                    {data?.options?.themes.filter(theme => theme.type==='intellibrite'
-                                        &&!['colorsync', 'colorswim', 'colorset', 'on', 'off'].includes(theme.name)
-                                    ).map(theme => {
-                                        return <DropdownItem onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`}>{theme.desc}</DropdownItem>;
-                                    })}
-                                </DropdownMenu>
-                            </ButtonDropdown>
-                                <ButtonGroup>
+                                            {data?.options?.themes.filter(theme => theme.type === 'intellibrite'
+                                                && !['colorsync', 'colorswim', 'colorset', 'on', 'off'].includes(theme.name)
+                                            ).map(theme => {
+                                                return <DropdownItem onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${theme.val}`}>{theme.desc}</DropdownItem>;
+                                            })}
+                                        </DropdownMenu>
+                                    </ButtonDropdown>
+                                        <ButtonGroup>
 
-                                
-                                {data.options.themes.filter(theme => theme.name==='on').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-2'}>{theme.desc}</Button>;
-                                })}
-                                {data.options.themes.filter(theme => theme.name==='off').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} >{theme.desc}</Button>;
-                                })}
-                                </ButtonGroup>
-                                <ButtonGroup>
 
-                                {data.options.themes.filter(theme => theme.name==='colorsync').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} className={'ml-2'}>Sync</Button>;
-                                })}
-                                {data.options.themes.filter(theme => theme.name==='colorswim').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} >Swim</Button>;
-                                })}
-                                {data.options.themes.filter(theme => theme.name==='colorset').map(theme => {
-                                    return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${ theme.val }`} >Set</Button>;
-                                })}
-                                </ButtonGroup>
-                            </>}
-                            {data.options.lightGroups.length>0&&<br />}
-                            </ListGroupItem>
+                                            {data.options.themes.filter(theme => theme.name === 'on').map(theme => {
+                                                return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${theme.val}`} className={'ml-2'}>{theme.desc}</Button>;
+                                            })}
+                                            {data.options.themes.filter(theme => theme.name === 'off').map(theme => {
+                                                return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${theme.val}`} >{theme.desc}</Button>;
+                                            })}
+                                        </ButtonGroup>
+                                        <ButtonGroup>
+
+                                            {data.options.themes.filter(theme => theme.name === 'colorsync').map(theme => {
+                                                return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${theme.val}`} className={'ml-2'}>Sync</Button>;
+                                            })}
+                                            {data.options.themes.filter(theme => theme.name === 'colorswim').map(theme => {
+                                                return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${theme.val}`} >Swim</Button>;
+                                            })}
+                                            {data.options.themes.filter(theme => theme.name === 'colorset').map(theme => {
+                                                return <Button onClick={() => { handleClick(theme.val, lightGroup.id); }} key={`theme-${theme.val}`} >Set</Button>;
+                                            })}
+                                        </ButtonGroup>
+                                    </>}
+                                    {data.options.lightGroups.length > 0 && <br />}
+                                </ListGroupItem>
                             </ListGroup>
                         </div>);
                     })
-                    }
-                
+                }
 
-                </CustomCard>
-                <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} size='xl' scrollable={true}>
-                    <ModalHeader toggle={() => setModalOpen(!modalOpen)} close={closeBtn}>Adjust Light Groups</ModalHeader>
-                    <ModalBody>
-                        <LightEdit data={data.options} />
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button onClick={() => setModalOpen(!modalOpen)}>Close</Button>
-                    </ModalFooter>
-                </Modal>
-            </div>
-        
+
+            </CustomCard>
+            <Modal isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)} size='xl' scrollable={true}>
+                <ModalHeader toggle={() => setModalOpen(!modalOpen)} close={closeBtn}>Adjust Light Groups</ModalHeader>
+                <ModalBody>
+                    <LightEdit data={data.options} />
+                </ModalBody>
+                <ModalFooter>
+                    <Button onClick={() => setModalOpen(!modalOpen)}>Close</Button>
+                </ModalFooter>
+            </Modal>
+        </div>
+
     </>
     );
 };

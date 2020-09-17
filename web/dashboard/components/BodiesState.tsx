@@ -40,11 +40,11 @@ function BodiesState(props: Props) {
     useEffect(() => {
         if (typeof poolURL!== 'undefined' && typeof emitter !== 'undefined'){
         const fnTemps=function(obj) { 
-            console.log(`incoming socket temps`)
+            // console.log(`incoming socket temps`)
             checkInitData()
             doUpdate({ updateType: 'MERGE_OBJECT', dataName: 'temps', data: obj }); };
         const fnBody=function(obj) { 
-            console.log(`incoming socket body`)
+            // console.log(`incoming socket body`)
             checkInitData();
             doUpdate({ updateType: 'MERGE_ARRAY', dataName: ['temps', 'bodies'], data: obj }); };
         emitter.on('temps', fnTemps);

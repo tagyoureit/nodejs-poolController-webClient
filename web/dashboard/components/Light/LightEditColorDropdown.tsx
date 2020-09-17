@@ -50,8 +50,6 @@ function LightColor(props:Props) {
 
   const handleClick = (event) =>
   {
-    console.log(`lg... props.data.circuit, event.target.value: ${lgcircId}, ${event.target.value}`)
-    //comms.setLightColor( lg... props.circId.circuit, event.target.value )
         setDisabled(true);
         setTargetColor(parseInt(event.target.value))
         execute('configLightGroup', {id: props.lgId, circuits: [{circuit: circuitId, color: event.target.value}]})

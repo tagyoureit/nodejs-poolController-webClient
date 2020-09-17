@@ -172,14 +172,14 @@ function CircuitModalPopup(props: Props) {
     }
 
     const handleShowInFeaturesChange = async (id: number, data: boolean) => {
-        console.log(data);
-        addDisabledList(id);
+        // console.log(data);
+        // addDisabledList(id);
         let res = await execute('setCircuit', { id, 'showInFeatures': data });
         update();
         props.setNeedsReload(true);
     };
     const changeName = async (data) => {
-        console.log(data);
+        // console.log(data);
         const id = parseInt(Object.keys(data)[0], 10);
         const name = Object.values(data)[0];
         let res = await execute('setCircuit', { id, name });
@@ -190,14 +190,14 @@ function CircuitModalPopup(props: Props) {
     const changeNameById = async (event) => {
         let circId = parseInt(event.target.getAttribute('data-circuit'));
         let circName = JSON.parse(event.target.value);
-        console.log(circName);
+        // console.log(circName);
         await execute('setCircuit', { id: circId, nameId: circName.val });
         addDisabledList(circId);
         update();
         props.setNeedsReload(true);
     };
     const changeFreeze = async (id: number, data: boolean) => {
-        console.log(data);
+        // console.log(data);
         addDisabledList(id);
         let res = await execute('setCircuit', { id, freeze: data });
         update();

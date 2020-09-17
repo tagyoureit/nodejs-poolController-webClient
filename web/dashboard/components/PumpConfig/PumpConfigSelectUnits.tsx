@@ -37,7 +37,6 @@ function PumpConfigSelectUnits(props:Props) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const handleClick = (event: any) => {
-        console.log(`changing circuitSlot ${props.currentPumpCircuitId} type to ${event.target.value}`);
         let data:IConfigPump[] = extend(true, [], props.options.pumps);
         let circ = data.find(p=>p.id === props.currentPumpId).circuits.find(circ => circ.id === props.currentPumpCircuitId)
         circ.units = parseInt(event.target.value,10) as 0 | 1;

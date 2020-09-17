@@ -41,7 +41,6 @@ function PumpConfigSelectCircuit(props: Props){
     }
     const handleClick = ( event: any ) =>
     {
-        console.log( `changing  circuitSlot=${ currentCircuit().id } type to circuit ${ event.target.value } (${ getItemById(props.options.circuits, parseInt(event.target.value, 10)) .name })` )
         let data:IConfigPump[] = extend(true, [], props.options.pumps);
         let pump = data.find(p=>p.id === props.currentPumpId)
         let idx = pump.circuits.findIndex(circ => circ.id === props.currentPumpCircuitId);
