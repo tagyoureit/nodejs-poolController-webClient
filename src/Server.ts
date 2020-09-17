@@ -77,8 +77,8 @@ const initSocketClient = () => {
         console.log(`SOCKET reconnect.`)
     });
     ioClient.on('*', (socketData) => {
-        console.log(`Incoming socket: ${socketData.data[0]} with data`)
-        console.log(socketData.data[1])
+        // console.log(`Incoming socket: ${socketData.data[0]} with data`)
+        // console.log(socketData.data[1])
         if (socketData.data[1] === null || socketData.data[1] === undefined) {
             console.log(`ALERT: Null socket data received for ${socketData.data[0]}`);
         } else {
@@ -229,9 +229,10 @@ async function startBundler() {
             case 'extended':
             case 'app':
                 {
-                    console.log(`req.url: ${req.url}`)
+                    console.log(`Redirecting request to : ${poolURL}${req.path}`)
                     let opts: AxiosRequestConfig = {
-                        url: `${req.protocol}://${req.hostname}:4200${req.path}`,
+                        // url: `${req.protocol}://${req.hostname}:4200${req.path}`,
+                        url: `${poolURL}${req.path}`,
                         method: req.method as Method,
                         data: req.body
                     }

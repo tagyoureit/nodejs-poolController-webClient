@@ -119,7 +119,6 @@ function DateTime(props: Props) {
         setAlert(JSON.stringify(err));
       }
       try {
-
         await execute('setDateTime', {
           hour: newDateTime.getHours(),
           min: newDateTime.getMinutes(),

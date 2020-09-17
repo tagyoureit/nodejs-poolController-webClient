@@ -13,28 +13,9 @@
   },
   "options": {
     "hidePanels": [
-      null,
-      null
     ],
     "debug": false
   },
   "chemController": {
-    "144": {
-      "alarms": {
-        "flow": {
-          "val": 1,
-          "name": "noflow",
-          "desc": "No Flow",
-          "dismissed": true
-        },
-        "pHTank": {
-          "val": 32,
-          "name": "phtankempty",
-          "desc": "pH Tank Empty",
-          "dismissed": true
-        }
-      },
-      "warnings": {}
-    }
   }
 }
