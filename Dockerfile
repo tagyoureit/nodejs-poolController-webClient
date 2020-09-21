@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+ENV PARCEL_WORKERS=1
 RUN npm run build:parcel
 RUN npm prune --production
 
