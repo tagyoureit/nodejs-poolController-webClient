@@ -16,16 +16,16 @@ import {
 } from 'reactstrap';
 
 import BodiesState from './BodiesState';
-import ChemController from './ChemController';
-import Chlorinator from './Chlorinator';
+import ChemController from './ChemController/ChemController';
+import Chlorinator from './Chlorinator/Chlorinator';
 import Circuits from './Circuits';
 import { Discovery, useAPI, useComms } from './Comms';
 import useDataApi from './DataFetchAPI';
 import Features from './Features';
 import Light from './Light/Light';
 import Navbar from './Navbar';
-import Pump from './Pumps';
-import Schedule from './Schedules';
+import Pump from './Pumps/Pumps';
+import Schedule from './Schedules/Schedules';
 import SysInfo from './SysInfo';
 
 var extend=require("extend");
@@ -110,12 +110,12 @@ export interface IConfigCircuitGroup {
 export interface IConfigCircuitGroupCircuit {
     id: number;
     circuit: number;
-    desiredStateOn: boolean;
+    desiredState: boolean;
 }
 export interface IStateCircuitGroupCircuit {
     id: number;
     circuit: IStateCircuit[];
-    desiredStateOn: boolean;
+    desiredState: boolean;
 }
 export interface IStatePumpCircuit {
     id: number,
@@ -130,7 +130,11 @@ export interface IStateCircuit {
     isOn: boolean;
     name: string;
     nameId?: number;
-    type?: IDetail;
+    type?: {    val: number;
+        name: string;
+        desc: string;
+        hasHeatSource?: boolean
+    }
     lightingTheme?: IDetail;
     equipmentType: equipmentType;
     showInFeatures: boolean;
@@ -154,6 +158,29 @@ export interface IStateChlorinator {
     name: string;
     body: IDetail;
 }
+export interface IConfigOptionsSchedules {
+    maxSchedules: number;
+    tempUnits: IDetail;
+    scheduleTimeTypes: IDetail[];
+    scheduleTypes: IConfigScheduleType[];
+    scheduleDays: {val:number; days:IDetail[]}[];
+    heatSources: IDetail[];
+    circuits: {id: number; name: string; type: number; equipmentType: string; nameId: number; hasHeatSource?: boolean}[];
+    schedules: IConfigSchedule[];
+    clockMode: number;
+    eggTimers: IConfigEggTimer[];
+}
+export interface IConfigScheduleType{
+    val: number;
+    name: string;
+    desc: string;
+    startDate: boolean;
+    startTime: boolean;
+    endTime: boolean;
+    days: string;
+    heatSource: boolean;
+    heatSetpoint: boolean
+}
 export interface IStateSchedule {
     id: number;
     circuit: IStateCircuit,
@@ -164,7 +191,12 @@ export interface IStateSchedule {
         val: number;
         days: (IDetail&{ dow: number; })[];
     };
-    equipmentType: string
+    startTimeType: IDetail;
+    endTimeType: IDetail;
+    equipmentType: string;
+    heatSource?: IDetail;
+    heatSetpoint?: number;
+    changeHeatSetpoint?: boolean;
 }
 export interface IStatePump {
     command: number;
@@ -252,8 +284,13 @@ export interface IConfigSchedule {
     circuit: number;
     startTime: number;
     endTime: number;
-    isActive: boolean;
+    isActive?: boolean;
     scheduleDays: number;
+    scheduleType: number;
+    startTimeType: number;
+    endTimeType: number;
+    heatSource?: number;
+    heatSetpoint?: number;
 }
 export interface IConfigEggTimer {
     id: number;
@@ -523,6 +560,9 @@ function PoolController() {
             const fnController=function(_data) {
                 // console.log(`received controller emit`)
                 setCounter(p => p+1);
+                console.log(`STATE EMIT`);
+                console.log(data);
+                
                 if (data.state.status.percent !== 100 && data.state.status.val !== 255 && _data.status.percent === 100) reloadFn();
                 doUpdate({ updateType: 'MERGE_OBJECT', data: _data, dataName: 'state' });
             };
@@ -686,7 +726,6 @@ function PoolController() {
                             id="Virtual Circuits"
                         />
                         <Schedule
-                            data={data.state.schedules}
                             id="Schedules"
                         />
                         <Chlorinator

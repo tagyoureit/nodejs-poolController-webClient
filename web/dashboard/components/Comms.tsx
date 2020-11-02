@@ -81,8 +81,8 @@ export const useComms = (): any[] => {
                 emitter.emit('socket-reconnect');
             });
             socket.on('*', (data) => {
-                // console.log(`Incoming socket: ${data.data[0]} with data`)
-                // console.log(data.data[1])
+                console.log(`Incoming socket: ${data.data[0]} with data`)
+                console.log(data.data[1])
                 if (data.data[1] === null || data.data[1] === undefined) {
                     console.log(`ALERT: Null socket data received for ${data.data[0]}`);
                 } else {
@@ -237,6 +237,14 @@ export const useAPI = () => {
             // GENERAL
             case 'configGeneral':
                 opts.url = `${poolURL}/config/general`
+                break;
+            // SCHEDULE
+            case 'deleteSched':
+                opts.url = `${poolURL}/config/schedule`;
+                opts.method = 'DELETE';
+                break;
+            case 'updateSched':
+                opts.url = `${poolURL}/config/schedule`;
                 break;
             default:
                 console.log(`missing API call ${action}`)

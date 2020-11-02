@@ -1,10 +1,12 @@
-import { Container, Row, Col, Button } from 'reactstrap';
-import { useAPI } from './Comms';
-import Slider from 'react-rangeslider';
+import '../../css/rangeslider.css';
 import 'react-rangeslider/lib/index.css';
-import '../css/rangeslider.css';
+
 import React, { useEffect, useState } from 'react';
-import { IStateChlorinator, IState, getItemById, IConfigChlorinator } from './PoolController';
+import Slider from 'react-rangeslider';
+import { Col, Container, Row } from 'reactstrap';
+
+import { useAPI } from '../Comms';
+import { IConfigChlorinator, IStateChlorinator } from '../PoolController';
 
 interface Props {
     chlor: IConfigChlorinator&IStateChlorinator,

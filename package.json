@@ -1,6 +1,6 @@
 {
   "name": "nodejs-poolcontroller-webclient",
-  "version": "6.1.0",
+  "version": "6.1.1",
   "description": "A web client for the nodejs-poolcontroller app v6.0 and higher",
   "main": "/dist/index.html",
   "scripts": {

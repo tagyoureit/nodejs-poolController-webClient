@@ -4,8 +4,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import Slider from 'react-rangeslider';
 import { Button, ButtonGroup, Col, ListGroup, ListGroupItem, Row } from 'reactstrap';
 
-import CustomCard from './CustomCard';
-import useDataApi from './DataFetchAPI';
+
 import { PoolContext, IStateTemp, ConfigOptionsHeaters, IStateTempBodyDetail, IDetail } from './PoolController';
 import { useAPI } from './Comms';
 var extend = require('extend');

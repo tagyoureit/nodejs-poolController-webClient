@@ -1,17 +1,23 @@
-
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import {
-    Row, Col, Table, Card, CardImg, CardText, CardBody,
-    CardTitle, CardSubtitle, Button, CardFooter, CardGroup,
-    Modal, ModalHeader, ModalBody, ModalFooter
+    Button,
+    Card,
+    CardBody,
+    CardGroup,
+    CardText,
+    CardTitle,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
 } from 'reactstrap';
-import CustomCard from './CustomCard';
-import DateTime from './DateTime';
-import React, { useContext, useState, useEffect, useReducer } from 'react';
-import PumpConfigModalPopup from './PumpConfig/PumpConfigModalPopup';
-import { IStatePump, IConfigPump, PoolContext } from './PoolController';
-import { useAPI } from './Comms';
-import useDataApi from './DataFetchAPI';
-import ErrorBoundary from './ErrorBoundary';
+
+import CustomCard from '../CustomCard';
+import useDataApi from '../DataFetchAPI';
+import ErrorBoundary from '../ErrorBoundary';
+import { IStatePump, PoolContext } from '../PoolController';
+import PumpConfigModalPopup from './PumpConfigModalPopup';
+
 
 interface Props {
     id: string;

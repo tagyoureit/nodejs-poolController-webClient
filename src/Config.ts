@@ -5,15 +5,16 @@ class Config {
     private cfgPath: string;
     private _cfg: any;
     constructor() {
+        const def = JSON.parse(fs.readFileSync(path.join(process.cwd(), "/defaultConfig.json"), "utf8").trim());
         this.cfgPath = path.posix.join(process.cwd(), "/config.json");
         console.log(`path: ${this.cfgPath}`)
         try {
             this._cfg = fs.existsSync(this.cfgPath)
                 ? JSON.parse(fs.readFileSync(this.cfgPath, "utf8"))
-                : {};
+                : def;
         } catch (err) {
-            console.log(`Error reading config.json.  Setting to {}.`);
-            this._cfg = {};
+            console.log(`Error reading config.json.  Setting to defaultConfig.json.`);
+            this._cfg = def;
         }
     }
     public update() {

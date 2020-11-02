@@ -214,7 +214,7 @@ return props.origDateTime && doneLoading && !isError ? (<>
                 <Col md={6}>
                   <FormGroup>
                     <Label className={'mb-0'} for="timeZone">Time Zone</Label>
-                    <Input type="select" name="select" id="timeZone" defaultValue={data.general.pool.location.timeZone || 0} >
+                    <Input type="select" name="select" id="timeZone" defaultValue={data.general?.pool?.location?.timeZone || 0} >
                       {data.general?.timeZones?.map(k => {
                         return (<option key={k.val} value={k.val}>({k.utcOffset}) {k.name}</option>)
                       })}

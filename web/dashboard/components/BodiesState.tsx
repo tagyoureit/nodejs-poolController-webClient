@@ -1,14 +1,10 @@
-import 'react-rangeslider/lib/index.css';
-
 import React, { useContext, useEffect, useState } from 'react';
-import Slider from 'react-rangeslider';
-import { Button, ButtonGroup, Col, ListGroup, ListGroupItem, Row } from 'reactstrap';
 
+import BodyState from './BodyState';
 import CustomCard from './CustomCard';
 import useDataApi from './DataFetchAPI';
-import { PoolContext, IStateTempBodyDetail } from './PoolController';
-import { useAPI } from './Comms';
-import BodyState from './BodyState'
+import { PoolContext } from './PoolController';
+
 const flame=require('../images/flame.png');
 interface Props {
     id: string;  

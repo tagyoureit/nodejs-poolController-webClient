@@ -1,0 +1,14 @@
+{
+  "discovery": {
+    "override": {
+      "protocol": "http",
+      "host": "localhost",
+      "port": 4200
+    },
+    "useSSDP": false,
+    "poolURL": "http://localhost:4200"
+  },
+  "web": {
+    "port": 8080
+  }
+}

@@ -2,19 +2,19 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import HSBar from "react-horizontal-stacked-bar-chart";
 import { Button, Col, Container, ListGroup, ListGroupItem, Modal, ModalBody, ModalFooter, ModalHeader, Row, UncontrolledAlert, Alert } from 'reactstrap';
 import ChemControllerEdit from './ChemControllerEdit';
-import { useAPI } from './Comms';
-import CustomCard from './CustomCard';
-import useDataApi from './DataFetchAPI';
-import { IExtendedChemController, PoolContext, IDetail } from './PoolController';
+import { useAPI } from '../Comms';
+import CustomCard from '../CustomCard';
+import useDataApi from '../DataFetchAPI';
+import { IExtendedChemController, PoolContext, IDetail } from '../PoolController';
 var extend = require("extend");
 
-const tank0 = require('../images/Tank-0.png');
-const tank1 = require('../images/Tank-1.png');
-const tank2 = require('../images/Tank-2.png');
-const tank3 = require('../images/Tank-3.png');
-const tank4 = require('../images/Tank-4.png');
-const tank5 = require('../images/Tank-5.png');
-const tank6 = require('../images/Tank-6.png');
+const tank0 = require('../../images/Tank-0.png');
+const tank1 = require('../../images/Tank-1.png');
+const tank2 = require('../../images/Tank-2.png');
+const tank3 = require('../../images/Tank-3.png');
+const tank4 = require('../../images/Tank-4.png');
+const tank5 = require('../../images/Tank-5.png');
+const tank6 = require('../../images/Tank-6.png');
 
 const initialState: { chemControllers: IExtendedChemController[]; } = { chemControllers: [] };
 

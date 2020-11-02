@@ -2,12 +2,12 @@ import React, { useState, useEffect, useContext } from 'react';
 import Slider from 'react-rangeslider';
 import 'react-rangeslider/lib/index.css';
 import { Col, Container, Row, DropdownToggle, UncontrolledButtonDropdown, DropdownItem, DropdownMenu, Button, UncontrolledAlert, Alert, ButtonGroup } from 'reactstrap';
-import '../css/rangeslider.css';
-import { useAPI } from './Comms';
-import { IExtendedChemController, IDetail, PoolContext } from './PoolController';
-import useDataApi from './DataFetchAPI';
+import '../../css/rangeslider.css';
+import { useAPI } from '../Comms';
+import { IExtendedChemController, IDetail, PoolContext } from '../PoolController';
+import useDataApi from '../DataFetchAPI';
 import { RIEInput } from '@attently/riek';
-const editIcon = require('../images/edit.png');
+const editIcon = require('../../images/edit.png');
 var extend = require("extend");
 
 interface Props {

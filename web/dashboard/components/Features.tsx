@@ -153,7 +153,7 @@ function Features(props: Props) {
                         let details = cg.circuits.map(cgc => {
                             return (<Row className={"p-0"} key={`cgid${cg.id}cgcid${cgc.id}_circuitGroupDetails`}>
                                 <Col className={"p-0"} xs="4">{cgc.circuit.name} </Col>
-                                <Col className={"p-0"} xs="4">{cgc.desiredStateOn ? 'On' : 'Off'}</Col>
+                                <Col className={"p-0"} xs="4">{cgc.desiredState}</Col>
                                 <Col className={"p-0"} xs="4">{cgc.circuit.isOn ? 'On' : 'Off'}</Col>
                             </Row>)
                         });

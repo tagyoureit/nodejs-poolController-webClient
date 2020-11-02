@@ -1,13 +1,13 @@
 import {
     Row, Col, Modal, ModalHeader, ModalBody, ModalFooter, Button, ListGroup, ListGroupItem
 } from 'reactstrap';
-import CustomCard from './CustomCard'
+import CustomCard from '../CustomCard'
 import 'react-rangeslider/lib/index.css'
 import ChlorinatorCustomSlider from './ChlorinatorCustomSlider'
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext, PoolURLContext, ControllerType } from './PoolController';
-import { useAPI } from './Comms';
-import useDataApi from './DataFetchAPI';
+import { IStateChlorinator, getItemById, IConfigChlorinator, IStateCircuit, PoolContext, PoolURLContext, ControllerType } from '../PoolController';
+import { useAPI } from '../Comms';
+import useDataApi from '../DataFetchAPI';
 import axios from 'axios';
 interface Props {
     id: string;

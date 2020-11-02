@@ -1,10 +1,9 @@
-import { Container, Row, Col, Button, Table, Dropdown, ButtonDropdown, DropdownToggle, DropdownItem, DropdownMenu } from 'reactstrap'
-import Slider from 'react-rangeslider'
-import 'react-rangeslider/lib/index.css'
-import '../../css/rangeslider.css'
 import React, { useContext, useEffect, useState } from 'react';
-import { IConfigLightGroupCircuit } from '../PoolController'
-import { useAPI } from '../Comms'
+import { ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
+
+import { useAPI } from '../Comms';
+import { IConfigLightGroupCircuit } from '../PoolController';
+
 //TODO: when the modal is showing and this dropdown is open, the modal is scrolling in the background instead of the dropdown scrolling
 
 interface Props {
