@@ -475,7 +475,7 @@ function SysInfoEditLogger(props: Props) {
                             </Col>
 
                         </Row>
-                        <Button type='submit'>Send</Button>
+                        <Button type='submit'>Save</Button>
                     </Form>
 
 

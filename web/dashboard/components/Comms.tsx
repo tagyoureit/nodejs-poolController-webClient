@@ -246,6 +246,15 @@ export const useAPI = () => {
             case 'updateSched':
                 opts.url = `${poolURL}/config/schedule`;
                 break;
+            // FILTER
+            case 'updateFilter':
+                opts.url = `${poolURL}/config/filter`;
+                break;
+            case 'deleteFilter':
+                opts.url = `${poolURL}/config/filter`;
+                opts.method = 'delete';
+                break;
+            
             default:
                 console.log(`missing API call ${action}`)
                 return Promise.reject(`missing API call ${action}`)

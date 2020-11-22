@@ -27,7 +27,7 @@ import Navbar from './Navbar';
 import Pump from './Pumps/Pumps';
 import Schedule from './Schedules/Schedules';
 import SysInfo from './SysInfo';
-
+import Filter from './Filter/Filter';
 var extend=require("extend");
 export interface IPoolSystem {
     loadingMessage: string;
@@ -733,6 +733,9 @@ function PoolController() {
                         />
                         <ChemController
                             id="Chem Controllers"
+                        />
+                        <Filter
+                            id="Filters"
                         />
                         <div className='debugArea'>
 

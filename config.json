@@ -12,14 +12,7 @@
     "port": 8080
   },
   "options": {
-    "hidePanels": [
-      "Virtual Circuits",
-      "Circuit Groups",
-      "Lights",
-      "Features",
-      "Circuits",
-      "Pumps"
-    ],
+    "hidePanels": [],
     "debug": false
   },
   "chemController": {
