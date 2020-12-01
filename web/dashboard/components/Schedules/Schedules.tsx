@@ -31,20 +31,20 @@ function Schedule(props: Props) {
     doFetch(arr);
   }
 
-      /* eslint-disable react-hooks/exhaustive-deps */
-      useEffect(() => {
-        if(typeof poolURL!=='undefined' && typeof emitter !== 'undefined') {
-            const fnSchedule=function(data) {
-                doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'schedules', data });
-            };
-            emitter.on('schedule', fnSchedule);
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (typeof poolURL !== 'undefined' && typeof emitter !== 'undefined') {
+      const fnSchedule = function (data) {
+        doUpdate({ updateType: 'MERGE_ARRAY', dataName: 'schedules', data });
+      };
+      emitter.on('schedule', fnSchedule);
 
-            return () => {
-                emitter.removeListener('schedule', fnSchedule);
-            };
-        }
-    }, [poolURL, emitter]);
-    /* eslint-enable react-hooks/exhaustive-deps */
+      return () => {
+        emitter.removeListener('schedule', fnSchedule);
+      };
+    }
+  }, [poolURL, emitter]);
+  /* eslint-enable react-hooks/exhaustive-deps */
   const buttons = (schedDays: IDetail[], schedId: number): any => {
     let res: any[] = [];
 
@@ -60,30 +60,35 @@ function Schedule(props: Props) {
         color="success"
         size="sm"
       >
-          {currSched.scheduleDays.val !== 0 ? currSched.scheduleDays.days[0].desc.substring(0, 3): 'None'}
+          {currSched.scheduleDays.val !== 0 ? currSched.scheduleDays.days[0].desc.substring(0, 3) : 'None'}
         </Button></div>)
     }
     else {
-      
-        let innerRes:any[] = [];
-      data.options.scheduleDays.map(optionsDay => {
-      innerRes.push(
-        <Button
-          className={'p-1'}
-          key={`id:${schedId}-${optionsDay.val}-button`}
-          color={
-            schedDays.findIndex(schedDay => schedDay.name === optionsDay?.days[0]?.name) !== -1
-              ? "success"
-              : "secondary"
-          }
-          size="sm"
-        >
-          {optionsDay.days[0].desc.substring(0, 2)}
-        </Button>
-      );
-    });
-    res.push(<ButtonGroup key={`scheduleButtons-${schedId}`}>{innerRes}</ButtonGroup>)
-  }
+
+      let innerRes: any[] = [];
+      if (typeof data?.options?.scheduleDays !== 'undefined' || data?.options?.scheduleDays.length > 0) {
+        console.log(currSched)
+
+        data.options.scheduleDays.map(optionsDay => {
+          console.log(`optionsDay: ${JSON.stringify(optionsDay)}`)
+          innerRes.push(
+            <Button
+              className={'p-1'}
+              key={`id:${schedId}-${optionsDay.val}-button`}
+              color={
+                schedDays.findIndex(schedDay => schedDay.name === optionsDay?.name) !== -1
+                  ? "success"
+                  : "secondary"
+              }
+              size="sm"
+            >
+              {optionsDay.desc.substring(0, 2)}
+            </Button>
+          );
+        });
+      }
+      res.push(<ButtonGroup key={`scheduleButtons-${schedId}`}>{innerRes}</ButtonGroup>)
+    }
 
     return res;
   }
@@ -95,30 +100,30 @@ function Schedule(props: Props) {
     let currSched: IStateSchedule = data.schedules.find(s => s.id === schedId);
     if (currSched.scheduleType.name === 'runonce') {
       res.push(<span key={`id:${schedId}-${currSched.id}-letter`} className={'text-muted'}>Once: <span
-        
+
         className={
-         "text-success"
+          "text-success"
         }
       >
-        {currSched.scheduleDays.val !== 0 ? currSched.scheduleDays.days[0].desc.substring(0,3) : 'None'}
+        {currSched.scheduleDays.val !== 0 ? currSched.scheduleDays.days[0].desc.substring(0, 3) : 'None'}
       </span></span>)
     }
-    else 
-    data.options.scheduleDays.map(optionsDay => {
-      // this had size='sm' but typescript doesn't like it... do we need to keep it small?
-      res.push(
-        <span
-          key={`id:${schedId}-${optionsDay.val}-letter`}
-          className={
-            schedDays.findIndex(schedDay => schedDay.name === optionsDay.days[0].name) !== -1
-              ? "text-success"
-              : "text-muted"
-          }
-        >
-          {optionsDay.days[0].desc.substring(0, 1)}
-        </span>
-      );
-    });
+    else
+      data.options.scheduleDays.map(optionsDay => {
+        // this had size='sm' but typescript doesn't like it... do we need to keep it small?
+        res.push(
+          <span
+            key={`id:${schedId}-${optionsDay.val}-letter`}
+            className={
+              schedDays.findIndex(schedDay => schedDay.name === optionsDay.name) !== -1
+                ? "text-success"
+                : "text-muted"
+            }
+          >
+            {optionsDay.desc.substring(0, 1)}
+          </span>
+        );
+      });
     return res;
   }
 
@@ -213,13 +218,13 @@ function Schedule(props: Props) {
 
           </Row>
           {typeof sched.heatSource !== 'undefined' && <Row>
-            <Col xs={'auto'} style={{fontSize:'50%'}}>
+            <Col xs={'auto'} style={{ fontSize: '50%' }}>
 
-            &nbsp;Heat Source: {sched.heatSource.desc} {sched.heatSource.name !== 'off' && sched.changeHeatSetpoint ? `(Set Point: ${sched.heatSetpoint})` : `` }
+              &nbsp;Heat Source: {sched.heatSource.desc} {sched.heatSource.name !== 'off' && sched.changeHeatSetpoint ? `(Set Point: ${sched.heatSetpoint})` : ``}
             </Col>
 
-            </Row>}
-          </div>
+          </Row>}
+        </div>
         );
       });
     }

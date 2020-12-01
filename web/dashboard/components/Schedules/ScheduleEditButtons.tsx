@@ -32,13 +32,13 @@ function ScheduleEditButtons
           className={'p-1'}
           key={`id:${schedId}-${optionsDay.val}-button`}
           color={
-            schedDays.findIndex(schedDay => schedDay.name === optionsDay.days[0].name) !== -1
+            schedDays.findIndex(schedDay => schedDay.name === optionsDay.name) !== -1
               ? "success"
               : "secondary"
           }
           size="sm"
         >
-          {optionsDay.days[0].desc.substring(0, 2)}
+          {optionsDay.desc.substring(0, 2)}
         </Button>
       );
     });
@@ -64,17 +64,17 @@ function ScheduleEditButtons
         className={'p-1'}
         key={`${optionsDay.val}-button`}
         color={
-          props.currentSched.scheduleDays.days.findIndex(schedDay => schedDay.name === optionsDay.days[0].name) !== -1
+          props.currentSched.scheduleDays.days.findIndex(schedDay => schedDay.name === optionsDay.name) !== -1
             ? "success"
             : "secondary"
         }
         size="sm"
-        value={props.currentSched.scheduleDays.days.findIndex(schedDay => schedDay.name === optionsDay.days[0].name) !== -1
+        value={props.currentSched.scheduleDays.days.findIndex(schedDay => schedDay.name === optionsDay.name) !== -1
           ? optionsDay.val * -1
           : optionsDay.val}
         onClick={handleClick}
       >
-        {optionsDay.days[0].desc.substring(0, 2)}
+        {optionsDay.desc.substring(0, 2)}
       </Button>
 
     })}

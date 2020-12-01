@@ -32,6 +32,35 @@
         }
       },
       "warnings": {}
+    },
+    "null": {
+      "alarms": {
+        "flow": {
+          "val": 1,
+          "name": "noflow",
+          "desc": "No Flow",
+          "dismissed": true
+        },
+        "pH": {
+          "val": 4,
+          "name": "phlow",
+          "desc": "pH Low",
+          "dismissed": true
+        },
+        "orp": {
+          "val": 8,
+          "name": "orphigh",
+          "desc": "orp High",
+          "dismissed": true
+        },
+        "orpTank": {
+          "val": 64,
+          "name": "orptankempty",
+          "desc": "orp Tank Empty",
+          "dismissed": true
+        }
+      },
+      "warnings": {}
     }
   }
 }
