@@ -22,7 +22,7 @@
   ],
   "dependencies": {
     "@types/react-data-grid": "^4.0.5",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "express": "^4.17.1",
     "multicast-dns": "^7.2.2",
     "node-ssdp": "^4.0.0",
