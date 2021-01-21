@@ -37,7 +37,7 @@
     "react-timekeeper": "^2.1.1",
     "reactstrap": "^8.5.1",
     "rimraf": "^3.0.2",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.0",
     "socketio-wildcard": "^2.0.0",
     "tsc-watch": "^4.2.9",
     "update": "^0.7.4",
