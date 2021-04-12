@@ -1,3 +1,6 @@
+# THIS PROJECT IS NOW DEPRECATED
+The only web client for nodejs-poolController that is being currently maintained is [dashPanel](https://github.com/rstrouse/nodejs-poolcontroller-dashPanel).  Please switch to that project.
+
 # nodejs-poolController-webClient
 
 This client application is for use with [nodejs-poolController](https://github.com/tagyoureit/nodejs-poolcontroller) (an app for controlling Pentair pool equipment).
